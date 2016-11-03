@@ -17,6 +17,7 @@ public:
     void LoadModel(const std::string &_modelFile);
 
     const aiScene *m_scene;
+    Assimp::Importer m_importer;
 };
 
 #endif // MODEL_H

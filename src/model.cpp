@@ -15,8 +15,7 @@ Model::~Model()
 void Model::LoadModel(const std::string &_modelFile)
 {
     // Load mesh with ASSIMP
-    Assimp::Importer importer;
-    m_scene = importer.ReadFile(_modelFile,
+    m_scene = m_importer.ReadFile(_modelFile,
                                     aiProcess_GenSmoothNormals |
                                     aiProcess_Triangulate |
                                     aiProcess_JoinIdenticalVertices |
