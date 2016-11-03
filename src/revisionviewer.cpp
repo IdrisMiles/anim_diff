@@ -47,7 +47,7 @@ void RevisionViewer::paintGL()
 
     glUniformMatrix4fv(m_projMatrixLoc, 1, false, &m_projMat[0][0]);
     glUniformMatrix4fv(m_mvMatrixLoc, 1, false, &(m_modelMat*m_viewMat)[0][0]);
-    glm::mat3 normalMatrix =  glm::inverse(m_modelMat);
+    glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
     glUniformMatrix3fv(m_normalMatrixLoc, 1, true, &normalMatrix[0][0]);
 
 
@@ -68,7 +68,7 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
 
     const aiScene *scene = _revision->m_model->m_scene;
 
-    std:cout << scene << "\n";
+    std::cout << scene << "\n";
 
     if(!scene)
     {
