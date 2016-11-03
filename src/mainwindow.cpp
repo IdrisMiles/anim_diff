@@ -6,7 +6,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    m_scene = new OpenGLScene(this);
+    m_scene = new RevisionViewer(this);
     ui->gridLayout->addWidget(m_scene, 1, 1, 1, 1);
 
 

@@ -22,3 +22,5 @@ MOC_DIR = ./moc
 FORMS    += ./form/mainwindow.ui
 
 UI_DIR += ./ui
+
+CONFIG += console c++11

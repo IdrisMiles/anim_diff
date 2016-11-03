@@ -16,7 +16,7 @@ public:
 
     void LoadModel(const std::string &_modelFile);
 
-    std::shared_ptr<const aiScene> m_scene;
+    const aiScene *m_scene;
 };
 
 #endif // MODEL_H

@@ -6,7 +6,6 @@ RevisionViewer::RevisionViewer(QWidget *parent) : OpenGLScene(parent)
 {
     m_wireframe = false;
     m_drawMesh = true;
-
 }
 
 
@@ -18,6 +17,19 @@ RevisionViewer::~RevisionViewer()
 
 void RevisionViewer::paintGL()
 {
+
+    // test hack
+    static bool init = false;
+
+    if(!init)
+    {
+        std::shared_ptr<RevisionNode> test(new RevisionNode());
+        test->LoadModel("/home/george/projects/Collab/bin/GiantTeapot.obj");
+        init = true;
+
+        LoadRevision(test);
+    }
+
     // clean gl window
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
@@ -54,7 +66,10 @@ void RevisionViewer::paintGL()
 void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
 {
 
-    auto scene = _revision->m_model->m_scene;
+    const aiScene *scene = _revision->m_model->m_scene;
+
+    std:cout << scene << "\n";
+
     if(!scene)
     {
         std::cout<<"No valid AIScene\n";
@@ -87,39 +102,39 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
     }
 
 
-    m_shaderProg->bind();
-    glUniform3fv(m_colourLoc, 1, &m_physicsBodyProperties->colour[0]);
+    // m_shaderProg->bind();
+    // glUniform3fv(m_colourLoc, 1, &m_colour[0]);
 
-    m_meshVAO.create();
-    m_meshVAO.bind();
+    // m_meshVAO.create();
+    // m_meshVAO.bind();
 
-    m_meshIBO.create();
-    m_meshIBO.bind();
-    m_meshIBO.allocate(&m_meshElementIndex[0], m_meshElementIndex.size() * sizeof(int));
-    m_meshIBO.release();
+    // m_meshIBO.create();
+    // m_meshIBO.bind();
+    // m_meshIBO.allocate(&m_meshTris[0], m_meshTris.size() * sizeof(int));
+    // m_meshIBO.release();
 
-    // Setup our vertex buffer object.
-    m_meshVBO.create();
-    m_meshVBO.bind();
-    m_meshVBO.allocate(&m_meshVerts[0], m_meshVerts.size() * sizeof(glm::vec3));
+    // // Setup our vertex buffer object.
+    // m_meshVBO.create();
+    // m_meshVBO.bind();
+    // m_meshVBO.allocate(&m_meshVerts[0], m_meshVerts.size() * sizeof(glm::vec3));
 
-    glEnableVertexAttribArray( 0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-    m_meshVBO.release();
-
-
-    // Setup our normals buffer object.
-    m_meshNBO.create();
-    m_meshNBO.bind();
-    m_meshNBO.allocate(&m_meshNorms[0], m_meshNorms.size() * sizeof(glm::vec3));
-
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-    m_meshNBO.release();
+    // glEnableVertexAttribArray( 0);
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+    // m_meshVBO.release();
 
 
-    m_meshVAO.release();
+    // // Setup our normals buffer object.
+    // m_meshNBO.create();
+    // m_meshNBO.bind();
+    // m_meshNBO.allocate(&m_meshNorms[0], m_meshNorms.size() * sizeof(glm::vec3));
 
-    m_shaderProg->release();
+    // glEnableVertexAttribArray(1);
+    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+    // m_meshNBO.release();
+
+
+    // m_meshVAO.release();
+
+    // m_shaderProg->release();
 
 }

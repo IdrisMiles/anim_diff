@@ -6,6 +6,7 @@
 #include <QMainWindow>
 
 #include "openglscene.h"
+#include "revisionviewer.h"
 
 
 namespace Ui {
