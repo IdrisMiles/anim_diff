@@ -1,2 +1,2 @@
-# Collab
+# Colab
 Collaborative Research Project
