@@ -31,3 +31,8 @@
 # Qt
 *.pro.user
 *.qmake.stash
+
+moc/*
+bin/*
+Makefile
+ui/*
