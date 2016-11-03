@@ -14,12 +14,6 @@
 #include <glm/gtx/transform.hpp>
 
 
-// ASSIMP includes
-#include <assimp/scene.h>
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
-
-
 
 class OpenGLScene : public QOpenGLWidget
 {
@@ -28,7 +22,7 @@ class OpenGLScene : public QOpenGLWidget
 
 public:
     OpenGLScene(QWidget *parent = 0);
-    ~OpenGLScene();
+    virtual ~OpenGLScene();
 
     QSize minimumSizeHint() const Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
@@ -51,16 +45,12 @@ signals:
     void zTranslationChanged(int z);
 
 protected:
-    void initializeGL() Q_DECL_OVERRIDE;
-    void paintGL() Q_DECL_OVERRIDE;
-    void resizeGL(int width, int height) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void initializeGL() override;
+    void paintGL() override;
+    void resizeGL(int width, int height) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
-private:
-    void initializeDemoTriangle();
-    void renderDemoTriangle();
-    void cleanDemoTriangle();
 
     int m_xRot;
     int m_yRot;
@@ -83,11 +73,6 @@ private:
     glm::mat4 m_modelMat;
 
 
-    // Demo triangle specifics
-    QOpenGLVertexArrayObject m_vao;
-    QOpenGLBuffer m_vbo;
-    glm::vec3 m_colour;
-    int m_colourLoc;
 
 
 };

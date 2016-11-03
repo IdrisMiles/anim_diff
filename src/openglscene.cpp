@@ -107,18 +107,18 @@ void OpenGLScene::setZRotation(int angle)
 void OpenGLScene::cleanup()
 {
     makeCurrent();
-    cleanDemoTriangle();
     delete m_shaderProg;
     m_shaderProg = 0;
     doneCurrent();
 }
 
+/*
 void OpenGLScene::cleanDemoTriangle()
 {
     m_vbo.destroy();
     m_vao.destroy();
 }
-
+*/
 
 void OpenGLScene::initializeGL()
 {
@@ -155,13 +155,14 @@ void OpenGLScene::initializeGL()
 
     //---------------------------------------------------------------------------------------
     // Demo triangle - replace this per project
-    initializeDemoTriangle();
+
     //---------------------------------------------------------------------------------------
 
 
     m_shaderProg->release();
 }
 
+/*
 void OpenGLScene::initializeDemoTriangle()
 {
     m_colour = glm::vec3(0.8f, 0.4f, 0.4f);
@@ -205,7 +206,7 @@ void OpenGLScene::renderDemoTriangle()
 
     m_vao.release();
 }
-
+*/
 void OpenGLScene::paintGL()
 {
     // clean gl window
@@ -231,7 +232,8 @@ void OpenGLScene::paintGL()
 
     //---------------------------------------------------------------------------------------
     // Draw code - replace this with project specific draw stuff
-    renderDemoTriangle();
+
+
     //---------------------------------------------------------------------------------------
 
 
