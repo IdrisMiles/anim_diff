@@ -18,6 +18,9 @@ protected:
 
 private:
 
+    bool m_wireframe;
+    bool m_drawMesh;
+
     QOpenGLVertexArrayObject m_meshVAO;
     QOpenGLBuffer m_meshVBO;
     QOpenGLBuffer m_meshNBO;

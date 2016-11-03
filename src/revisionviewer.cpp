@@ -4,6 +4,8 @@
 
 RevisionViewer::RevisionViewer(QWidget *parent) : OpenGLScene(parent)
 {
+    m_wireframe = false;
+    m_drawMesh = true;
 
 }
 
@@ -39,6 +41,9 @@ void RevisionViewer::paintGL()
 
     //---------------------------------------------------------------------------------------
     // Draw code - replace this with project specific draw stuff
+    m_meshVAO.bind();
+    glDrawElements(m_wireframe?GL_LINES:GL_TRIANGLES, 3*m_meshTris.size(), GL_UNSIGNED_INT, &m_meshTris[0]);
+    m_meshVAO.release();
 
     //---------------------------------------------------------------------------------------
 
@@ -111,28 +116,6 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
     m_meshNBO.release();
-
-
-    // set up instance model matrix buffer object
-    m_meshModelMatInstanceBO.create();
-    m_meshModelMatInstanceBO.bind();
-    m_meshModelMatInstanceBO.allocate(&m_modelMat, 1 * sizeof(glm::mat4));
-
-    glEnableVertexAttribArray(m_modelMatricesLoc+0);
-    glEnableVertexAttribArray(m_modelMatricesLoc+1);
-    glEnableVertexAttribArray(m_modelMatricesLoc+2);
-    glEnableVertexAttribArray(m_modelMatricesLoc+3);
-    glVertexAttribPointer(m_modelMatricesLoc+0, 4, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::mat4), 0);
-    glVertexAttribPointer(m_modelMatricesLoc+1, 4, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::mat4), reinterpret_cast<void *>(1 * sizeof(glm::vec4)));
-    glVertexAttribPointer(m_modelMatricesLoc+2, 4, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::mat4), reinterpret_cast<void *>(2 * sizeof(glm::vec4)));
-    glVertexAttribPointer(m_modelMatricesLoc+3, 4, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::mat4), reinterpret_cast<void *>(3 * sizeof(glm::vec4)));
-
-    glVertexAttribDivisor(m_modelMatricesLoc+0, 1);
-    glVertexAttribDivisor(m_modelMatricesLoc+1, 1);
-    glVertexAttribDivisor(m_modelMatricesLoc+2, 1);
-    glVertexAttribDivisor(m_modelMatricesLoc+3, 1);
-
-    m_meshModelMatInstanceBO.release();
 
 
     m_meshVAO.release();
