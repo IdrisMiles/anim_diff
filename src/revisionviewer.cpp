@@ -50,6 +50,8 @@ void RevisionViewer::paintGL()
     glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
     glUniformMatrix3fv(m_normalMatrixLoc, 1, true, &normalMatrix[0][0]);
 
+    glUniform3fv(m_colourLoc, 1, &m_colour[0]);
+
 
     //---------------------------------------------------------------------------------------
     // Draw code - replace this with project specific draw stuff
@@ -102,6 +104,8 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
 
 
      m_shaderProg->bind();
+
+     m_colour = glm::vec3(0.8f,0.4f,0.4f);
      glUniform3fv(m_colourLoc, 1, &m_colour[0]);
 
      m_meshVAO.create();

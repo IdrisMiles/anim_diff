@@ -25,12 +25,18 @@ private:
     QOpenGLBuffer m_meshVBO;
     QOpenGLBuffer m_meshNBO;
     QOpenGLBuffer m_meshIBO;
-    glm::vec3 m_colour;
-    int m_colourLoc;
+    QOpenGLBuffer m_meshBWBO;
 
     std::vector<glm::vec3> m_meshVerts;
     std::vector<glm::vec3> m_meshNorms;
     std::vector<glm::ivec3> m_meshTris;
+    std::vector<glm::vec4> m_meshBoneWeights;
+
+    int m_colourLoc;
+    glm::vec3 m_colour;
+
+
+
 
 };
 
