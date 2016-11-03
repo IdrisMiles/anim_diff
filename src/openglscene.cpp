@@ -143,6 +143,7 @@ void OpenGLScene::initializeGL()
     m_normalMatrixLoc = m_shaderProg->uniformLocation("normalMatrix");
     m_lightPosLoc = m_shaderProg->uniformLocation("lightPos");
 
+
     // initialise view and projection matrices
     m_viewMat = glm::mat4(1);
     m_viewMat = glm::lookAt(glm::vec3(0,0,0),glm::vec3(0,0,-1),glm::vec3(0,1,0));
