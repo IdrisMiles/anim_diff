@@ -131,8 +131,8 @@ void OpenGLScene::initializeGL()
 
     // setup shaders
     m_shaderProg = new QOpenGLShaderProgram;
-    m_shaderProg->addShaderFromSourceFile(QOpenGLShader::Vertex, "../shader/vert.glsl");
-    m_shaderProg->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/frag.glsl");
+    m_shaderProg->addShaderFromSourceFile(QOpenGLShader::Vertex, "../shader/skinningVert.glsl");
+    m_shaderProg->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/skinningFrag.glsl");
     m_shaderProg->bindAttributeLocation("vertex", 0);
     m_shaderProg->bindAttributeLocation("normal", 1);
     m_shaderProg->link();
