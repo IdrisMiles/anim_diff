@@ -1,86 +1,27 @@
 #include "include/revisionviewer.h"
 #include <iostream>
-
+#include <glm/ext.hpp>
 
 RevisionViewer::RevisionViewer(QWidget *parent) : OpenGLScene(parent)
 {
     m_wireframe = false;
     m_drawMesh = true;
+    m_dt = 0.016;
+
+    m_animTimer = new QTimer(this);
+    connect(m_animTimer, SIGNAL(timeout()), this, SLOT(update()));
 }
 
 
 RevisionViewer::~RevisionViewer()
 {
+    delete m_scene;
     cleanup();
-}
-
-
-void RevisionViewer::paintGL()
-{
-
-    // test hack
-    static bool init = false;
-
-    if(!init)
-    {
-        std::shared_ptr<RevisionNode> test(new RevisionNode());
-        test->LoadModel("pighead.obj");
-        init = true;
-
-        LoadRevision(test);
-    }
-
-    // clean gl window
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-
-    // update model matrix
-    m_modelMat = glm::mat4(1);
-    m_modelMat = glm::translate(m_modelMat, glm::vec3(0,0, -0.1f*m_zDis));// m_zDis));
-    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_xRot/16.0f), glm::vec3(1,0,0));
-    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_yRot/16.0f), glm::vec3(0,1,0));
-
-
-    // Set shader params
-    m_shaderProg->bind();
-
-    glUniformMatrix4fv(m_projMatrixLoc, 1, false, &m_projMat[0][0]);
-    glUniformMatrix4fv(m_mvMatrixLoc, 1, false, &(m_modelMat*m_viewMat)[0][0]);
-    glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
-    glUniformMatrix3fv(m_normalMatrixLoc, 1, true, &normalMatrix[0][0]);
-    glUniform3fv(m_colourLoc, 1, &m_colour[0]);
-
-
-    UploadBonesToShader();
-
-    //---------------------------------------------------------------------------------------
-    // Draw code - replace this with project specific draw stuff
-    m_meshVAO.bind();
-    glDrawElements(m_wireframe?GL_LINES:GL_TRIANGLES, 3*m_meshTris.size(), GL_UNSIGNED_INT, &m_meshTris[0]);
-    m_meshVAO.release();
-
-    //---------------------------------------------------------------------------------------
-
-
-    m_shaderProg->release();
-}
-
-void RevisionViewer::UploadBonesToShader()
-{
-    std::cout<<"UploadBonesToShader\n";
-    std::vector<glm::mat4> bones;
-    BoneTransform(1.0f, bones);
-    for(unsigned int b=0; b<bones.size(); b++)
-    {
-        glUniformMatrix4fv(m_boneUniformLoc + b, 1, false, &bones[b][0][0]);
-    }
-
 }
 
 void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
 {
-
+    m_revision = _revision;
     m_scene = _revision->m_model->m_scene;
     m_globalInverseTransform = m_scene->mRootNode->mTransformation;
     m_globalInverseTransform.Inverse();
@@ -94,6 +35,7 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
     {
         if(m_scene->HasMeshes())
         {
+            unsigned int nb=0;
             unsigned int indexOffset = 0;
             for(unsigned int i=0; i<m_scene->mNumMeshes; i++)
             {
@@ -119,13 +61,12 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
                 m_meshBoneWeights.resize(m_meshVerts.size());
 
                 // Mesh bones
-                unsigned int nb=0;
                 unsigned int numBones = m_scene->mMeshes[i]->mNumBones;
                 for(unsigned int b=0; b<numBones; b++)
                 {
-                    auto bone = m_scene->mMeshes[i]->mBones[b];
+                    //auto bone = m_scene->mMeshes[i]->mBones[b];
                     unsigned int boneIndex = 0;
-                    std::string boneName = bone->mName.data;
+                    std::string boneName = m_scene->mMeshes[i]->mBones[b]->mName.data;
 
                     // Check this is a new bone
                     if(m_boneMapping.find(boneName) == m_boneMapping.end())
@@ -133,6 +74,8 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
                         boneIndex = nb;
                         nb++;
                         m_boneInfo.push_back(BoneInfo());
+                        m_boneMapping[boneName] = boneIndex;
+                        m_boneInfo[boneIndex].boneOffset = m_scene->mMeshes[i]->mBones[b]->mOffsetMatrix;
                     }
                     else
                     {
@@ -140,8 +83,6 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
 
                     }
 
-                    m_boneMapping[boneName] = boneIndex;
-                    m_boneInfo[boneIndex].boneOffset = bone->mOffsetMatrix;
 
                     // Set up mapping of bone and corresponding animation channel
                     unsigned int numChannels = m_scene->mAnimations[0]->mNumChannels;
@@ -155,11 +96,11 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
 
 
                     // Bone vertex weights
-                    unsigned int boneWeights = bone->mNumWeights;
+                    unsigned int boneWeights = m_scene->mMeshes[i]->mBones[b]->mNumWeights;
                     for(unsigned int bw=0; bw<boneWeights; bw++)
                     {
-                        unsigned int vertexID = indexOffset + bone->mWeights[bw].mVertexId;
-                        float vertexWeight = bone->mWeights[bw].mWeight;
+                        unsigned int vertexID = indexOffset + m_scene->mMeshes[i]->mBones[b]->mWeights[bw].mVertexId;
+                        float vertexWeight = m_scene->mMeshes[i]->mBones[b]->mWeights[bw].mWeight;
                         for(unsigned int w=0; w<4; w++)
                         {
                             if(m_meshBoneWeights[vertexID].boneWeight[w] == 0.0f)
@@ -177,9 +118,6 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
             } // end for numMeshes
 
 
-            std::cout<<"vert bone size\t"<<m_meshBoneWeights.size()<<"\n";
-            std::cout<<"vert size\t"<<m_meshVerts.size()<<"\n";
-
             m_meshBoneWeights.resize(m_meshVerts.size());
 
 
@@ -188,11 +126,15 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
 
         if(m_scene->HasAnimations())
         {
+            m_anim = true;
+            std::cout<<"we have animation\n";
             m_ticksPerSecond = m_scene->mAnimations[0]->mTicksPerSecond;
             m_animationDuration = m_scene->mAnimations[0]->mDuration;
         }
         else
         {
+            m_anim = false;
+            std::cout<<"No animation \n";
             for(unsigned int bw=0; bw<m_meshVerts.size();bw++)
             {
                 m_meshBoneWeights[bw].boneID[0] = 0;
@@ -208,10 +150,9 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
         }
     }
 
-
-
     InitVAO();
 
+    m_animTimer->start(1000*m_dt);
 }
 
 void RevisionViewer::InitVAO()
@@ -283,9 +224,65 @@ void RevisionViewer::InitVAO()
 
 }
 
+
+
+
+void RevisionViewer::paintGL()
+{
+
+    // test hack
+    static bool init = false;
+
+    if(!init)
+    {
+        std::shared_ptr<RevisionNode> test(new RevisionNode());
+        test->LoadModel("boblampclean.md5mesh");
+        init = true;
+
+        LoadRevision(test);
+    }
+
+    // clean gl window
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
+    // update model matrix
+    m_modelMat = glm::mat4(1);
+    m_modelMat = glm::translate(m_modelMat, glm::vec3(0,0, -0.1f*m_zDis));// m_zDis));
+    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_xRot/16.0f), glm::vec3(1,0,0));
+    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_yRot/16.0f), glm::vec3(0,1,0));
+
+
+    // Set shader params
+    m_shaderProg->bind();
+
+    glUniformMatrix4fv(m_projMatrixLoc, 1, false, &m_projMat[0][0]);
+    glUniformMatrix4fv(m_mvMatrixLoc, 1, false, &(m_modelMat*m_viewMat)[0][0]);
+    glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
+    glUniformMatrix3fv(m_normalMatrixLoc, 1, true, &normalMatrix[0][0]);
+    glUniform3fv(m_colourLoc, 1, &m_colour[0]);
+
+
+    //---------------------------------------------------------------------------------------
+    // Draw code - replace this with project specific draw stuff
+    UploadBonesToShader();
+
+    m_meshVAO.bind();
+    glDrawElements(m_wireframe?GL_LINES:GL_TRIANGLES, 3*m_meshTris.size(), GL_UNSIGNED_INT, &m_meshTris[0]);
+    m_meshVAO.release();
+
+    //---------------------------------------------------------------------------------------
+
+
+    m_shaderProg->release();
+
+    //update();
+}
+
 glm::mat4 ConvertToGlmMat(const aiMatrix4x4 &m)
 {
-    glm::mat4 a(    m.a1, m.a1, m.a1, m.a1,
+    glm::mat4 a(  m.a1, m.a2, m.a3, m.a4,
                   m.b1, m.b2, m.b3, m.b4,
                   m.c1, m.c2, m.c3, m.c4,
                   m.d1, m.d2, m.d3, m.d4);
@@ -293,36 +290,44 @@ glm::mat4 ConvertToGlmMat(const aiMatrix4x4 &m)
     return a;
 }
 
-aiMatrix4x4 RevisionViewer::BoneTransform(float _t, std::vector<glm::mat4> &_transforms)
+void RevisionViewer::UploadBonesToShader()
 {
-    std::cout<<"BoneTransform\n";
-
-    aiMatrix4x4 identity;
-
-    if(!m_scene->HasAnimations() || m_scene->mNumAnimations < 1)
+    std::vector<glm::mat4> bones;
+    static float t = 0.0f;
+    BoneTransform(t, bones);
+    for(unsigned int b=0; b<bones.size() && b<100; b++)
     {
+        glUniformMatrix4fv(m_boneUniformLoc + b, 1, true, &bones[b][0][0]);
+    }
+    t+=m_dt;
+}
+
+
+void RevisionViewer::BoneTransform(float _t, std::vector<glm::mat4> &_transforms)
+{
+    aiMatrix4x4 identity = aiMatrix4x4();
+
+    if(!m_anim)
+    {
+        std::cout<<"No Animation :(\n";
         _transforms.resize(1);
         _transforms[0] = glm::mat4(1.0);
-        return identity;
+        return;
     }
-    std::cout<<"has anim?\t"<<m_scene->HasAnimations()<<"\n";
-    std::cout<<"num anims?\t"<<m_scene->mNumAnimations<<"\n";
-
 
     float timeInTicks = _t * m_ticksPerSecond;
     float animationTime = fmod(timeInTicks, m_animationDuration);
+    std::cout<<"Anim time: "<<animationTime<<"\n";
 
-    ReadNodeHierarchy(animationTime, m_scene->mAnimations[0], m_scene->mRootNode, identity);
+    ReadNodeHierarchy(animationTime, m_revision->m_model->m_scene->mAnimations[0], m_revision->m_model->m_scene->mRootNode, identity);
 
     unsigned int numBones = m_boneInfo.size();
     _transforms.resize(numBones);
-
     for(unsigned int i=0; i<numBones; i++)
     {
         _transforms[i] = ConvertToGlmMat(m_boneInfo[i].finalTransform);
     }
 
-    return identity;
 }
 
 
@@ -337,28 +342,34 @@ void RevisionViewer::ReadNodeHierarchy(float _animationTime, const aiAnimation* 
 
     aiMatrix4x4 nodeTransform(_pNode->mTransformation);
 
-    const aiNodeAnim* pNodeAnim = _pAnimation->mChannels[m_boneAnimChannelMapping[nodeName]];// FindNodeAnim(pAnimation, nodeName);
+    const aiNodeAnim* pNodeAnim = FindNodeAnim(_pAnimation, nodeName);// _pAnimation->mChannels[m_boneAnimChannelMapping[nodeName]];
+
 
     if (pNodeAnim) {
         // Interpolate scaling and generate scaling transformation matrix
         aiVector3D scalingVec;
         CalcInterpolatedScaling(scalingVec, _animationTime, pNodeAnim);
-        aiMatrix4x4 scalingMat;
-        scalingMat.Scaling(scalingVec, scalingMat);
+        aiMatrix4x4 scalingMat = aiMatrix4x4();
+        aiMatrix4x4::Scaling(scalingVec, scalingMat);
 
         // Interpolate rotation and generate rotation transformation matrix
-        aiQuaternion rotationQ;
+        aiQuaternion rotationQ = aiQuaternion();
         CalcInterpolatedRotation(rotationQ, _animationTime, pNodeAnim);
-        aiMatrix4x4 rotationMat = aiMatrix4x4(rotationQ.GetMatrix());
+        aiMatrix4x4 rotationMat = aiMatrix4x4();
+        rotationMat = aiMatrix4x4(rotationQ.GetMatrix());
 
         // Interpolate translation and generate translation transformation matrix
         aiVector3D translationVec;
         CalcInterpolatedPosition(translationVec, _animationTime, pNodeAnim);
-        aiMatrix4x4 translationMat;
-        translationMat.Translation(translationVec, translationMat);
+        aiMatrix4x4 translationMat = aiMatrix4x4();
+        aiMatrix4x4::Translation(translationVec, translationMat);
 
         // Combine the above transformations
         nodeTransform = translationMat * rotationMat * scalingMat;
+    }
+    else
+    {
+        std::cout<<"ReadHierarchy: Animation node \"pNodeAnim\" is NULL\n";
     }
 
     aiMatrix4x4 globalTransformation = _parentTransform * nodeTransform;
@@ -373,6 +384,20 @@ void RevisionViewer::ReadNodeHierarchy(float _animationTime, const aiAnimation* 
         ReadNodeHierarchy(_animationTime, _pAnimation, _pNode->mChildren[i], globalTransformation);
     }
 
+}
+
+
+const aiNodeAnim* RevisionViewer::FindNodeAnim(const aiAnimation* pAnimation, const std::string NodeName)
+{
+    for (uint i = 0 ; i < pAnimation->mNumChannels ; i++) {
+        const aiNodeAnim* pNodeAnim = pAnimation->mChannels[i];
+
+        if (std::string(pNodeAnim->mNodeName.data) == NodeName) {
+            return pNodeAnim;
+        }
+    }
+
+    return NULL;
 }
 
 void RevisionViewer::CalcInterpolatedRotation(aiQuaternion& _out, float _animationTime, const aiNodeAnim* pNodeAnim)

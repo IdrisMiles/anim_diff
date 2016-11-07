@@ -1,6 +1,8 @@
 #ifndef REVISIONVIEWER_H
 #define REVISIONVIEWER_H
 
+#include <QTimer>
+
 #include <vector>
 #include <map>
 
@@ -43,8 +45,9 @@ private:
     /// @brief Method to transform bone hierarchy according to animation at time _t
     /// @param float _t : animation time
     /// @param std::vector<aiMatrix4x4> &_transforms : bone transforms to be updated before sending to shader
-    aiMatrix4x4 BoneTransform(float _t, std::vector<glm::mat4> &_transforms);
+    void BoneTransform(float _t, std::vector<glm::mat4> &_transforms);
     void ReadNodeHierarchy(float _animationTime, const aiAnimation *_pAnimation, const aiNode* _pNode, const aiMatrix4x4& _parentTransform);
+    const aiNodeAnim* FindNodeAnim(const aiAnimation* pAnimation, const std::string NodeName);
     void CalcInterpolatedRotation(aiQuaternion& _out, float _animationTime, const aiNodeAnim* pNodeAnim);
     void CalcInterpolatedPosition(aiVector3D& _out, float _animationTime, const aiNodeAnim* pNodeAnim);
     void CalcInterpolatedScaling(aiVector3D& _out, float _animationTime, const aiNodeAnim* pNodeAnim);
@@ -55,6 +58,9 @@ private:
 
     bool m_wireframe;
     bool m_drawMesh;
+    bool m_anim;
+    float m_dt;
+    QTimer * m_animTimer;
 
 
     // OpenGL VAO and BO's
@@ -79,8 +85,9 @@ private:
     std::map<std::string, unsigned int> m_boneAnimChannelMapping;
     float m_ticksPerSecond;
     float m_animationDuration;
-    const aiScene *m_scene;
     aiMatrix4x4 m_globalInverseTransform;
+    const aiScene *m_scene;
+    std::shared_ptr<RevisionNode> m_revision;
 
 
     // Shader locations

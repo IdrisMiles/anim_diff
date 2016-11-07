@@ -29,7 +29,9 @@ void main()
     */
 
    vert = vertex.xyz;
-   vertNormal = normalMatrix * vec3(BoneTransform * vec4(normal, 1.0));
+   //vertNormal = normalMatrix * vec3(BoneTransform * vec4(normal, 1.0));
+   vertNormal = normalMatrix * normal;
+   //gl_Position = projMatrix * mvMatrix * vec4((BoneTransform * vec4(vertex, 1.0)).xyz, 1.0);
    gl_Position = projMatrix * mvMatrix * BoneTransform * vec4(vertex, 1.0);
 
 }
