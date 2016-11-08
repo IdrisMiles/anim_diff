@@ -67,9 +67,9 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
                 unsigned int numBones = m_scene->mMeshes[i]->mNumBones;
                 for(unsigned int b=0; b<numBones; b++)
                 {
-                    //auto bone = m_scene->mMeshes[i]->mBones[b];
+                    auto bone = m_scene->mMeshes[i]->mBones[b];
                     unsigned int boneIndex = 0;
-                    std::string boneName = m_scene->mMeshes[i]->mBones[b]->mName.data;
+                    std::string boneName = bone->mName.data;
 
                     // Check this is a new bone
                     if(m_boneMapping.find(boneName) == m_boneMapping.end())
@@ -78,7 +78,7 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
                         nb++;
                         m_boneInfo.push_back(BoneInfo());
                         m_boneMapping[boneName] = boneIndex;
-                        m_boneInfo[boneIndex].boneOffset = m_scene->mMeshes[i]->mBones[b]->mOffsetMatrix;
+                        m_boneInfo[boneIndex].boneOffset = bone->mOffsetMatrix;
                     }
                     else
                     {
@@ -87,23 +87,12 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
                     }
 
 
-                    // Set up mapping of bone and corresponding animation channel
-                    unsigned int numChannels = m_scene->mAnimations[0]->mNumChannels;
-                    for(unsigned int c=0; c<numChannels; c++)
-                    {
-                        if(boneName == m_scene->mAnimations[0]->mChannels[c]->mNodeName.data)
-                        {
-                            m_boneAnimChannelMapping[boneName] = c;
-                        }
-                    }
-
-
                     // Bone vertex weights
-                    unsigned int boneWeights = m_scene->mMeshes[i]->mBones[b]->mNumWeights;
+                    unsigned int boneWeights = bone->mNumWeights;
                     for(unsigned int bw=0; bw<boneWeights; bw++)
                     {
-                        unsigned int vertexID = indexOffset + m_scene->mMeshes[i]->mBones[b]->mWeights[bw].mVertexId;
-                        float vertexWeight = m_scene->mMeshes[i]->mBones[b]->mWeights[bw].mWeight;
+                        unsigned int vertexID = indexOffset + bone->mWeights[bw].mVertexId;
+                        float vertexWeight = bone->mWeights[bw].mWeight;
                         for(unsigned int w=0; w<4; w++)
                         {
                             if(m_meshBoneWeights[vertexID].boneWeight[w] == 0.0f)
@@ -116,13 +105,9 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
 
                 } // end for numBones
 
-
                 indexOffset = m_meshVerts.size();
+
             } // end for numMeshes
-
-
-            m_meshBoneWeights.resize(m_meshVerts.size());
-
 
         }// end if has mesh
 
@@ -130,7 +115,6 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
         if(m_scene->HasAnimations())
         {
             m_animExists = true;
-            std::cout<<"we have animation\n";
             m_ticksPerSecond = m_scene->mAnimations[0]->mTicksPerSecond;
             m_animationDuration = m_scene->mAnimations[0]->mDuration;
         }
@@ -139,7 +123,6 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
             m_animExists = false;
             m_playAnim = false;
 
-            std::cout<<"No animation \n";
             for(unsigned int bw=0; bw<m_meshVerts.size();bw++)
             {
                 m_meshBoneWeights[bw].boneID[0] = 0;
@@ -153,7 +136,8 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
                 m_meshBoneWeights[bw].boneWeight[3] = 0.0;
             }
         }
-    }
+
+    } // end if aiScene is valid
 
     InitVAO();
 
@@ -324,7 +308,6 @@ void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_tran
 
     if(!m_animExists)
     {
-        std::cout<<"No Animation :(\n";
         _transforms.resize(1);
         _transforms[0] = glm::mat4(1.0);
         return;
@@ -338,6 +321,7 @@ void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_tran
 
     unsigned int numBones = m_boneInfo.size();
     _transforms.resize(numBones);
+
     for(unsigned int i=0; i<numBones; i++)
     {
         _transforms[i] = ConvertToGlmMat(m_boneInfo[i].finalTransform);
@@ -357,7 +341,7 @@ void RevisionViewer::ReadNodeHierarchy(const float _animationTime, const aiAnima
 
     aiMatrix4x4 nodeTransform(_pNode->mTransformation);
 
-    const aiNodeAnim* pNodeAnim = FindNodeAnim(_pAnimation, nodeName);// _pAnimation->mChannels[m_boneAnimChannelMapping[nodeName]];
+    const aiNodeAnim* pNodeAnim = FindNodeAnim(_pAnimation, nodeName);
 
 
     // Check if valid aiNodeAnim, as not all aiNode have corresponding aiNodeAnim.
@@ -392,7 +376,6 @@ void RevisionViewer::ReadNodeHierarchy(const float _animationTime, const aiAnima
         m_boneInfo[BoneIndex].finalTransform = m_globalInverseTransform * globalTransformation * m_boneInfo[BoneIndex].boneOffset;
     }
 
-    // Recursively
     for (uint i = 0 ; i < _pNode->mNumChildren ; i++) {
         ReadNodeHierarchy(_animationTime, _pAnimation, _pNode->mChildren[i], globalTransformation);
     }
