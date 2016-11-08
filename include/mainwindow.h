@@ -5,7 +5,6 @@
 // Qt includes
 #include <QMainWindow>
 
-#include "openglscene.h"
 #include "revisionviewer.h"
 
 
@@ -24,7 +23,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    OpenGLScene *m_scene;
+    RevisionViewer *m_scene;
 };
 
 #endif // MAINWINDOW_H

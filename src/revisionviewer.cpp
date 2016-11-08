@@ -6,23 +6,26 @@ RevisionViewer::RevisionViewer(QWidget *parent) : OpenGLScene(parent)
 {
     m_wireframe = false;
     m_drawMesh = true;
+    m_playAnim = true;
     m_dt = 0.016;
 
     m_animTimer = new QTimer(this);
-    connect(m_animTimer, SIGNAL(timeout()), this, SLOT(update()));
+    connect(m_animTimer, SIGNAL(timeout()), this, SLOT(UpdateAnimation()));
+
+    m_drawTimer = new QTimer(this);
+    connect(m_drawTimer, SIGNAL(timeout()), this, SLOT(update()));
 }
 
 
 RevisionViewer::~RevisionViewer()
 {
-    delete m_scene;
     cleanup();
 }
 
 void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
 {
     m_revision = _revision;
-    m_scene = _revision->m_model->m_scene;
+    m_scene = m_revision->m_model->m_scene;
     m_globalInverseTransform = m_scene->mRootNode->mTransformation;
     m_globalInverseTransform.Inverse();
 
@@ -126,14 +129,16 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
 
         if(m_scene->HasAnimations())
         {
-            m_anim = true;
+            m_animExists = true;
             std::cout<<"we have animation\n";
             m_ticksPerSecond = m_scene->mAnimations[0]->mTicksPerSecond;
             m_animationDuration = m_scene->mAnimations[0]->mDuration;
         }
         else
         {
-            m_anim = false;
+            m_animExists = false;
+            m_playAnim = false;
+
             std::cout<<"No animation \n";
             for(unsigned int bw=0; bw<m_meshVerts.size();bw++)
             {
@@ -153,6 +158,7 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
     InitVAO();
 
     m_animTimer->start(1000*m_dt);
+    m_drawTimer->start(1000*m_dt);
 }
 
 void RevisionViewer::InitVAO()
@@ -266,8 +272,6 @@ void RevisionViewer::paintGL()
 
     //---------------------------------------------------------------------------------------
     // Draw code - replace this with project specific draw stuff
-    UploadBonesToShader();
-
     m_meshVAO.bind();
     glDrawElements(m_wireframe?GL_LINES:GL_TRIANGLES, 3*m_meshTris.size(), GL_UNSIGNED_INT, &m_meshTris[0]);
     m_meshVAO.release();
@@ -277,7 +281,6 @@ void RevisionViewer::paintGL()
 
     m_shaderProg->release();
 
-    //update();
 }
 
 glm::mat4 ConvertToGlmMat(const aiMatrix4x4 &m)
@@ -290,24 +293,36 @@ glm::mat4 ConvertToGlmMat(const aiMatrix4x4 &m)
     return a;
 }
 
-void RevisionViewer::UploadBonesToShader()
+void RevisionViewer::UpdateAnimation()
+{
+    static float t = 0.0f;
+    if(m_playAnim)
+    {
+        t += m_dt;
+    }
+
+    // Set shader params
+    m_shaderProg->bind();
+    UploadBonesToShader(t);
+    m_shaderProg->release();
+}
+
+void RevisionViewer::UploadBonesToShader(const float _t)
 {
     std::vector<glm::mat4> bones;
-    static float t = 0.0f;
-    BoneTransform(t, bones);
+    BoneTransform(_t, bones);
     for(unsigned int b=0; b<bones.size() && b<100; b++)
     {
         glUniformMatrix4fv(m_boneUniformLoc + b, 1, true, &bones[b][0][0]);
     }
-    t+=m_dt;
 }
 
 
-void RevisionViewer::BoneTransform(float _t, std::vector<glm::mat4> &_transforms)
+void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_transforms)
 {
     aiMatrix4x4 identity = aiMatrix4x4();
 
-    if(!m_anim)
+    if(!m_animExists)
     {
         std::cout<<"No Animation :(\n";
         _transforms.resize(1);
@@ -319,7 +334,7 @@ void RevisionViewer::BoneTransform(float _t, std::vector<glm::mat4> &_transforms
     float animationTime = fmod(timeInTicks, m_animationDuration);
     std::cout<<"Anim time: "<<animationTime<<"\n";
 
-    ReadNodeHierarchy(animationTime, m_revision->m_model->m_scene->mAnimations[0], m_revision->m_model->m_scene->mRootNode, identity);
+    ReadNodeHierarchy(animationTime, m_scene->mAnimations[0], m_scene->mRootNode, identity);
 
     unsigned int numBones = m_boneInfo.size();
     _transforms.resize(numBones);
@@ -331,7 +346,7 @@ void RevisionViewer::BoneTransform(float _t, std::vector<glm::mat4> &_transforms
 }
 
 
-void RevisionViewer::ReadNodeHierarchy(float _animationTime, const aiAnimation* _pAnimation, const aiNode* _pNode, const aiMatrix4x4 &_parentTransform)
+void RevisionViewer::ReadNodeHierarchy(const float _animationTime, const aiAnimation* _pAnimation, const aiNode* _pNode, const aiMatrix4x4 &_parentTransform)
 {
     if(!_pAnimation || !_pNode)
     {
@@ -345,7 +360,9 @@ void RevisionViewer::ReadNodeHierarchy(float _animationTime, const aiAnimation* 
     const aiNodeAnim* pNodeAnim = FindNodeAnim(_pAnimation, nodeName);// _pAnimation->mChannels[m_boneAnimChannelMapping[nodeName]];
 
 
-    if (pNodeAnim) {
+    // Check if valid aiNodeAnim, as not all aiNode have corresponding aiNodeAnim.
+    if (pNodeAnim)
+    {
         // Interpolate scaling and generate scaling transformation matrix
         aiVector3D scalingVec;
         CalcInterpolatedScaling(scalingVec, _animationTime, pNodeAnim);
@@ -367,10 +384,6 @@ void RevisionViewer::ReadNodeHierarchy(float _animationTime, const aiAnimation* 
         // Combine the above transformations
         nodeTransform = translationMat * rotationMat * scalingMat;
     }
-    else
-    {
-        std::cout<<"ReadHierarchy: Animation node \"pNodeAnim\" is NULL\n";
-    }
 
     aiMatrix4x4 globalTransformation = _parentTransform * nodeTransform;
 
@@ -387,12 +400,12 @@ void RevisionViewer::ReadNodeHierarchy(float _animationTime, const aiAnimation* 
 }
 
 
-const aiNodeAnim* RevisionViewer::FindNodeAnim(const aiAnimation* pAnimation, const std::string NodeName)
+const aiNodeAnim* RevisionViewer::FindNodeAnim(const aiAnimation* _pAnimation, const std::string _nodeName)
 {
-    for (uint i = 0 ; i < pAnimation->mNumChannels ; i++) {
-        const aiNodeAnim* pNodeAnim = pAnimation->mChannels[i];
+    for (uint i = 0 ; i < _pAnimation->mNumChannels ; i++) {
+        const aiNodeAnim* pNodeAnim = _pAnimation->mChannels[i];
 
-        if (std::string(pNodeAnim->mNodeName.data) == NodeName) {
+        if (std::string(pNodeAnim->mNodeName.data) == _nodeName) {
             return pNodeAnim;
         }
     }
@@ -400,72 +413,72 @@ const aiNodeAnim* RevisionViewer::FindNodeAnim(const aiAnimation* pAnimation, co
     return NULL;
 }
 
-void RevisionViewer::CalcInterpolatedRotation(aiQuaternion& _out, float _animationTime, const aiNodeAnim* pNodeAnim)
+void RevisionViewer::CalcInterpolatedRotation(aiQuaternion& _out, const float _animationTime, const aiNodeAnim* _pNodeAnim)
 {
     // we need at least two values to interpolate...
-    if (pNodeAnim->mNumRotationKeys == 1) {
-        _out = pNodeAnim->mRotationKeys[0].mValue;
+    if (_pNodeAnim->mNumRotationKeys == 1) {
+        _out = _pNodeAnim->mRotationKeys[0].mValue;
         return;
     }
 
-    uint RotationIndex = FindRotation(_animationTime, pNodeAnim);
+    uint RotationIndex = FindRotationKeyFrame(_animationTime, _pNodeAnim);
     uint NextRotationIndex = (RotationIndex + 1);
-    assert(NextRotationIndex < pNodeAnim->mNumRotationKeys);
-    float DeltaTime = pNodeAnim->mRotationKeys[NextRotationIndex].mTime - pNodeAnim->mRotationKeys[RotationIndex].mTime;
-    float Factor = (_animationTime - (float)pNodeAnim->mRotationKeys[RotationIndex].mTime) / DeltaTime;
+    assert(NextRotationIndex < _pNodeAnim->mNumRotationKeys);
+    float DeltaTime = _pNodeAnim->mRotationKeys[NextRotationIndex].mTime - _pNodeAnim->mRotationKeys[RotationIndex].mTime;
+    float Factor = (_animationTime - (float)_pNodeAnim->mRotationKeys[RotationIndex].mTime) / DeltaTime;
     assert(Factor >= 0.0f && Factor <= 1.0f);
-    const aiQuaternion& StartRotationQ = pNodeAnim->mRotationKeys[RotationIndex].mValue;
-    const aiQuaternion& EndRotationQ = pNodeAnim->mRotationKeys[NextRotationIndex].mValue;
+    const aiQuaternion& StartRotationQ = _pNodeAnim->mRotationKeys[RotationIndex].mValue;
+    const aiQuaternion& EndRotationQ = _pNodeAnim->mRotationKeys[NextRotationIndex].mValue;
     aiQuaternion::Interpolate(_out, StartRotationQ, EndRotationQ, Factor);
     _out = _out.Normalize();
 }
 
-void RevisionViewer::CalcInterpolatedPosition(aiVector3D& _out, float _animationTime, const aiNodeAnim* pNodeAnim)
+void RevisionViewer::CalcInterpolatedPosition(aiVector3D& _out, const float _animationTime, const aiNodeAnim* _pNodeAnim)
 {
     // we need at least two values to interpolate...
-    if (pNodeAnim->mNumPositionKeys == 1) {
-        _out = pNodeAnim->mPositionKeys[0].mValue;
+    if (_pNodeAnim->mNumPositionKeys == 1) {
+        _out = _pNodeAnim->mPositionKeys[0].mValue;
         return;
     }
 
-    uint PositionIndex = FindPosition(_animationTime, pNodeAnim);
+    uint PositionIndex = FindPositionKeyFrame(_animationTime, _pNodeAnim);
     uint NextPositionIndex = (PositionIndex + 1);
-    assert(NextPositionIndex < pNodeAnim->mNumPositionKeys);
-    float DeltaTime = pNodeAnim->mPositionKeys[NextPositionIndex].mTime - pNodeAnim->mPositionKeys[PositionIndex].mTime;
-    float Factor = (_animationTime - (float)pNodeAnim->mPositionKeys[PositionIndex].mTime) / DeltaTime;
+    assert(NextPositionIndex < _pNodeAnim->mNumPositionKeys);
+    float DeltaTime = _pNodeAnim->mPositionKeys[NextPositionIndex].mTime - _pNodeAnim->mPositionKeys[PositionIndex].mTime;
+    float Factor = (_animationTime - (float)_pNodeAnim->mPositionKeys[PositionIndex].mTime) / DeltaTime;
     assert(Factor >= 0.0f && Factor <= 1.0f);
-    const aiVector3D& startPositionV = pNodeAnim->mPositionKeys[PositionIndex].mValue;
-    const aiVector3D& endPositionV = pNodeAnim->mPositionKeys[NextPositionIndex].mValue;
+    const aiVector3D& startPositionV = _pNodeAnim->mPositionKeys[PositionIndex].mValue;
+    const aiVector3D& endPositionV = _pNodeAnim->mPositionKeys[NextPositionIndex].mValue;
     _out = startPositionV + (Factor*(endPositionV-startPositionV));
 
 }
 
-void RevisionViewer::CalcInterpolatedScaling(aiVector3D& _out, float _animationTime, const aiNodeAnim* pNodeAnim)
+void RevisionViewer::CalcInterpolatedScaling(aiVector3D& _out, const float _animationTime, const aiNodeAnim* _pNodeAnim)
 {
     // we need at least two values to interpolate...
-    if (pNodeAnim->mNumScalingKeys == 1) {
-        _out = pNodeAnim->mScalingKeys[0].mValue;
+    if (_pNodeAnim->mNumScalingKeys == 1) {
+        _out = _pNodeAnim->mScalingKeys[0].mValue;
         return;
     }
 
-    uint scalingIndex = FindScaling(_animationTime, pNodeAnim);
+    uint scalingIndex = FindScalingKeyFrame(_animationTime, _pNodeAnim);
     uint nextScalingIndex = (scalingIndex + 1);
-    assert(nextScalingIndex < pNodeAnim->mNumScalingKeys);
-    float DeltaTime = pNodeAnim->mScalingKeys[nextScalingIndex].mTime - pNodeAnim->mScalingKeys[scalingIndex].mTime;
-    float Factor = (_animationTime - (float)pNodeAnim->mScalingKeys[scalingIndex].mTime) / DeltaTime;
+    assert(nextScalingIndex < _pNodeAnim->mNumScalingKeys);
+    float DeltaTime = _pNodeAnim->mScalingKeys[nextScalingIndex].mTime - _pNodeAnim->mScalingKeys[scalingIndex].mTime;
+    float Factor = (_animationTime - (float)_pNodeAnim->mScalingKeys[scalingIndex].mTime) / DeltaTime;
     assert(Factor >= 0.0f && Factor <= 1.0f);
-    const aiVector3D& startScalingV = pNodeAnim->mScalingKeys[scalingIndex].mValue;
-    const aiVector3D& endScalingV = pNodeAnim->mScalingKeys[nextScalingIndex].mValue;
+    const aiVector3D& startScalingV = _pNodeAnim->mScalingKeys[scalingIndex].mValue;
+    const aiVector3D& endScalingV = _pNodeAnim->mScalingKeys[nextScalingIndex].mValue;
     _out = startScalingV + (Factor*(endScalingV-startScalingV));
 
 }
 
-uint RevisionViewer::FindRotation(float _animationTime, const aiNodeAnim* pNodeAnim)
+uint RevisionViewer::FindRotationKeyFrame(const float _animationTime, const aiNodeAnim* _pNodeAnim)
 {
-    assert(pNodeAnim->mNumRotationKeys > 0);
+    assert(_pNodeAnim->mNumRotationKeys > 0);
 
-    for (uint i = 0 ; i < pNodeAnim->mNumRotationKeys - 1 ; i++) {
-        if (_animationTime < (float)pNodeAnim->mRotationKeys[i + 1].mTime) {
+    for (uint i = 0 ; i < _pNodeAnim->mNumRotationKeys - 1 ; i++) {
+        if (_animationTime < (float)_pNodeAnim->mRotationKeys[i + 1].mTime) {
             return i;
         }
     }
@@ -473,12 +486,12 @@ uint RevisionViewer::FindRotation(float _animationTime, const aiNodeAnim* pNodeA
     assert(0);
 }
 
-uint RevisionViewer::FindPosition(float _animationTime, const aiNodeAnim* pNodeAnim)
+uint RevisionViewer::FindPositionKeyFrame(const float _animationTime, const aiNodeAnim* _pNodeAnim)
 {
-    assert(pNodeAnim->mNumPositionKeys > 0);
+    assert(_pNodeAnim->mNumPositionKeys > 0);
 
-    for (uint i = 0 ; i < pNodeAnim->mNumPositionKeys - 1 ; i++) {
-        if (_animationTime < (float)pNodeAnim->mPositionKeys[i + 1].mTime) {
+    for (uint i = 0 ; i < _pNodeAnim->mNumPositionKeys - 1 ; i++) {
+        if (_animationTime < (float)_pNodeAnim->mPositionKeys[i + 1].mTime) {
             return i;
         }
     }
@@ -486,12 +499,12 @@ uint RevisionViewer::FindPosition(float _animationTime, const aiNodeAnim* pNodeA
     assert(0);
 }
 
-uint RevisionViewer::FindScaling(float _animationTime, const aiNodeAnim* pNodeAnim)
+uint RevisionViewer::FindScalingKeyFrame(const float _animationTime, const aiNodeAnim* _pNodeAnim)
 {
-    assert(pNodeAnim->mNumScalingKeys > 0);
+    assert(_pNodeAnim->mNumScalingKeys > 0);
 
-    for (uint i = 0 ; i < pNodeAnim->mNumScalingKeys - 1 ; i++) {
-        if (_animationTime < (float)pNodeAnim->mScalingKeys[i + 1].mTime) {
+    for (uint i = 0 ; i < _pNodeAnim->mNumScalingKeys - 1 ; i++) {
+        if (_animationTime < (float)_pNodeAnim->mScalingKeys[i + 1].mTime) {
             return i;
         }
     }

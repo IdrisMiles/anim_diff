@@ -35,6 +35,7 @@ public slots:
     void setYTranslation(int y);
     void setZTranslation(int z);
     void cleanup();
+    virtual void UpdateAnimation() = 0;
 
 signals:
     void xRotationChanged(int angle);
