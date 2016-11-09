@@ -7,7 +7,7 @@
 #include <map>
 
 #include "include/openglscene.h"
-#include "include/revision.h"
+#include "include/revisionnode.h"
 
 #include <assimp/matrix4x4.h>
 
