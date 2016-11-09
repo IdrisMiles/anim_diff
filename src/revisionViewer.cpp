@@ -1,4 +1,4 @@
-#include "include/revisionviewer.h"
+#include "include/revisionViewer.h"
 #include <iostream>
 #include <glm/ext.hpp>
 

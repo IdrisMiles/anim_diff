@@ -5,7 +5,7 @@
 // Qt includes
 #include <QMainWindow>
 
-#include "revisionviewer.h"
+#include "revisionViewer.h"
 
 
 namespace Ui {
