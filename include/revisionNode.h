@@ -1,7 +1,7 @@
 #ifndef REVISIONNODE_H
 #define REVISIONNODE_H
 
-#include "include/model.h"
+#include "model.h"
 
 class RevisionNode
 {
