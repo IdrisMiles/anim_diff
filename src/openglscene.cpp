@@ -8,7 +8,8 @@ OpenGLScene::OpenGLScene(QWidget *parent) : QOpenGLWidget(parent),
     m_yRot(0),
     m_zRot(0),
     m_zDis(200),
-    m_shaderProg(0)
+    m_xDis(0),
+    m_yDis(0)
 {
     QSurfaceFormat format;
     format.setVersion(4, 3);
@@ -108,19 +109,8 @@ void OpenGLScene::setZRotation(int angle)
 
 void OpenGLScene::cleanup()
 {
-    makeCurrent();
-    delete m_shaderProg;
-    m_shaderProg = 0;
-    doneCurrent();
 }
 
-/*
-void OpenGLScene::cleanDemoTriangle()
-{
-    m_vbo.destroy();
-    m_vao.destroy();
-}
-*/
 
 void OpenGLScene::initializeGL()
 {
@@ -131,19 +121,25 @@ void OpenGLScene::initializeGL()
     //initializeOpenGLFunctions();
     glClearColor(0.4, 0.4, 0.4, 1);
 
-    // setup shaders
-    m_shaderProg = new QOpenGLShaderProgram;
-    m_shaderProg->addShaderFromSourceFile(QOpenGLShader::Vertex, "../shader/skinningVert.glsl");
-    m_shaderProg->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/skinningFrag.glsl");
-    m_shaderProg->bindAttributeLocation("vertex", 0);
-    m_shaderProg->bindAttributeLocation("normal", 1);
-    m_shaderProg->link();
+    customInitGL();
+}
 
-    m_shaderProg->bind();
-    m_projMatrixLoc = m_shaderProg->uniformLocation("projMatrix");
-    m_mvMatrixLoc = m_shaderProg->uniformLocation("mvMatrix");
-    m_normalMatrixLoc = m_shaderProg->uniformLocation("normalMatrix");
-    m_lightPosLoc = m_shaderProg->uniformLocation("lightPos");
+void OpenGLScene::customInitGL()
+{
+    /*
+    // setup shaders
+    m_skinningShader = new QOpenGLShaderProgram;
+    m_skinningShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "../shader/skinningVert.glsl");
+    m_skinningShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/skinningFrag.glsl");
+    m_skinningShader->bindAttributeLocation("vertex", 0);
+    m_skinningShader->bindAttributeLocation("normal", 1);
+    m_skinningShader->link();
+
+    m_skinningShader->bind();
+    m_projMatrixLoc = m_skinningShader->uniformLocation("projMatrix");
+    m_mvMatrixLoc = m_skinningShader->uniformLocation("mvMatrix");
+    m_normalMatrixLoc = m_skinningShader->uniformLocation("normalMatrix");
+    m_lightPosLoc = m_skinningShader->uniformLocation("lightPos");
 
 
     // initialise view and projection matrices
@@ -162,54 +158,10 @@ void OpenGLScene::initializeGL()
     //---------------------------------------------------------------------------------------
 
 
-    m_shaderProg->release();
+    m_skinningShader->release();
+    */
 }
 
-/*
-void OpenGLScene::initializeDemoTriangle()
-{
-    m_colour = glm::vec3(0.8f, 0.4f, 0.4f);
-    m_colourLoc = m_shaderProg->uniformLocation("colour");
-    glUniform3fv(m_colourLoc, 1, &m_colour[0]);
-
-    m_vao.create();
-    m_vao.bind();
-
-
-    static GLfloat const triangleVertices[] = {
-        -5.0f, -5.0f, -0.0f,
-        0.0f, 0.0f, 1.0f,
-        5.0f, -5.0f, -0.0f,
-        0.0f, 0.0f, 1.0f,
-        0.0f, 5.0f, -0.0f,
-        0.0f, 0.0f, 1.0f
-    };
-
-    // Setup our vertex buffer object.
-    m_vbo.create();
-    m_vbo.bind();
-    m_vbo.allocate(triangleVertices, 18 * sizeof(GLfloat));
-
-    glEnableVertexAttribArray( 0);
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), 0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void *>(3 * sizeof(GLfloat)));
-
-
-    m_vbo.release();
-    m_vao.release();
-}
-
-void OpenGLScene::renderDemoTriangle()
-{
-    m_vao.bind();
-
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    m_vao.release();
-}
-*/
 void OpenGLScene::paintGL()
 {
     // clean gl window
@@ -219,13 +171,15 @@ void OpenGLScene::paintGL()
 
     // update model matrix
     m_modelMat = glm::mat4(1);
-    m_modelMat = glm::translate(m_modelMat, glm::vec3(0,0, -0.1f*m_zDis));// m_zDis));
+    m_modelMat = glm::translate(m_modelMat, glm::vec3(0.2f*m_xDis, -0.2f*m_yDis, -0.1f*m_zDis));// m_zDis));
     m_modelMat = glm::rotate(m_modelMat, glm::radians(m_xRot/16.0f), glm::vec3(1,0,0));
     m_modelMat = glm::rotate(m_modelMat, glm::radians(m_yRot/16.0f), glm::vec3(0,1,0));
+    //m_modelMat = glm::translate(m_modelMat, glm::vec3(0.1f*m_xDis, -0.1f*m_yDis, 0));
 
+    /*
 
     // Set shader params
-    m_shaderProg->bind();
+    m_skinningShader->bind();
 
     glUniformMatrix4fv(m_projMatrixLoc, 1, false, &m_projMat[0][0]);
     glUniformMatrix4fv(m_mvMatrixLoc, 1, false, &(m_modelMat*m_viewMat)[0][0]);
@@ -240,7 +194,8 @@ void OpenGLScene::paintGL()
     //---------------------------------------------------------------------------------------
 
 
-    m_shaderProg->release();
+    m_skinningShader->release();
+    */
 }
 
 void OpenGLScene::resizeGL(int w, int h)
@@ -263,8 +218,13 @@ void OpenGLScene::mouseMoveEvent(QMouseEvent *event)
     if (event->buttons() & Qt::LeftButton) {
         setXRotation(m_xRot + 8 * dy);
         setYRotation(m_yRot + 8 * dx);
-    } else if (event->buttons() & Qt::RightButton) {
+    }
+    else if (event->buttons() & Qt::RightButton) {
         setZTranslation(m_zDis + dy);
+    }
+    else if (event->buttons() & Qt::MiddleButton) {
+        setYTranslation(m_yDis + dy);
+        setXTranslation(m_xDis + dx);
     }
     m_lastPos = event->pos();
 }

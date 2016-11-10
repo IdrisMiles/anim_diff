@@ -47,6 +47,7 @@ signals:
 
 protected:
     void initializeGL() override;
+    virtual void customInitGL();
     void paintGL() override;
     void resizeGL(int width, int height) override;
     void mousePressEvent(QMouseEvent *event) override;
@@ -61,13 +62,6 @@ protected:
     int m_zDis;
     QPoint m_lastPos;
     glm::vec3 m_lightPos;
-
-    QOpenGLShaderProgram *m_shaderProg;
-
-    int m_projMatrixLoc;
-    int m_mvMatrixLoc;
-    int m_normalMatrixLoc;
-    int m_lightPosLoc;
 
     glm::mat4 m_projMat;
     glm::mat4 m_viewMat;

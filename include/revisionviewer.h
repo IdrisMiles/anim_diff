@@ -29,6 +29,9 @@ class RevisionViewer : public OpenGLScene
 {
 
 public:
+
+    enum RenderType { SKINNED = 0, RIG = 1, NUMRENDERTYPES };
+
     /// @brief Constructor.
     /// @param parent : The parent widget to this widget.
     RevisionViewer(QWidget *parent);
@@ -43,6 +46,7 @@ public:
 protected:
     /// @brief Method to do OpenGL drawing.
     void paintGL() override;
+    void customInitGL() override;
     void keyPressEvent(QKeyEvent *event) override;
 
 private slots:
@@ -63,7 +67,7 @@ private:
     void DrawRig();
 
     /// @brief Method to upload all bone matrices to the shader for skinning. This is called every update.
-    void UploadBonesToShader(const float _t);
+    void UploadBonesToShader(const float _t, RenderType _rt);
 
     /// @brief Method to transform bone hierarchy according to animation at time _t
     /// @param _t : animation time, this automatically gets looped if greater than animation duration.
@@ -120,6 +124,10 @@ private:
     uint FindScalingKeyFrame(const float _animationTime, const aiNodeAnim* _pNodeAnim);
 
 
+    bool m_revisionLoaded;
+    bool m_initGL;
+    bool m_waitingForInitGL;
+
     bool m_wireframe;
     bool m_drawMesh;
     bool m_playAnim;
@@ -128,14 +136,13 @@ private:
     QTimer * m_animTimer;
     QTimer * m_drawTimer;
 
-    enum RenderType { SKINNED = 0, RIG = 1, NUMRENDERTYPES };
-
     // OpenGL VAO and BO's
     QOpenGLVertexArrayObject m_meshVAO[NUMRENDERTYPES];
     QOpenGLBuffer m_meshVBO[NUMRENDERTYPES];
     QOpenGLBuffer m_meshNBO[NUMRENDERTYPES];
     QOpenGLBuffer m_meshIBO[NUMRENDERTYPES];
     QOpenGLBuffer m_meshBWBO[NUMRENDERTYPES];
+    QOpenGLBuffer m_meshCBO[NUMRENDERTYPES];
 
     // Mesh info
     std::vector<glm::vec3> m_meshVerts;
@@ -149,6 +156,7 @@ private:
     std::vector<glm::vec3> m_rigNorms;
     std::vector<unsigned int> m_rigElements;
     std::vector<VertexBoneData> m_rigBoneWeights;
+    std::vector<glm::vec3> m_rigJointColours;
 
     // Animation info
     std::vector<BoneInfo> m_boneInfo;
@@ -162,13 +170,19 @@ private:
     const aiScene *m_scene;
 
     // Shader locations
-    GLuint m_vertAttrLoc;
-    GLuint m_normAttrLoc;
-    GLuint m_boneIDAttrLoc;
-    GLuint m_boneWeightAttrLoc;
-    GLuint m_boneUniformLoc;
-    GLuint m_colourLoc;
+    GLuint m_vertAttrLoc[NUMRENDERTYPES];
+    GLuint m_normAttrLoc[NUMRENDERTYPES];
+    GLuint m_boneIDAttrLoc[NUMRENDERTYPES];
+    GLuint m_boneWeightAttrLoc[NUMRENDERTYPES];
+    GLuint m_boneUniformLoc[NUMRENDERTYPES];
+    GLuint m_colourLoc[NUMRENDERTYPES];
+    GLuint m_colourAttrLoc[NUMRENDERTYPES];
+    GLuint m_projMatrixLoc[NUMRENDERTYPES];
+    GLuint m_mvMatrixLoc[NUMRENDERTYPES];
+    GLuint m_normalMatrixLoc[NUMRENDERTYPES];
+    GLuint m_lightPosLoc[NUMRENDERTYPES];
 
+    QOpenGLShaderProgram *m_shaderProg[NUMRENDERTYPES];
 
 
 

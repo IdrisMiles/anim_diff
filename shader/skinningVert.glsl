@@ -1,4 +1,4 @@
-#version 150
+#version 330
 in vec3 vertex;
 in vec3 normal;
 in ivec4 BoneIDs;
