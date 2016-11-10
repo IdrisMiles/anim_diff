@@ -2,6 +2,7 @@
 #define ANIMNODEDIFF_H
 
 #include <glm/ext.hpp>
+#include <vector>
 
 struct animDelta {
     glm::vec3 deltaPos;
@@ -14,6 +15,8 @@ class AnimNodeDiff
 public:
     AnimNodeDiff();
     ~AnimNodeDiff();
+
+    std::vector<animDelta> animationChanges;
 
 };
 
