@@ -7,7 +7,7 @@ public:
     RevisionDiff();
     ~RevisionDiff();
 
-
+    
 };
 
 #endif // REVISIONDIFF_H

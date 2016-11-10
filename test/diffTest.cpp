@@ -1,32 +1,27 @@
-#include <QtTest/QtTest>
+#include <gtest/gtest.h>
 
+// our includes
 #include "revisionUtils.h"
 #include "revisionNode.h"
 
+//standard includes
 #include <memory>
 
-class UnitTests: public QObject
-{
+ 
+TEST(DiffTest, HelloWorld) { 
 
-public:
-    UnitTests(){}
-    virtual ~UnitTests(){}
+    // testing the testing stuff
+    std::shared_ptr<RevisionNode> test1;
+    std::shared_ptr<RevisionNode> test2;
 
-private:
+    RevisionUtils::getDiff(test1, test2);
 
-    void TestDiff()
-    {
-        // testing the testing stuff
-        std::shared_ptr<RevisionNode> test1;
-        std::shared_ptr<RevisionNode> test2;
+    std::string test = "hello";
+    ASSERT_EQ(std::string("hello"), test);
+}
 
-        RevisionUtils::getDiff(test1, test2);
-
-
-        // placeholder for now
-        QString str = "Hello";
-        QCOMPARE(str.toUpper(), QString("HELLO"));
-    }
-};
-
-QTEST_MAIN(UnitTests)
+ 
+int main(int argc, char **argv) {
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
