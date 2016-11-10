@@ -54,7 +54,11 @@ private:
     void InitVAO();
 
     void InitMesh();
+    void InitRig();
+    void GetRigTransforms(const aiNode* _pNode, const aiMatrix4x4 &_parentTransform, unsigned int &_currentID, const unsigned int _prevID);
     void InitAnimation();
+    void DrawMesh();
+    void DrawRig();
 
     /// @brief Method to upload all bone matrices to the shader for skinning. This is called every update.
     void UploadBonesToShader(const float _t);
@@ -122,12 +126,14 @@ private:
     QTimer * m_animTimer;
     QTimer * m_drawTimer;
 
+    enum RenderType { SKINNED = 0, RIG = 1, NUMRENDERTYPES };
+
     // OpenGL VAO and BO's
-    QOpenGLVertexArrayObject m_meshVAO;
-    QOpenGLBuffer m_meshVBO;
-    QOpenGLBuffer m_meshNBO;
-    QOpenGLBuffer m_meshIBO;
-    QOpenGLBuffer m_meshBWBO;
+    QOpenGLVertexArrayObject m_meshVAO[NUMRENDERTYPES];
+    QOpenGLBuffer m_meshVBO[NUMRENDERTYPES];
+    QOpenGLBuffer m_meshNBO[NUMRENDERTYPES];
+    QOpenGLBuffer m_meshIBO[NUMRENDERTYPES];
+    QOpenGLBuffer m_meshBWBO[NUMRENDERTYPES];
 
     // Mesh info
     std::vector<glm::vec3> m_meshVerts;
@@ -135,6 +141,12 @@ private:
     std::vector<glm::ivec3> m_meshTris;
     std::vector<VertexBoneData> m_meshBoneWeights;
     glm::vec3 m_colour;
+
+    // Rig info
+    std::vector<glm::vec3> m_rigVerts;
+    std::vector<glm::vec3> m_rigNorms;
+    std::vector<unsigned int> m_rigElements;
+    std::vector<VertexBoneData> m_rigBoneWeights;
 
     // Animation info
     std::vector<BoneInfo> m_boneInfo;

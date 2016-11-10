@@ -2,6 +2,16 @@
 #include <iostream>
 #include <glm/ext.hpp>
 
+glm::mat4 ConvertToGlmMat(const aiMatrix4x4 &m)
+{
+    glm::mat4 a(  m.a1, m.a2, m.a3, m.a4,
+                  m.b1, m.b2, m.b3, m.b4,
+                  m.c1, m.c2, m.c3, m.c4,
+                  m.d1, m.d2, m.d3, m.d4);
+
+    return a;
+}
+
 RevisionViewer::RevisionViewer(QWidget *parent) : OpenGLScene(parent)
 {
     m_wireframe = false;
@@ -19,6 +29,11 @@ RevisionViewer::RevisionViewer(QWidget *parent) : OpenGLScene(parent)
 
 RevisionViewer::~RevisionViewer()
 {
+    m_meshVBO[SKINNED].destroy();
+    m_meshNBO[SKINNED].destroy();
+    m_meshIBO[SKINNED].destroy();
+    m_meshBWBO[SKINNED].destroy();
+    m_meshVAO[SKINNED].destroy();
     cleanup();
 }
 
@@ -36,106 +51,8 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
     }
     else
     {
-        if(m_scene->HasMeshes())
-        {
-            unsigned int nb=0;
-            unsigned int indexOffset = 0;
-            for(unsigned int i=0; i<m_scene->mNumMeshes; i++)
-            {
-                // Mesh tris/element array
-                unsigned int numFaces = m_scene->mMeshes[i]->mNumFaces;
-                for(unsigned int f=0; f<numFaces; f++)
-                {
-                    auto face = m_scene->mMeshes[i]->mFaces[f];
-                    m_meshTris.push_back(glm::ivec3(face.mIndices[0]+indexOffset, face.mIndices[1]+indexOffset, face.mIndices[2]+indexOffset));
-                }
-
-                // Mesh verts and norms
-                unsigned int numVerts = m_scene->mMeshes[i]->mNumVertices;
-                for(unsigned int v=0; v<numVerts; v++)
-                {
-                    auto vert = m_scene->mMeshes[i]->mVertices[v];
-                    auto norm = m_scene->mMeshes[i]->mNormals[v];
-                    m_meshVerts.push_back(glm::vec3(vert.x, vert.y, vert.z));
-                    m_meshNorms.push_back(glm::vec3(norm.x, norm.y, norm.z));
-                }
-
-
-                m_meshBoneWeights.resize(m_meshVerts.size());
-
-                // Mesh bones
-                unsigned int numBones = m_scene->mMeshes[i]->mNumBones;
-                for(unsigned int b=0; b<numBones; b++)
-                {
-                    auto bone = m_scene->mMeshes[i]->mBones[b];
-                    unsigned int boneIndex = 0;
-                    std::string boneName = bone->mName.data;
-
-                    // Check this is a new bone
-                    if(m_boneMapping.find(boneName) == m_boneMapping.end())
-                    {
-                        boneIndex = nb;
-                        nb++;
-                        m_boneInfo.push_back(BoneInfo());
-                        m_boneMapping[boneName] = boneIndex;
-                        m_boneInfo[boneIndex].boneOffset = bone->mOffsetMatrix;
-                    }
-                    else
-                    {
-                        boneIndex = m_boneMapping[boneName];
-
-                    }
-
-
-                    // Bone vertex weights
-                    unsigned int boneWeights = bone->mNumWeights;
-                    for(unsigned int bw=0; bw<boneWeights; bw++)
-                    {
-                        unsigned int vertexID = indexOffset + bone->mWeights[bw].mVertexId;
-                        float vertexWeight = bone->mWeights[bw].mWeight;
-                        for(unsigned int w=0; w<4; w++)
-                        {
-                            if(m_meshBoneWeights[vertexID].boneWeight[w] == 0.0f)
-                            {
-                                m_meshBoneWeights[vertexID].boneWeight[w] = vertexWeight;
-                                m_meshBoneWeights[vertexID].boneID[w] = boneIndex;
-                            }
-                        }
-                    }
-
-                } // end for numBones
-
-                indexOffset = m_meshVerts.size();
-
-            } // end for numMeshes
-
-        }// end if has mesh
-
-
-        if(m_scene->HasAnimations())
-        {
-            m_animExists = true;
-            m_ticksPerSecond = m_scene->mAnimations[0]->mTicksPerSecond;
-            m_animationDuration = m_scene->mAnimations[0]->mDuration;
-        }
-        else
-        {
-            m_animExists = false;
-            m_playAnim = false;
-
-            for(unsigned int bw=0; bw<m_meshVerts.size();bw++)
-            {
-                m_meshBoneWeights[bw].boneID[0] = 0;
-                m_meshBoneWeights[bw].boneID[1] = 0;
-                m_meshBoneWeights[bw].boneID[2] = 0;
-                m_meshBoneWeights[bw].boneID[3] = 0;
-
-                m_meshBoneWeights[bw].boneWeight[0] = 1.0;
-                m_meshBoneWeights[bw].boneWeight[1] = 0.0;
-                m_meshBoneWeights[bw].boneWeight[2] = 0.0;
-                m_meshBoneWeights[bw].boneWeight[3] = 0.0;
-            }
-        }
+        InitMesh();
+        InitRig();
 
     } // end if aiScene is valid
 
@@ -145,10 +62,176 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
     m_drawTimer->start(1000*m_dt);
 }
 
+void RevisionViewer::InitMesh()
+{
+    if(m_scene->HasMeshes())
+    {
+        unsigned int nb=0;
+        unsigned int indexOffset = 0;
+        for(unsigned int i=0; i<m_scene->mNumMeshes; i++)
+        {
+            // Mesh tris/element array
+            unsigned int numFaces = m_scene->mMeshes[i]->mNumFaces;
+            for(unsigned int f=0; f<numFaces; f++)
+            {
+                auto face = m_scene->mMeshes[i]->mFaces[f];
+                m_meshTris.push_back(glm::ivec3(face.mIndices[0]+indexOffset, face.mIndices[1]+indexOffset, face.mIndices[2]+indexOffset));
+            }
+
+            // Mesh verts and norms
+            unsigned int numVerts = m_scene->mMeshes[i]->mNumVertices;
+            for(unsigned int v=0; v<numVerts; v++)
+            {
+                auto vert = m_scene->mMeshes[i]->mVertices[v];
+                auto norm = m_scene->mMeshes[i]->mNormals[v];
+                m_meshVerts.push_back(glm::vec3(vert.x, vert.y, vert.z));
+                m_meshNorms.push_back(glm::vec3(norm.x, norm.y, norm.z));
+            }
+
+
+            m_meshBoneWeights.resize(m_meshVerts.size());
+
+            // Mesh bones
+            unsigned int numBones = m_scene->mMeshes[i]->mNumBones;
+            for(unsigned int b=0; b<numBones; b++)
+            {
+                auto bone = m_scene->mMeshes[i]->mBones[b];
+                unsigned int boneIndex = 0;
+                std::string boneName = bone->mName.data;
+
+                // Check this is a new bone
+                if(m_boneMapping.find(boneName) == m_boneMapping.end())
+                {
+                    boneIndex = nb;
+                    nb++;
+                    m_boneInfo.push_back(BoneInfo());
+                    m_boneMapping[boneName] = boneIndex;
+                    m_boneInfo[boneIndex].boneOffset = bone->mOffsetMatrix;
+                }
+                else
+                {
+                    boneIndex = m_boneMapping[boneName];
+
+                }
+
+
+                // Bone vertex weights
+                unsigned int boneWeights = bone->mNumWeights;
+                for(unsigned int bw=0; bw<boneWeights; bw++)
+                {
+                    unsigned int vertexID = indexOffset + bone->mWeights[bw].mVertexId;
+                    float vertexWeight = bone->mWeights[bw].mWeight;
+                    for(unsigned int w=0; w<4; w++)
+                    {
+                        if(m_meshBoneWeights[vertexID].boneWeight[w] == 0.0f)
+                        {
+                            m_meshBoneWeights[vertexID].boneWeight[w] = vertexWeight;
+                            m_meshBoneWeights[vertexID].boneID[w] = boneIndex;
+                        }
+                    }
+                }
+
+            } // end for numBones
+
+            indexOffset = m_meshVerts.size();
+
+        } // end for numMeshes
+
+    }// end if has mesh
+
+
+    if(m_scene->HasAnimations())
+    {
+        m_animExists = true;
+        m_ticksPerSecond = m_scene->mAnimations[0]->mTicksPerSecond;
+        m_animationDuration = m_scene->mAnimations[0]->mDuration;
+    }
+    else
+    {
+        m_animExists = false;
+        m_playAnim = false;
+
+        for(unsigned int bw=0; bw<m_meshVerts.size();bw++)
+        {
+            m_meshBoneWeights[bw].boneID[0] = 0;
+            m_meshBoneWeights[bw].boneID[1] = 0;
+            m_meshBoneWeights[bw].boneID[2] = 0;
+            m_meshBoneWeights[bw].boneID[3] = 0;
+
+            m_meshBoneWeights[bw].boneWeight[0] = 1.0;
+            m_meshBoneWeights[bw].boneWeight[1] = 0.0;
+            m_meshBoneWeights[bw].boneWeight[2] = 0.0;
+            m_meshBoneWeights[bw].boneWeight[3] = 0.0;
+        }
+    }
+}
+
+void RevisionViewer::InitRig()
+{
+    unsigned int id=0;
+    aiMatrix4x4 mat;
+
+
+    for(unsigned int i=0; i<m_scene->mRootNode->mNumChildren; i++)
+    {
+        GetRigTransforms(m_scene->mRootNode->mChildren[i], mat, id, 0);
+    }
+}
+
+void RevisionViewer::GetRigTransforms(const aiNode* _pNode, const aiMatrix4x4 &_parentTransform, unsigned int &_currentID, const unsigned int _prevID)
+{
+    aiMatrix4x4 globalTransformation = _parentTransform * _pNode->mTransformation;
+
+    unsigned int currentID = _prevID;
+
+//    if (m_boneMapping.find(nodeName) != m_boneMapping.end()) {
+//            uint BoneIndex = m_boneMapping[std::string(_pNode->mName.data)];
+//            m_globalInverseTransform * _parentTransform * m_boneInfo[BoneIndex].boneOffset;
+//        }
+
+    if(FindNodeAnim(m_scene->mAnimations[0], _pNode->mName.data) != NULL)
+    {
+        m_rigVerts.push_back(glm::vec3(glm::vec4(0.0f,0.0f,0.0f,1.0f)*ConvertToGlmMat(globalTransformation)));
+        m_rigNorms.push_back(glm::vec3(0.0f,0.0f,1.0f));
+
+        VertexBoneData v2;
+        std::string nodeName(_pNode->mName.data);
+        v2.boneID[0] = m_boneMapping[nodeName];
+        v2.boneWeight[0] = 1.0f;
+        v2.boneWeight[1] = 0.0f;
+        v2.boneWeight[2] = 0.0f;
+        v2.boneWeight[3] = 0.0f;
+
+        m_rigBoneWeights.push_back(v2);
+
+        _currentID++;
+        currentID = _currentID;
+        m_rigElements.push_back((unsigned int)currentID);
+
+    }
+    else
+    {
+        std::cout<<"OOOOOOOO\n";
+    }
+
+    for (uint i = 0 ; i < _pNode->mNumChildren ; i++)
+    {
+        GetRigTransforms(_pNode->mChildren[i], globalTransformation, _currentID, currentID);
+    }
+}
+
+void RevisionViewer::InitAnimation()
+{
+
+}
+
 void RevisionViewer::InitVAO()
 {
 
     m_shaderProg->bind();
+
+    glPointSize(5);
+    glLineWidth(10);
 
     // Get shader locations
     m_colour = glm::vec3(0.8f,0.4f,0.4f);
@@ -167,54 +250,95 @@ void RevisionViewer::InitVAO()
     std::cout<<"Bones loc:\t"<<m_boneUniformLoc<<"\n";
 
 
-    // Set up VAO
-    m_meshVAO.create();
-    m_meshVAO.bind();
+    //--------------------------------------------------------------------------------------
+    // Skinned mesh
 
+    // Set up VAO
+    m_meshVAO[SKINNED].create();
+    m_meshVAO[SKINNED].bind();
 
     // Set up element array
-    m_meshIBO.create();
-    m_meshIBO.bind();
-    m_meshIBO.allocate(&m_meshTris[0], m_meshTris.size() * sizeof(int));
-    m_meshIBO.release();
+    m_meshIBO[SKINNED].create();
+    m_meshIBO[SKINNED].bind();
+    m_meshIBO[SKINNED].allocate(&m_meshTris[0], m_meshTris.size() * sizeof(int));
+    m_meshIBO[SKINNED].release();
 
 
     // Setup our vertex buffer object.
-    m_meshVBO.create();
-    m_meshVBO.bind();
-    m_meshVBO.allocate(&m_meshVerts[0], m_meshVerts.size() * sizeof(glm::vec3));
+    m_meshVBO[SKINNED].create();
+    m_meshVBO[SKINNED].bind();
+    m_meshVBO[SKINNED].allocate(&m_meshVerts[0], m_meshVerts.size() * sizeof(glm::vec3));
     glEnableVertexAttribArray(m_vertAttrLoc);
     glVertexAttribPointer(m_vertAttrLoc, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-    m_meshVBO.release();
+    m_meshVBO[SKINNED].release();
 
 
     // Setup our normals buffer object.
-    m_meshNBO.create();
-    m_meshNBO.bind();
-    m_meshNBO.allocate(&m_meshNorms[0], m_meshNorms.size() * sizeof(glm::vec3));
+    m_meshNBO[SKINNED].create();
+    m_meshNBO[SKINNED].bind();
+    m_meshNBO[SKINNED].allocate(&m_meshNorms[0], m_meshNorms.size() * sizeof(glm::vec3));
     glEnableVertexAttribArray(m_normAttrLoc);
     glVertexAttribPointer(m_normAttrLoc, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-    m_meshNBO.release();
+    m_meshNBO[SKINNED].release();
 
 
     // Set up vertex bone weighting buffer object
-    m_meshBWBO.create();
-    m_meshBWBO.bind();
-    m_meshBWBO.allocate(&m_meshBoneWeights[0], m_meshBoneWeights.size() * sizeof(VertexBoneData));
+    m_meshBWBO[SKINNED].create();
+    m_meshBWBO[SKINNED].bind();
+    m_meshBWBO[SKINNED].allocate(&m_meshBoneWeights[0], m_meshBoneWeights.size() * sizeof(VertexBoneData));
     glEnableVertexAttribArray(m_boneIDAttrLoc);
     glVertexAttribIPointer(m_boneIDAttrLoc, 4, GL_UNSIGNED_INT, sizeof(VertexBoneData), (const GLvoid*)0);
     glEnableVertexAttribArray(m_boneWeightAttrLoc);
     glVertexAttribPointer(m_boneWeightAttrLoc, 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*)4);
-    m_meshBWBO.release();
+    m_meshBWBO[SKINNED].release();
+
+    m_meshVAO[SKINNED].release();
 
 
-    m_meshVAO.release();
+    //--------------------------------------------------------------------------------------
+    // Rigged mesh
+
+    m_meshVAO[RIG].create();
+    m_meshVAO[RIG].bind();
+
+    // Set up element array
+    m_meshIBO[RIG].create();
+    m_meshIBO[RIG].bind();
+    m_meshIBO[RIG].allocate(&m_rigElements[0], m_rigElements.size() * sizeof(unsigned int));
+    m_meshIBO[RIG].release();
+
+    // Setup our vertex buffer object.
+    m_meshVBO[RIG].create();
+    m_meshVBO[RIG].bind();
+    m_meshVBO[RIG].allocate(&m_rigVerts[0], m_rigVerts.size() * sizeof(glm::vec3));
+    glEnableVertexAttribArray(m_vertAttrLoc);
+    glVertexAttribPointer(m_vertAttrLoc, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+    m_meshVBO[RIG].release();
+
+    // Setup our normals buffer object.
+    m_meshNBO[RIG].create();
+    m_meshNBO[RIG].bind();
+    m_meshNBO[RIG].allocate(&m_rigNorms[0], m_rigNorms.size() * sizeof(glm::vec3));
+    glEnableVertexAttribArray(m_normAttrLoc);
+    glVertexAttribPointer(m_normAttrLoc, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+    m_meshNBO[RIG].release();
+
+    // Set up vertex bone weighting buffer object
+    m_meshBWBO[RIG].create();
+    m_meshBWBO[RIG].bind();
+    m_meshBWBO[RIG].allocate(&m_rigBoneWeights[0], m_rigBoneWeights.size() * sizeof(VertexBoneData));
+    glEnableVertexAttribArray(m_boneIDAttrLoc);
+    glVertexAttribIPointer(m_boneIDAttrLoc, 4, GL_UNSIGNED_INT, sizeof(VertexBoneData), (const GLvoid*)0);
+    glEnableVertexAttribArray(m_boneWeightAttrLoc);
+    glVertexAttribPointer(m_boneWeightAttrLoc, 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*)4);
+    m_meshBWBO[RIG].release();
+
+    m_meshVAO[RIG].release();
+
 
     m_shaderProg->release();
 
 }
-
-
 
 
 void RevisionViewer::paintGL()
@@ -256,10 +380,8 @@ void RevisionViewer::paintGL()
 
     //---------------------------------------------------------------------------------------
     // Draw code - replace this with project specific draw stuff
-    m_meshVAO.bind();
-    glDrawElements(m_wireframe?GL_LINES:GL_TRIANGLES, 3*m_meshTris.size(), GL_UNSIGNED_INT, &m_meshTris[0]);
-    m_meshVAO.release();
-
+    //DrawMesh();
+    DrawRig();
     //---------------------------------------------------------------------------------------
 
 
@@ -267,14 +389,19 @@ void RevisionViewer::paintGL()
 
 }
 
-glm::mat4 ConvertToGlmMat(const aiMatrix4x4 &m)
+void RevisionViewer::DrawMesh()
 {
-    glm::mat4 a(  m.a1, m.a2, m.a3, m.a4,
-                  m.b1, m.b2, m.b3, m.b4,
-                  m.c1, m.c2, m.c3, m.c4,
-                  m.d1, m.d2, m.d3, m.d4);
+    m_meshVAO[SKINNED].bind();
+    glDrawElements(m_wireframe?GL_LINES:GL_TRIANGLES, 3*m_meshTris.size(), GL_UNSIGNED_INT, &m_meshTris[0]);
+    m_meshVAO[SKINNED].release();
+}
 
-    return a;
+void RevisionViewer::DrawRig()
+{
+    m_meshVAO[RIG].bind();
+    glDrawArrays(GL_POINTS, 0, m_rigVerts.size());
+    //glDrawElements(GL_LINES, m_rigElements.size(), GL_UNSIGNED_INT, &m_rigElements[0]);
+    m_meshVAO[RIG].release();
 }
 
 void RevisionViewer::UpdateAnimation()
