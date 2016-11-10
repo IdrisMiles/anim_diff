@@ -1,6 +1,7 @@
 #include "include/revisionviewer.h"
 #include <iostream>
 #include <glm/ext.hpp>
+#include <QKeyEvent>
 
 glm::mat4 ConvertToGlmMat(const aiMatrix4x4 &m)
 {
@@ -168,56 +169,78 @@ void RevisionViewer::InitMesh()
 
 void RevisionViewer::InitRig()
 {
-    unsigned int id=0;
-    aiMatrix4x4 mat;
+    aiMatrix4x4 mat = m_globalInverseTransform;
+    SetRigVerts(m_scene->mRootNode, mat);
 
+    std::cout<<"RigboneWeight size: "<<m_rigBoneWeights.size()<<"\n";
+    std::cout<<"RigboneVert size: "<<m_rigVerts.size()<<"\n";
 
-    for(unsigned int i=0; i<m_scene->mRootNode->mNumChildren; i++)
-    {
-        GetRigTransforms(m_scene->mRootNode->mChildren[i], mat, id, 0);
-    }
 }
 
-void RevisionViewer::GetRigTransforms(const aiNode* _pNode, const aiMatrix4x4 &_parentTransform, unsigned int &_currentID, const unsigned int _prevID)
+void RevisionViewer::SetRigVerts(aiNode* _pNode, const aiMatrix4x4 &_parentTransform)
 {
     aiMatrix4x4 globalTransformation = _parentTransform * _pNode->mTransformation;
 
-    unsigned int currentID = _prevID;
-
-//    if (m_boneMapping.find(nodeName) != m_boneMapping.end()) {
-//            uint BoneIndex = m_boneMapping[std::string(_pNode->mName.data)];
-//            m_globalInverseTransform * _parentTransform * m_boneInfo[BoneIndex].boneOffset;
-//        }
-
-    if(FindNodeAnim(m_scene->mAnimations[0], _pNode->mName.data) != NULL)
+    for (uint i = 0 ; i < _pNode->mNumChildren ; i++)
     {
+        VertexBoneData v2;
+
+        // This joint
+        //SetJointVert(_pNode, globalTransformation, v2);
         m_rigVerts.push_back(glm::vec3(glm::vec4(0.0f,0.0f,0.0f,1.0f)*ConvertToGlmMat(globalTransformation)));
         m_rigNorms.push_back(glm::vec3(0.0f,0.0f,1.0f));
 
-        VertexBoneData v2;
-        std::string nodeName(_pNode->mName.data);
-        v2.boneID[0] = m_boneMapping[nodeName];
-        v2.boneWeight[0] = 1.0f;
-        v2.boneWeight[1] = 0.0f;
-        v2.boneWeight[2] = 0.0f;
-        v2.boneWeight[3] = 0.0f;
-
+        if(FindNodeAnim(m_scene->mAnimations[0], _pNode->mName.data) != NULL)
+        {
+            std::string nodeName(_pNode->mName.data);
+            v2.boneID[0] = m_boneMapping[nodeName];
+            v2.boneWeight[0] = 1.0f;
+            v2.boneWeight[1] = 0.0f;
+            v2.boneWeight[2] = 0.0f;
+            v2.boneWeight[3] = 0.0f;
+        }
+        else
+        {
+            v2.boneID[0] = 0;
+            v2.boneWeight[0] = 0.0f;
+            v2.boneWeight[1] = 0.0f;
+            v2.boneWeight[2] = 0.0f;
+            v2.boneWeight[3] = 0.0f;
+        }
         m_rigBoneWeights.push_back(v2);
 
-        _currentID++;
-        currentID = _currentID;
-        m_rigElements.push_back((unsigned int)currentID);
 
+
+        // Child joint
+        SetJointVert(_pNode->mChildren[i], globalTransformation*_pNode->mChildren[i]->mTransformation, v2);
+
+        // Repeat for rest of the joints
+        SetRigVerts(_pNode->mChildren[i], globalTransformation);
+    }
+}
+
+void RevisionViewer::SetJointVert(const aiNode* _pNode, const aiMatrix4x4 &_transform, VertexBoneData &_vb)
+{
+    m_rigVerts.push_back(glm::vec3(glm::vec4(0.0f,0.0f,0.0f,1.0f)*ConvertToGlmMat(_transform)));
+    m_rigNorms.push_back(glm::vec3(0.0f,0.0f,1.0f));
+    if(FindNodeAnim(m_scene->mAnimations[0], _pNode->mName.data) != NULL)
+    {
+        std::string nodeName(_pNode->mName.data);
+        _vb.boneID[0] = m_boneMapping[nodeName];
+        _vb.boneWeight[0] = 1.0f;
+        _vb.boneWeight[1] = 0.0f;
+        _vb.boneWeight[2] = 0.0f;
+        _vb.boneWeight[3] = 0.0f;
     }
     else
     {
-        std::cout<<"OOOOOOOO\n";
+        _vb.boneID[0] = 0;
+        _vb.boneWeight[0] = 0.0f;
+        _vb.boneWeight[1] = 0.0f;
+        _vb.boneWeight[2] = 0.0f;
+        _vb.boneWeight[3] = 0.0f;
     }
-
-    for (uint i = 0 ; i < _pNode->mNumChildren ; i++)
-    {
-        GetRigTransforms(_pNode->mChildren[i], globalTransformation, _currentID, currentID);
-    }
+    m_rigBoneWeights.push_back(_vb);
 }
 
 void RevisionViewer::InitAnimation()
@@ -230,8 +253,7 @@ void RevisionViewer::InitVAO()
 
     m_shaderProg->bind();
 
-    glPointSize(5);
-    glLineWidth(10);
+    glPointSize(10);
 
     // Get shader locations
     m_colour = glm::vec3(0.8f,0.4f,0.4f);
@@ -380,7 +402,7 @@ void RevisionViewer::paintGL()
 
     //---------------------------------------------------------------------------------------
     // Draw code - replace this with project specific draw stuff
-    //DrawMesh();
+    DrawMesh();
     DrawRig();
     //---------------------------------------------------------------------------------------
 
@@ -392,13 +414,16 @@ void RevisionViewer::paintGL()
 void RevisionViewer::DrawMesh()
 {
     m_meshVAO[SKINNED].bind();
-    glDrawElements(m_wireframe?GL_LINES:GL_TRIANGLES, 3*m_meshTris.size(), GL_UNSIGNED_INT, &m_meshTris[0]);
+    glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
+    glDrawElements(GL_TRIANGLES, 3*m_meshTris.size(), GL_UNSIGNED_INT, &m_meshTris[0]);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     m_meshVAO[SKINNED].release();
 }
 
 void RevisionViewer::DrawRig()
 {
     m_meshVAO[RIG].bind();
+    glDrawArrays(GL_LINES, 0, m_rigVerts.size());
     glDrawArrays(GL_POINTS, 0, m_rigVerts.size());
     //glDrawElements(GL_LINES, m_rigElements.size(), GL_UNSIGNED_INT, &m_rigElements[0]);
     m_meshVAO[RIG].release();
@@ -418,6 +443,14 @@ void RevisionViewer::UpdateAnimation()
     m_shaderProg->release();
 }
 
+void RevisionViewer::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_W)
+    {
+        m_wireframe = !m_wireframe;
+    }
+}
+
 void RevisionViewer::UploadBonesToShader(const float _t)
 {
     std::vector<glm::mat4> bones;
@@ -427,7 +460,6 @@ void RevisionViewer::UploadBonesToShader(const float _t)
         glUniformMatrix4fv(m_boneUniformLoc + b, 1, true, &bones[b][0][0]);
     }
 }
-
 
 void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_transforms)
 {
@@ -442,7 +474,6 @@ void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_tran
 
     float timeInTicks = _t * m_ticksPerSecond;
     float animationTime = fmod(timeInTicks, m_animationDuration);
-    std::cout<<"Anim time: "<<animationTime<<"\n";
 
     ReadNodeHierarchy(animationTime, m_scene->mAnimations[0], m_scene->mRootNode, identity);
 
@@ -455,7 +486,6 @@ void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_tran
     }
 
 }
-
 
 void RevisionViewer::ReadNodeHierarchy(const float _animationTime, const aiAnimation* _pAnimation, const aiNode* _pNode, const aiMatrix4x4 &_parentTransform)
 {
@@ -508,7 +538,6 @@ void RevisionViewer::ReadNodeHierarchy(const float _animationTime, const aiAnima
     }
 
 }
-
 
 const aiNodeAnim* RevisionViewer::FindNodeAnim(const aiAnimation* _pAnimation, const std::string _nodeName)
 {

@@ -17,6 +17,8 @@ OpenGLScene::OpenGLScene(QWidget *parent) : QOpenGLWidget(parent),
     format.setStencilBufferSize(8);
 
     setFormat(format);
+    setFocus();
+    setFocusPolicy(Qt::StrongFocus);
 }
 
 

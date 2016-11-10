@@ -43,6 +43,7 @@ public:
 protected:
     /// @brief Method to do OpenGL drawing.
     void paintGL() override;
+    void keyPressEvent(QKeyEvent *event) override;
 
 private slots:
     /// @brief Method to update the bone animation. This takes advantage of Qt's Signals and Slots so that we can update the animation on a timer event to decouple it from the rest of the drawing.
@@ -55,7 +56,8 @@ private:
 
     void InitMesh();
     void InitRig();
-    void GetRigTransforms(const aiNode* _pNode, const aiMatrix4x4 &_parentTransform, unsigned int &_currentID, const unsigned int _prevID);
+    void SetRigVerts(aiNode *_pNode, const aiMatrix4x4 &_parentTransform);
+    void SetJointVert(const aiNode *_pNode, const aiMatrix4x4 &_transform, VertexBoneData &_vb);
     void InitAnimation();
     void DrawMesh();
     void DrawRig();
