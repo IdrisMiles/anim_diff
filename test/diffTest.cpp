@@ -66,7 +66,29 @@ TEST(DiffTest, noAnimationCheck) {
     }
 }
 
- 
+TEST(DiffTest, matchingTimesCheck) { 
+
+    // testing the testing stuff
+    std::shared_ptr<RevisionNode> test1(new RevisionNode());
+    std::shared_ptr<RevisionNode> test2(new RevisionNode());
+    RevisionDiff diff;
+
+    // load files
+    test1->LoadModel("../bin/boblampclean.md5mesh");
+    test2->LoadModel("../bin/BaseMesh_Anim.fbx");
+
+    try 
+    {
+        diff = RevisionUtils::getDiff(test1, test2);
+        FAIL() << "No matching ticks/duration exception expected";
+    }
+    catch(const std::string& ex) 
+    {
+        EXPECT_EQ(std::string("ticks/duration do not match"), ex);
+    }
+}
+
+
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
