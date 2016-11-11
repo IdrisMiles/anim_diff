@@ -19,6 +19,9 @@ LIBS += -L${GTEST_LIBRARIES} \
 # adding sources manually, because of qt include things
 SOURCES +=      ../src/revisionDiff.cpp         \
                 ../src/revisionUtils.cpp        \
+                ../src/animNodeDiff.cpp         \
+                ../src/revisionNode.cpp         \
+                ../src/model.cpp                \
                 diffTest.cpp
 
 CONFIG += console c++11

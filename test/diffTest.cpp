@@ -3,21 +3,45 @@
 // our includes
 #include "revisionUtils.h"
 #include "revisionNode.h"
+#include "revisionDiff.h"
 
 //standard includes
 #include <memory>
 
- 
-TEST(DiffTest, HelloWorld) { 
+TEST(DiffTest, RevisionNodeNullCheck) { 
 
     // testing the testing stuff
     std::shared_ptr<RevisionNode> test1;
     std::shared_ptr<RevisionNode> test2;
+    RevisionDiff diff;
 
-    RevisionUtils::getDiff(test1, test2);
+    try 
+    {
+        diff = RevisionUtils::getDiff(test1, test2);
+        FAIL() << "Expected null pointer exception";
+    }
+    catch(const std::string& ex) 
+    {
+        EXPECT_EQ(std::string("null pointer: revision node"), ex);
+    }
+}
 
-    std::string test = "hello";
-    ASSERT_EQ(std::string("hello"), test);
+TEST(DiffTest, aiSceneNullCheck) { 
+
+    // testing the testing stuff
+    std::shared_ptr<RevisionNode> test1(new RevisionNode());
+    std::shared_ptr<RevisionNode> test2(new RevisionNode());
+    RevisionDiff diff;
+
+    try 
+    {
+        diff = RevisionUtils::getDiff(test1, test2);
+        FAIL() << "Expected null pointer exception";
+    }
+    catch(const std::string& ex) 
+    {
+        EXPECT_EQ(std::string("null pointer: scene"), ex);
+    }
 }
 
  

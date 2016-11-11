@@ -2,6 +2,7 @@
 #define REVISIONUTILS_H
 
 #include <memory>
+#include "revisionDiff.h"
 
 class RevisionNode;
 
@@ -12,8 +13,7 @@ public:
     ~RevisionUtils();
 
     // will not be void once structure is created
-    static void getDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch);
-
+    static RevisionDiff getDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch);
 };
 
 #endif // REVISIONUTILS_H

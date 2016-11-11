@@ -12,11 +12,7 @@ public:
 
     void LoadModel(const std::string &_modelFile);
 
-
-
     std::shared_ptr<Model> m_model;
-
-
 };
 
 #endif // REVISIONNODE_H
