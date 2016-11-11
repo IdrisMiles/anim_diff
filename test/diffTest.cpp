@@ -40,7 +40,29 @@ TEST(DiffTest, aiSceneNullCheck) {
     }
     catch(const std::string& ex) 
     {
-        EXPECT_EQ(std::string("null pointer: scene"), ex);
+        EXPECT_EQ(std::string("null pointer: no model loaded"), ex);
+    }
+}
+
+TEST(DiffTest, noAnimationCheck) { 
+
+    // testing the testing stuff
+    std::shared_ptr<RevisionNode> test1(new RevisionNode());
+    std::shared_ptr<RevisionNode> test2(new RevisionNode());
+    RevisionDiff diff;
+
+    // load files
+    test1->LoadModel("../bin/pighead.obj");
+    test2->LoadModel("../bin/GiantTeapot.obj");
+
+    try 
+    {
+        diff = RevisionUtils::getDiff(test1, test2);
+        FAIL() << "No animation exception expected";
+    }
+    catch(const std::string& ex) 
+    {
+        EXPECT_EQ(std::string("no animation present"), ex);
     }
 }
 

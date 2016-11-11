@@ -20,9 +20,10 @@ RevisionDiff RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::
 {   
     if(!_master && !_branch) throw std::string("null pointer: revision node");
 
+    if(!_master->m_model && !_master->m_model) throw std::string("null pointer: no model loaded");
     // public members, so so bad and dirty raw pointers
-    const aiScene *pMasterScene = _master->m_model->m_scene;
-    const aiScene *pBranchScene = _branch->m_model->m_scene;
+    const aiScene *pMasterScene = _master->m_model->m_scene ? _master->m_model->m_scene : nullptr;
+    const aiScene *pBranchScene = _branch->m_model->m_scene ? _branch->m_model->m_scene : nullptr;
 
     //create our return 
     RevisionDiff revDiff;
@@ -55,6 +56,7 @@ RevisionDiff RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::
     }
     else
     {
+        // don't think it'll ever get here.. supposedly
         throw std::string("null pointer: scene");
     }
 
