@@ -23,6 +23,7 @@ RevisionViewer::RevisionViewer(QWidget *parent) : OpenGLScene(parent)
     m_drawMesh = true;
     m_playAnim = true;
     m_dt = 0.016;
+    m_t = 0.0f;
 
     m_animTimer = new QTimer(this);
     connect(m_animTimer, SIGNAL(timeout()), this, SLOT(UpdateAnimation()));
@@ -40,6 +41,14 @@ RevisionViewer::~RevisionViewer()
     m_meshBWBO[SKINNED].destroy();
     m_meshVAO[SKINNED].destroy();
     cleanup();
+}
+
+void RevisionViewer::SetTime(const float _t)
+{
+    if(m_playAnim)
+    {
+        m_t = _t;
+    }
 }
 
 void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
@@ -188,18 +197,6 @@ void RevisionViewer::InitRig()
 {
     aiMatrix4x4 mat = m_globalInverseTransform;
     SetRigVerts(m_scene->mRootNode, mat);
-
-/*
-    for(auto vert : m_rigVerts)
-    {
-        std::cout<<vert.x<<", "<<vert.y<<", "<<vert.z<<"\n";
-    }
-
-    for(auto bone : m_rigBoneWeights)
-    {
-        std::cout<<"bone id: "<<bone.boneID[0]<<"\tweight: "<<bone.boneWeight[0]<<"\n";
-    }*/
-
 }
 
 void RevisionViewer::SetRigVerts(aiNode* _pNode, const aiMatrix4x4 &_parentTransform)
@@ -212,6 +209,28 @@ void RevisionViewer::SetRigVerts(aiNode* _pNode, const aiMatrix4x4 &_parentTrans
 
         // This joint
         SetJointVert(_pNode, globalTransformation, v2);
+        /*m_rigVerts.push_back(glm::vec3(glm::vec4(0.0f,0.0f,0.0f,1.0f)*ConvertToGlmMat(globalTransformation)));
+        m_rigJointColours.push_back(glm::vec3(0.4f, 1.0f, 0.4f));
+
+        if(FindNodeAnim(m_scene->mAnimations[0], _pNode->mName.data) != NULL)
+        {
+            std::string nodeName(_pNode->mName.data);
+            v2.boneID[0] = m_boneMapping[nodeName];
+            v2.boneWeight[0] = 1.0f;
+            v2.boneWeight[1] = 0.0f;
+            v2.boneWeight[2] = 0.0f;
+            v2.boneWeight[3] = 0.0f;
+        }
+        else
+        {
+            v2.boneID[0] = 0;
+            v2.boneWeight[0] = 0.0f;
+            v2.boneWeight[1] = 0.0f;
+            v2.boneWeight[2] = 0.0f;
+            v2.boneWeight[3] = 0.0f;
+        }
+        m_rigBoneWeights.push_back(v2);
+        */
 
         // Child joint
         SetJointVert(_pNode->mChildren[i], globalTransformation*_pNode->mChildren[i]->mTransformation, v2);
@@ -477,14 +496,17 @@ void RevisionViewer::paintGL()
 
 
 
-    m_shaderProg[RIG]->bind();
-    glUniformMatrix4fv(m_projMatrixLoc[RIG], 1, false, &m_projMat[0][0]);
-    glUniformMatrix4fv(m_mvMatrixLoc[RIG], 1, false, &(m_modelMat*m_viewMat)[0][0]);
-    glUniformMatrix3fv(m_normalMatrixLoc[RIG], 1, true, &normalMatrix[0][0]);
+    if(m_wireframe)
+    {
+        m_shaderProg[RIG]->bind();
+        glUniformMatrix4fv(m_projMatrixLoc[RIG], 1, false, &m_projMat[0][0]);
+        glUniformMatrix4fv(m_mvMatrixLoc[RIG], 1, false, &(m_modelMat*m_viewMat)[0][0]);
+        glUniformMatrix3fv(m_normalMatrixLoc[RIG], 1, true, &normalMatrix[0][0]);
 
-    DrawRig();
+        DrawRig();
 
-    m_shaderProg[RIG]->release();
+        m_shaderProg[RIG]->release();
+    }
 }
 
 void RevisionViewer::DrawMesh()
@@ -500,25 +522,19 @@ void RevisionViewer::DrawRig()
 {
     m_meshVAO[RIG].bind();
     glDrawArrays(GL_LINES, 0, m_rigVerts.size());
-    //glDrawArrays(GL_POINTS, 0, m_rigVerts.size());
     m_meshVAO[RIG].release();
 }
 
 void RevisionViewer::UpdateAnimation()
 {
-    static float t = 0.0f;
-    if(m_playAnim)
-    {
-        t += m_dt;
-    }
 
     // Set shader params
     m_shaderProg[SKINNED]->bind();
-    UploadBonesToShader(t, SKINNED);
+    UploadBonesToShader(m_t, SKINNED);
     m_shaderProg[SKINNED]->release();
 
     m_shaderProg[RIG]->bind();
-    UploadBonesToShader(t, RIG);
+    UploadBonesToShader(m_t, RIG);
     m_shaderProg[RIG]->release();
 }
 

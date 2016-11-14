@@ -43,6 +43,8 @@ public:
     /// @param _revision : The revision we want to draw.
     void LoadRevision(std::shared_ptr<RevisionNode> _revision);
 
+    void SetTime(const float _t);
+
 protected:
     /// @brief Method to do OpenGL drawing.
     void paintGL() override;
@@ -133,6 +135,7 @@ private:
     bool m_playAnim;
     bool m_animExists;
     float m_dt;
+    float m_t;
     QTimer * m_animTimer;
     QTimer * m_drawTimer;
 

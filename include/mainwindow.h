@@ -23,9 +23,14 @@ public:
 
 private slots:
     void LoadRevision();
+    void UpdateRevisionTimers();
 
 private:
     Ui::MainWindow *ui;
+
+    QTimer *m_animTimer;
+    float m_time;
+    float m_dt;
 
     std::vector<RevisionViewer*> m_revisions;
     QPushButton * m_loadRevisionButton;
