@@ -409,6 +409,7 @@ void RevisionViewer::customInitGL()
     m_shaderProg[RIG] = new QOpenGLShaderProgram();
     m_shaderProg[RIG]->addShaderFromSourceFile(QOpenGLShader::Vertex, "../shader/rigVert.glsl");
     m_shaderProg[RIG]->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/rigFrag.glsl");
+    m_shaderProg[RIG]->addShaderFromSourceFile(QOpenGLShader::Geometry, "../shader/rigGeo.glsl");
     m_shaderProg[RIG]->bindAttributeLocation("vertex", 0);
     m_shaderProg[RIG]->link();
 
@@ -499,7 +500,7 @@ void RevisionViewer::DrawRig()
 {
     m_meshVAO[RIG].bind();
     glDrawArrays(GL_LINES, 0, m_rigVerts.size());
-    glDrawArrays(GL_POINTS, 0, m_rigVerts.size());
+    //glDrawArrays(GL_POINTS, 0, m_rigVerts.size());
     m_meshVAO[RIG].release();
 }
 
