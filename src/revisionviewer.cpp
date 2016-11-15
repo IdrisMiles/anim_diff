@@ -209,28 +209,6 @@ void RevisionViewer::SetRigVerts(aiNode* _pNode, const aiMatrix4x4 &_parentTrans
 
         // This joint
         SetJointVert(_pNode, globalTransformation, v2);
-        /*m_rigVerts.push_back(glm::vec3(glm::vec4(0.0f,0.0f,0.0f,1.0f)*ConvertToGlmMat(globalTransformation)));
-        m_rigJointColours.push_back(glm::vec3(0.4f, 1.0f, 0.4f));
-
-        if(FindNodeAnim(m_scene->mAnimations[0], _pNode->mName.data) != NULL)
-        {
-            std::string nodeName(_pNode->mName.data);
-            v2.boneID[0] = m_boneMapping[nodeName];
-            v2.boneWeight[0] = 1.0f;
-            v2.boneWeight[1] = 0.0f;
-            v2.boneWeight[2] = 0.0f;
-            v2.boneWeight[3] = 0.0f;
-        }
-        else
-        {
-            v2.boneID[0] = 0;
-            v2.boneWeight[0] = 0.0f;
-            v2.boneWeight[1] = 0.0f;
-            v2.boneWeight[2] = 0.0f;
-            v2.boneWeight[3] = 0.0f;
-        }
-        m_rigBoneWeights.push_back(v2);
-        */
 
         // Child joint
         SetJointVert(_pNode->mChildren[i], globalTransformation*_pNode->mChildren[i]->mTransformation, v2);
@@ -521,7 +499,9 @@ void RevisionViewer::DrawMesh()
 void RevisionViewer::DrawRig()
 {
     m_meshVAO[RIG].bind();
+    glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
     glDrawArrays(GL_LINES, 0, m_rigVerts.size());
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     m_meshVAO[RIG].release();
 }
 
