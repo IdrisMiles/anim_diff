@@ -1,271 +1,7 @@
 #include "include/revisionViewer.h"
 #include <iostream>
 #include <glm/ext.hpp>
-
-RevisionViewer::RevisionViewer(QWidget *parent) : OpenGLScene(parent)
-{
-    m_wireframe = false;
-    m_drawMesh = true;
-    m_playAnim = true;
-    m_dt = 0.016;
-
-    m_animTimer = new QTimer(this);
-    connect(m_animTimer, SIGNAL(timeout()), this, SLOT(UpdateAnimation()));
-
-    m_drawTimer = new QTimer(this);
-    connect(m_drawTimer, SIGNAL(timeout()), this, SLOT(update()));
-}
-
-
-RevisionViewer::~RevisionViewer()
-{
-    cleanup();
-}
-
-void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
-{
-    m_revision = _revision;
-    m_scene = m_revision->m_model->m_scene;
-    m_globalInverseTransform = m_scene->mRootNode->mTransformation;
-    m_globalInverseTransform.Inverse();
-
-
-    if(!m_scene)
-    {
-        std::cout<<"No valid AIScene\n";
-    }
-    else
-    {
-        if(m_scene->HasMeshes())
-        {
-            unsigned int nb=0;
-            unsigned int indexOffset = 0;
-            for(unsigned int i=0; i<m_scene->mNumMeshes; i++)
-            {
-                // Mesh tris/element array
-                unsigned int numFaces = m_scene->mMeshes[i]->mNumFaces;
-                for(unsigned int f=0; f<numFaces; f++)
-                {
-                    auto face = m_scene->mMeshes[i]->mFaces[f];
-                    m_meshTris.push_back(glm::ivec3(face.mIndices[0]+indexOffset, face.mIndices[1]+indexOffset, face.mIndices[2]+indexOffset));
-                }
-
-                // Mesh verts and norms
-                unsigned int numVerts = m_scene->mMeshes[i]->mNumVertices;
-                for(unsigned int v=0; v<numVerts; v++)
-                {
-                    auto vert = m_scene->mMeshes[i]->mVertices[v];
-                    auto norm = m_scene->mMeshes[i]->mNormals[v];
-                    m_meshVerts.push_back(glm::vec3(vert.x, vert.y, vert.z));
-                    m_meshNorms.push_back(glm::vec3(norm.x, norm.y, norm.z));
-                }
-
-
-                m_meshBoneWeights.resize(m_meshVerts.size());
-
-                // Mesh bones
-                unsigned int numBones = m_scene->mMeshes[i]->mNumBones;
-                for(unsigned int b=0; b<numBones; b++)
-                {
-                    auto bone = m_scene->mMeshes[i]->mBones[b];
-                    unsigned int boneIndex = 0;
-                    std::string boneName = bone->mName.data;
-
-                    // Check this is a new bone
-                    if(m_boneMapping.find(boneName) == m_boneMapping.end())
-                    {
-                        boneIndex = nb;
-                        nb++;
-                        m_boneInfo.push_back(BoneInfo());
-                        m_boneMapping[boneName] = boneIndex;
-                        m_boneInfo[boneIndex].boneOffset = bone->mOffsetMatrix;
-                    }
-                    else
-                    {
-                        boneIndex = m_boneMapping[boneName];
-
-                    }
-
-
-                    // Bone vertex weights
-                    unsigned int boneWeights = bone->mNumWeights;
-                    for(unsigned int bw=0; bw<boneWeights; bw++)
-                    {
-                        unsigned int vertexID = indexOffset + bone->mWeights[bw].mVertexId;
-                        float vertexWeight = bone->mWeights[bw].mWeight;
-                        for(unsigned int w=0; w<4; w++)
-                        {
-                            if(m_meshBoneWeights[vertexID].boneWeight[w] == 0.0f)
-                            {
-                                m_meshBoneWeights[vertexID].boneWeight[w] = vertexWeight;
-                                m_meshBoneWeights[vertexID].boneID[w] = boneIndex;
-                            }
-                        }
-                    }
-
-                } // end for numBones
-
-                indexOffset = m_meshVerts.size();
-
-            } // end for numMeshes
-
-        }// end if has mesh
-
-
-        if(m_scene->HasAnimations())
-        {
-            m_animExists = true;
-            m_ticksPerSecond = m_scene->mAnimations[0]->mTicksPerSecond;
-            m_animationDuration = m_scene->mAnimations[0]->mDuration;
-        }
-        else
-        {
-            m_animExists = false;
-            m_playAnim = false;
-
-            for(unsigned int bw=0; bw<m_meshVerts.size();bw++)
-            {
-                m_meshBoneWeights[bw].boneID[0] = 0;
-                m_meshBoneWeights[bw].boneID[1] = 0;
-                m_meshBoneWeights[bw].boneID[2] = 0;
-                m_meshBoneWeights[bw].boneID[3] = 0;
-
-                m_meshBoneWeights[bw].boneWeight[0] = 1.0;
-                m_meshBoneWeights[bw].boneWeight[1] = 0.0;
-                m_meshBoneWeights[bw].boneWeight[2] = 0.0;
-                m_meshBoneWeights[bw].boneWeight[3] = 0.0;
-            }
-        }
-
-    } // end if aiScene is valid
-
-    InitVAO();
-
-    m_animTimer->start(1000*m_dt);
-    m_drawTimer->start(1000*m_dt);
-}
-
-void RevisionViewer::InitVAO()
-{
-
-    m_shaderProg->bind();
-
-    // Get shader locations
-    m_colour = glm::vec3(0.8f,0.4f,0.4f);
-    m_colourLoc = m_shaderProg->uniformLocation("colour");
-    glUniform3fv(m_colourLoc, 1, &m_colour[0]);
-    m_vertAttrLoc = m_shaderProg->attributeLocation("vertex");
-    m_normAttrLoc = m_shaderProg->attributeLocation("normal");
-    m_boneIDAttrLoc = m_shaderProg->attributeLocation("BoneIDs");
-    m_boneWeightAttrLoc = m_shaderProg->attributeLocation("Weights");
-    m_boneUniformLoc = m_shaderProg->uniformLocation("Bones");
-
-    std::cout<<"vert loc:\t"<<m_vertAttrLoc<<"\n";
-    std::cout<<"norm loc:\t"<<m_normAttrLoc<<"\n";
-    std::cout<<"boneID loc:\t"<<m_boneIDAttrLoc<<"\n";
-    std::cout<<"boneWei loc:\t"<<m_boneWeightAttrLoc<<"\n";
-    std::cout<<"Bones loc:\t"<<m_boneUniformLoc<<"\n";
-
-
-    // Set up VAO
-    m_meshVAO.create();
-    m_meshVAO.bind();
-
-
-    // Set up element array
-    m_meshIBO.create();
-    m_meshIBO.bind();
-    m_meshIBO.allocate(&m_meshTris[0], m_meshTris.size() * sizeof(int));
-    m_meshIBO.release();
-
-
-    // Setup our vertex buffer object.
-    m_meshVBO.create();
-    m_meshVBO.bind();
-    m_meshVBO.allocate(&m_meshVerts[0], m_meshVerts.size() * sizeof(glm::vec3));
-    glEnableVertexAttribArray(m_vertAttrLoc);
-    glVertexAttribPointer(m_vertAttrLoc, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-    m_meshVBO.release();
-
-
-    // Setup our normals buffer object.
-    m_meshNBO.create();
-    m_meshNBO.bind();
-    m_meshNBO.allocate(&m_meshNorms[0], m_meshNorms.size() * sizeof(glm::vec3));
-    glEnableVertexAttribArray(m_normAttrLoc);
-    glVertexAttribPointer(m_normAttrLoc, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-    m_meshNBO.release();
-
-
-    // Set up vertex bone weighting buffer object
-    m_meshBWBO.create();
-    m_meshBWBO.bind();
-    m_meshBWBO.allocate(&m_meshBoneWeights[0], m_meshBoneWeights.size() * sizeof(VertexBoneData));
-    glEnableVertexAttribArray(m_boneIDAttrLoc);
-    glVertexAttribIPointer(m_boneIDAttrLoc, 4, GL_UNSIGNED_INT, sizeof(VertexBoneData), (const GLvoid*)0);
-    glEnableVertexAttribArray(m_boneWeightAttrLoc);
-    glVertexAttribPointer(m_boneWeightAttrLoc, 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*)4);
-    m_meshBWBO.release();
-
-
-    m_meshVAO.release();
-
-    m_shaderProg->release();
-
-}
-
-
-
-
-void RevisionViewer::paintGL()
-{
-
-    // test hack
-    static bool init = false;
-
-    if(!init)
-    {
-        std::shared_ptr<RevisionNode> test(new RevisionNode());
-        test->LoadModel("boblampclean.md5mesh");
-        init = true;
-
-        LoadRevision(test);
-    }
-
-    // clean gl window
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-
-    // update model matrix
-    m_modelMat = glm::mat4(1);
-    m_modelMat = glm::translate(m_modelMat, glm::vec3(0,0, -0.1f*m_zDis));// m_zDis));
-    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_xRot/16.0f), glm::vec3(1,0,0));
-    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_yRot/16.0f), glm::vec3(0,1,0));
-
-
-    // Set shader params
-    m_shaderProg->bind();
-
-    glUniformMatrix4fv(m_projMatrixLoc, 1, false, &m_projMat[0][0]);
-    glUniformMatrix4fv(m_mvMatrixLoc, 1, false, &(m_modelMat*m_viewMat)[0][0]);
-    glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
-    glUniformMatrix3fv(m_normalMatrixLoc, 1, true, &normalMatrix[0][0]);
-    glUniform3fv(m_colourLoc, 1, &m_colour[0]);
-
-
-    //---------------------------------------------------------------------------------------
-    // Draw code - replace this with project specific draw stuff
-    m_meshVAO.bind();
-    glDrawElements(m_wireframe?GL_LINES:GL_TRIANGLES, 3*m_meshTris.size(), GL_UNSIGNED_INT, &m_meshTris[0]);
-    m_meshVAO.release();
-
-    //---------------------------------------------------------------------------------------
-
-
-    m_shaderProg->release();
-
-}
+#include <QKeyEvent>
 
 glm::mat4 ConvertToGlmMat(const aiMatrix4x4 &m)
 {
@@ -277,30 +13,528 @@ glm::mat4 ConvertToGlmMat(const aiMatrix4x4 &m)
     return a;
 }
 
-void RevisionViewer::UpdateAnimation()
+RevisionViewer::RevisionViewer(QWidget *parent) : OpenGLScene(parent)
 {
-    static float t = 0.0f;
-    if(m_playAnim)
-    {
-        t += m_dt;
-    }
+    m_revisionLoaded = false;
+    m_initGL = false;
+    m_waitingForInitGL = false;
 
-    // Set shader params
-    m_shaderProg->bind();
-    UploadBonesToShader(t);
-    m_shaderProg->release();
+    m_wireframe = false;
+    m_drawMesh = true;
+    m_playAnim = true;
+    m_dt = 0.016;
+    m_t = 0.0f;
+
+    m_animTimer = new QTimer(this);
+    connect(m_animTimer, SIGNAL(timeout()), this, SLOT(UpdateAnimation()));
+
+    m_drawTimer = new QTimer(this);
+    connect(m_drawTimer, SIGNAL(timeout()), this, SLOT(update()));
 }
 
-void RevisionViewer::UploadBonesToShader(const float _t)
+
+RevisionViewer::~RevisionViewer()
+{
+    m_meshVBO[SKINNED].destroy();
+    m_meshNBO[SKINNED].destroy();
+    m_meshIBO[SKINNED].destroy();
+    m_meshBWBO[SKINNED].destroy();
+    m_meshVAO[SKINNED].destroy();
+    cleanup();
+}
+
+void RevisionViewer::SetTime(const float _t)
+{
+    if(m_playAnim)
+    {
+        m_t = _t;
+    }
+}
+
+void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
+{
+    update();
+
+
+    m_revision = _revision;
+    m_scene = m_revision->m_model->m_scene;
+    m_globalInverseTransform = m_scene->mRootNode->mTransformation;
+    m_globalInverseTransform.Inverse();
+
+    if(!m_initGL)
+    {
+        std::cout<<"OpenGL has not been initialised yet\n";
+        m_waitingForInitGL = true;
+        return;
+    }
+
+    makeCurrent();
+    if(!m_scene)
+    {
+        std::cout<<"No valid AIScene\n";
+    }
+    else
+    {
+        InitMesh();
+        InitRig();
+
+    } // end if aiScene is valid
+
+    InitVAO();
+
+    m_animTimer->start(1000*m_dt);
+    m_drawTimer->start(1000*m_dt);
+
+    m_revisionLoaded = true;
+    doneCurrent();
+}
+
+void RevisionViewer::InitMesh()
+{
+    if(m_scene->HasMeshes())
+    {
+        unsigned int nb=0;
+        unsigned int indexOffset = 0;
+        for(unsigned int i=0; i<m_scene->mNumMeshes; i++)
+        {
+            // Mesh tris/element array
+            unsigned int numFaces = m_scene->mMeshes[i]->mNumFaces;
+            for(unsigned int f=0; f<numFaces; f++)
+            {
+                auto face = m_scene->mMeshes[i]->mFaces[f];
+                m_meshTris.push_back(glm::ivec3(face.mIndices[0]+indexOffset, face.mIndices[1]+indexOffset, face.mIndices[2]+indexOffset));
+            }
+
+            // Mesh verts and norms
+            unsigned int numVerts = m_scene->mMeshes[i]->mNumVertices;
+            for(unsigned int v=0; v<numVerts; v++)
+            {
+                auto vert = m_scene->mMeshes[i]->mVertices[v];
+                auto norm = m_scene->mMeshes[i]->mNormals[v];
+                m_meshVerts.push_back(glm::vec3(vert.x, vert.y, vert.z));
+                m_meshNorms.push_back(glm::vec3(norm.x, norm.y, norm.z));
+            }
+
+
+            m_meshBoneWeights.resize(m_meshVerts.size());
+
+            // Mesh bones
+            unsigned int numBones = m_scene->mMeshes[i]->mNumBones;
+            for(unsigned int b=0; b<numBones; b++)
+            {
+                auto bone = m_scene->mMeshes[i]->mBones[b];
+                unsigned int boneIndex = 0;
+                std::string boneName = bone->mName.data;
+
+                // Check this is a new bone
+                if(m_boneMapping.find(boneName) == m_boneMapping.end())
+                {
+                    boneIndex = nb;
+                    nb++;
+                    m_boneInfo.push_back(BoneInfo());
+                    m_boneMapping[boneName] = boneIndex;
+                    m_boneInfo[boneIndex].boneOffset = bone->mOffsetMatrix;
+                }
+                else
+                {
+                    boneIndex = m_boneMapping[boneName];
+
+                }
+
+
+                // Bone vertex weights
+                unsigned int boneWeights = bone->mNumWeights;
+                for(unsigned int bw=0; bw<boneWeights; bw++)
+                {
+                    unsigned int vertexID = indexOffset + bone->mWeights[bw].mVertexId;
+                    float vertexWeight = bone->mWeights[bw].mWeight;
+                    for(unsigned int w=0; w<4; w++)
+                    {
+                        if(m_meshBoneWeights[vertexID].boneWeight[w] == 0.0f)
+                        {
+                            m_meshBoneWeights[vertexID].boneWeight[w] = vertexWeight;
+                            m_meshBoneWeights[vertexID].boneID[w] = boneIndex;
+                        }
+                    }
+                }
+
+            } // end for numBones
+
+            indexOffset = m_meshVerts.size();
+
+        } // end for numMeshes
+
+    }// end if has mesh
+
+
+    if(m_scene->HasAnimations())
+    {
+        m_animExists = true;
+        m_ticksPerSecond = m_scene->mAnimations[0]->mTicksPerSecond;
+        m_animationDuration = m_scene->mAnimations[0]->mDuration;
+    }
+    else
+    {
+        m_animExists = false;
+        m_playAnim = false;
+
+        for(unsigned int bw=0; bw<m_meshVerts.size();bw++)
+        {
+            m_meshBoneWeights[bw].boneID[0] = 0;
+            m_meshBoneWeights[bw].boneID[1] = 0;
+            m_meshBoneWeights[bw].boneID[2] = 0;
+            m_meshBoneWeights[bw].boneID[3] = 0;
+
+            m_meshBoneWeights[bw].boneWeight[0] = 1.0;
+            m_meshBoneWeights[bw].boneWeight[1] = 0.0;
+            m_meshBoneWeights[bw].boneWeight[2] = 0.0;
+            m_meshBoneWeights[bw].boneWeight[3] = 0.0;
+        }
+    }
+}
+
+void RevisionViewer::InitRig()
+{
+    aiMatrix4x4 mat = m_globalInverseTransform;
+    SetRigVerts(m_scene->mRootNode, mat);
+}
+
+void RevisionViewer::SetRigVerts(aiNode* _pNode, const aiMatrix4x4 &_parentTransform)
+{
+    aiMatrix4x4 globalTransformation = _parentTransform * _pNode->mTransformation;
+
+    for (uint i = 0 ; i < _pNode->mNumChildren ; i++)
+    {
+        VertexBoneData v2;
+
+        // This joint
+        SetJointVert(_pNode, globalTransformation, v2);
+
+        // Child joint
+        SetJointVert(_pNode->mChildren[i], globalTransformation*_pNode->mChildren[i]->mTransformation, v2);
+
+        // Repeat for rest of the joints
+        SetRigVerts(_pNode->mChildren[i], globalTransformation);
+    }
+}
+
+void RevisionViewer::SetJointVert(const aiNode* _pNode, const aiMatrix4x4 &_transform, VertexBoneData &_vb)
+{
+    m_rigVerts.push_back(glm::vec3(glm::vec4(0.0f,0.0f,0.0f,1.0f)*ConvertToGlmMat(_transform)));
+    m_rigJointColours.push_back(glm::vec3(0.4f, 1.0f, 0.4f));
+
+    if(FindNodeAnim(m_scene->mAnimations[0], _pNode->mName.data) != NULL)
+    {
+        std::string nodeName(_pNode->mName.data);
+        _vb.boneID[0] = m_boneMapping[nodeName];
+        _vb.boneWeight[0] = 1.0f;
+        _vb.boneWeight[1] = 0.0f;
+        _vb.boneWeight[2] = 0.0f;
+        _vb.boneWeight[3] = 0.0f;
+    }
+    else
+    {
+        _vb.boneID[0] = 0;
+        _vb.boneWeight[0] = 0.0f;
+        _vb.boneWeight[1] = 0.0f;
+        _vb.boneWeight[2] = 0.0f;
+        _vb.boneWeight[3] = 0.0f;
+    }
+    m_rigBoneWeights.push_back(_vb);
+}
+
+void RevisionViewer::InitAnimation()
+{
+
+}
+
+void RevisionViewer::InitVAO()
+{
+
+    glPointSize(10);
+
+    //--------------------------------------------------------------------------------------
+    // Skinned mesh
+    m_shaderProg[SKINNED]->bind();
+
+    // Get shader locations
+    m_colour = glm::vec3(0.8f,0.4f,0.4f);
+    m_colourLoc[SKINNED] = m_shaderProg[SKINNED]->uniformLocation("uColour");
+    glUniform3fv(m_colourLoc[SKINNED], 1, &m_colour[0]);
+    m_vertAttrLoc[SKINNED] = m_shaderProg[SKINNED]->attributeLocation("vertex");
+    m_normAttrLoc[SKINNED] = m_shaderProg[SKINNED]->attributeLocation("normal");
+    m_boneIDAttrLoc[SKINNED] = m_shaderProg[SKINNED]->attributeLocation("BoneIDs");
+    m_boneWeightAttrLoc[SKINNED] = m_shaderProg[SKINNED]->attributeLocation("Weights");
+    m_boneUniformLoc[SKINNED] = m_shaderProg[SKINNED]->uniformLocation("Bones");
+
+    std::cout<<"SKINNED | vert Attr loc:\t"<<m_vertAttrLoc[SKINNED]<<"\n";
+    std::cout<<"SKINNED | norm Attr loc:\t"<<m_normAttrLoc[SKINNED]<<"\n";
+    std::cout<<"SKINNED | boneID Attr loc:\t"<<m_boneIDAttrLoc[SKINNED]<<"\n";
+    std::cout<<"SKINNED | boneWei Attr loc:\t"<<m_boneWeightAttrLoc[SKINNED]<<"\n";
+    std::cout<<"SKINNED | Bones Unif loc:\t"<<m_boneUniformLoc[SKINNED]<<"\n";
+
+
+    // Set up VAO
+    m_meshVAO[SKINNED].create();
+    m_meshVAO[SKINNED].bind();
+
+    // Set up element array
+    m_meshIBO[SKINNED].create();
+    m_meshIBO[SKINNED].bind();
+    m_meshIBO[SKINNED].allocate(&m_meshTris[0], m_meshTris.size() * sizeof(int));
+    m_meshIBO[SKINNED].release();
+
+
+    // Setup our vertex buffer object.
+    m_meshVBO[SKINNED].create();
+    m_meshVBO[SKINNED].bind();
+    m_meshVBO[SKINNED].allocate(&m_meshVerts[0], m_meshVerts.size() * sizeof(glm::vec3));
+    glEnableVertexAttribArray(m_vertAttrLoc[SKINNED]);
+    glVertexAttribPointer(m_vertAttrLoc[SKINNED], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+    m_meshVBO[SKINNED].release();
+
+
+    // Setup our normals buffer object.
+    m_meshNBO[SKINNED].create();
+    m_meshNBO[SKINNED].bind();
+    m_meshNBO[SKINNED].allocate(&m_meshNorms[0], m_meshNorms.size() * sizeof(glm::vec3));
+    glEnableVertexAttribArray(m_normAttrLoc[SKINNED]);
+    glVertexAttribPointer(m_normAttrLoc[SKINNED], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+    m_meshNBO[SKINNED].release();
+
+
+    // Set up vertex bone weighting buffer object
+    m_meshBWBO[SKINNED].create();
+    m_meshBWBO[SKINNED].bind();
+    m_meshBWBO[SKINNED].allocate(&m_meshBoneWeights[0], m_meshBoneWeights.size() * sizeof(VertexBoneData));
+    glEnableVertexAttribArray(m_boneIDAttrLoc[SKINNED]);
+    glVertexAttribIPointer(m_boneIDAttrLoc[SKINNED], 4, GL_UNSIGNED_INT, sizeof(VertexBoneData), (const GLvoid*)0);
+    glEnableVertexAttribArray(m_boneWeightAttrLoc[SKINNED]);
+    glVertexAttribPointer(m_boneWeightAttrLoc[SKINNED], 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*)4);
+    m_meshBWBO[SKINNED].release();
+
+    m_meshVAO[SKINNED].release();
+    m_shaderProg[SKINNED]->release();
+
+
+
+    //--------------------------------------------------------------------------------------
+    // Rigged mesh
+    m_shaderProg[RIG]->bind();
+
+    // Get shader locations
+    m_colour = glm::vec3(0.8f,0.4f,0.4f);
+    m_vertAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("vertex");
+    m_boneIDAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("BoneIDs");
+    m_boneWeightAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("Weights");
+    m_boneUniformLoc[RIG] = m_shaderProg[RIG]->uniformLocation("Bones");
+    m_colourAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("colour");
+
+
+    std::cout<<"RIG | vert Attr loc:\t"<<m_vertAttrLoc[RIG]<<"\n";
+    std::cout<<"RIG | boneID Attr loc:\t"<<m_boneIDAttrLoc[RIG]<<"\n";
+    std::cout<<"RIG | boneWei Attr loc:\t"<<m_boneWeightAttrLoc[RIG]<<"\n";
+    std::cout<<"RIG | Bones Unif loc:\t"<<m_boneUniformLoc[RIG]<<"\n";
+    std::cout<<"RIG | colour Attr loc: "<<m_colourAttrLoc[RIG]<<"\n";
+
+
+    m_meshVAO[RIG].create();
+    m_meshVAO[RIG].bind();
+
+    // Setup our vertex buffer object.
+    m_meshVBO[RIG].create();
+    m_meshVBO[RIG].bind();
+    m_meshVBO[RIG].allocate(&m_rigVerts[0], m_rigVerts.size() * sizeof(glm::vec3));
+    glEnableVertexAttribArray(m_vertAttrLoc[RIG]);
+    glVertexAttribPointer(m_vertAttrLoc[RIG], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+    m_meshVBO[RIG].release();
+
+    // Set up our Rig joint colour buffer object
+    m_meshCBO[RIG].create();
+    m_meshCBO[RIG].bind();
+    m_meshCBO[RIG].allocate(&m_rigJointColours[0], m_rigJointColours.size() * sizeof(glm::vec3));
+    glEnableVertexAttribArray(m_colourAttrLoc[RIG]);
+    glVertexAttribPointer(m_colourAttrLoc[RIG], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+    m_meshCBO[RIG].release();
+
+    // Set up vertex bone weighting buffer object
+    m_meshBWBO[RIG].create();
+    m_meshBWBO[RIG].bind();
+    m_meshBWBO[RIG].allocate(&m_rigBoneWeights[0], m_rigBoneWeights.size() * sizeof(VertexBoneData));
+    glEnableVertexAttribArray(m_boneIDAttrLoc[RIG]);
+    glVertexAttribIPointer(m_boneIDAttrLoc[RIG], 4, GL_UNSIGNED_INT, sizeof(VertexBoneData), (const GLvoid*)0);
+    glEnableVertexAttribArray(m_boneWeightAttrLoc[RIG]);
+    glVertexAttribPointer(m_boneWeightAttrLoc[RIG], 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*)4);
+    m_meshBWBO[RIG].release();
+
+    m_meshVAO[RIG].release();
+
+    m_shaderProg[RIG]->release();
+
+}
+
+void RevisionViewer::customInitGL()
+{
+    // initialise view and projection matrices
+    m_viewMat = glm::mat4(1);
+    m_viewMat = glm::lookAt(glm::vec3(0,0,0),glm::vec3(0,0,-1),glm::vec3(0,1,0));
+    m_projMat = glm::perspective(45.0f, GLfloat(width()) / height(), 0.01f, 2000.0f);
+
+    //------------------------------------------------------------------------------------------------
+    // SKINNING Shader
+    m_shaderProg[SKINNED] = new QOpenGLShaderProgram();
+    m_shaderProg[SKINNED]->addShaderFromSourceFile(QOpenGLShader::Vertex, "../shader/skinningVert.glsl");
+    m_shaderProg[SKINNED]->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/skinningFrag.glsl");
+    m_shaderProg[SKINNED]->bindAttributeLocation("vertex", 0);
+    m_shaderProg[SKINNED]->bindAttributeLocation("normal", 1);
+    m_shaderProg[SKINNED]->link();
+
+    m_shaderProg[SKINNED]->bind();
+    m_projMatrixLoc[SKINNED] = m_shaderProg[SKINNED]->uniformLocation("projMatrix");
+    m_mvMatrixLoc[SKINNED] = m_shaderProg[SKINNED]->uniformLocation("mvMatrix");
+    m_normalMatrixLoc[SKINNED] = m_shaderProg[SKINNED]->uniformLocation("normalMatrix");
+    m_lightPosLoc[SKINNED] = m_shaderProg[SKINNED]->uniformLocation("lightPos");
+
+    // Light position is fixed.
+    m_lightPos = glm::vec3(0, 0, 70);
+    glUniform3fv(m_lightPosLoc[SKINNED], 1, &m_lightPos[0]);
+    m_shaderProg[SKINNED]->release();
+
+
+    //------------------------------------------------------------------------------------------------
+    // RIG Shader
+    m_shaderProg[RIG] = new QOpenGLShaderProgram();
+    m_shaderProg[RIG]->addShaderFromSourceFile(QOpenGLShader::Vertex, "../shader/rigVert.glsl");
+    m_shaderProg[RIG]->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/rigFrag.glsl");
+    m_shaderProg[RIG]->addShaderFromSourceFile(QOpenGLShader::Geometry, "../shader/rigGeo.glsl");
+    m_shaderProg[RIG]->bindAttributeLocation("vertex", 0);
+    m_shaderProg[RIG]->link();
+
+    m_shaderProg[RIG]->bind();
+    m_projMatrixLoc[RIG] = m_shaderProg[RIG]->uniformLocation("projMatrix");
+    m_mvMatrixLoc[RIG] = m_shaderProg[RIG]->uniformLocation("mvMatrix");
+    m_normalMatrixLoc[RIG] = m_shaderProg[RIG]->uniformLocation("normalMatrix");
+    m_shaderProg[RIG]->release();
+
+    m_initGL = true;
+
+}
+
+void RevisionViewer::paintGL()
+{
+    if(m_waitingForInitGL)
+    {
+        LoadRevision(m_revision);
+        m_waitingForInitGL = false;
+    }
+
+    // test hack
+//    static bool init = false;
+
+//    if(!init)
+//    {
+//        std::shared_ptr<RevisionNode> test(new RevisionNode());
+//        test->LoadModel("boblampclean.md5mesh");
+//        init = true;
+
+//        LoadRevision(test);
+//    }
+
+    // clean gl window
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
+    if(!m_revisionLoaded)
+    {
+        return;
+    }
+
+    // update model matrix
+    m_modelMat = glm::mat4(1);
+    m_modelMat = glm::translate(m_modelMat, glm::vec3(0, 0, -0.1f*m_zDis));// m_zDis));
+    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_xRot/16.0f), glm::vec3(1,0,0));
+    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_yRot/16.0f), glm::vec3(0,1,0));
+    //m_modelMat = glm::translate(m_modelMat, glm::vec3(0.1f*m_xDis, -0.1f*m_yDis, 0));
+
+
+    // Set shader params
+    m_shaderProg[SKINNED]->bind();
+    glUniformMatrix4fv(m_projMatrixLoc[SKINNED], 1, false, &m_projMat[0][0]);
+    glUniformMatrix4fv(m_mvMatrixLoc[SKINNED], 1, false, &(m_modelMat*m_viewMat)[0][0]);
+    glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
+    glUniformMatrix3fv(m_normalMatrixLoc[SKINNED], 1, true, &normalMatrix[0][0]);
+    glUniform3fv(m_colourLoc[SKINNED], 1, &m_colour[0]);
+
+    //---------------------------------------------------------------------------------------
+    // Draw code - replace this with project specific draw stuff
+    DrawMesh();
+    //---------------------------------------------------------------------------------------
+    m_shaderProg[SKINNED]->release();
+
+
+
+    if(m_wireframe)
+    {
+        m_shaderProg[RIG]->bind();
+        glUniformMatrix4fv(m_projMatrixLoc[RIG], 1, false, &m_projMat[0][0]);
+        glUniformMatrix4fv(m_mvMatrixLoc[RIG], 1, false, &(m_modelMat*m_viewMat)[0][0]);
+        glUniformMatrix3fv(m_normalMatrixLoc[RIG], 1, true, &normalMatrix[0][0]);
+
+        DrawRig();
+
+        m_shaderProg[RIG]->release();
+    }
+}
+
+void RevisionViewer::DrawMesh()
+{
+    m_meshVAO[SKINNED].bind();
+    glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
+    glDrawElements(GL_TRIANGLES, 3*m_meshTris.size(), GL_UNSIGNED_INT, &m_meshTris[0]);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    m_meshVAO[SKINNED].release();
+}
+
+void RevisionViewer::DrawRig()
+{
+    m_meshVAO[RIG].bind();
+    glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
+    glDrawArrays(GL_LINES, 0, m_rigVerts.size());
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    m_meshVAO[RIG].release();
+}
+
+void RevisionViewer::UpdateAnimation()
+{
+
+    // Set shader params
+    m_shaderProg[SKINNED]->bind();
+    UploadBonesToShader(m_t, SKINNED);
+    m_shaderProg[SKINNED]->release();
+
+    m_shaderProg[RIG]->bind();
+    UploadBonesToShader(m_t, RIG);
+    m_shaderProg[RIG]->release();
+}
+
+void RevisionViewer::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_W)
+    {
+        m_wireframe = !m_wireframe;
+    }
+}
+
+void RevisionViewer::UploadBonesToShader(const float _t, RenderType _rt)
 {
     std::vector<glm::mat4> bones;
     BoneTransform(_t, bones);
     for(unsigned int b=0; b<bones.size() && b<100; b++)
     {
-        glUniformMatrix4fv(m_boneUniformLoc + b, 1, true, &bones[b][0][0]);
+        glUniformMatrix4fv(m_boneUniformLoc[_rt] + b, 1, true, &bones[b][0][0]);
     }
 }
-
 
 void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_transforms)
 {
@@ -315,7 +549,6 @@ void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_tran
 
     float timeInTicks = _t * m_ticksPerSecond;
     float animationTime = fmod(timeInTicks, m_animationDuration);
-    std::cout<<"Anim time: "<<animationTime<<"\n";
 
     ReadNodeHierarchy(animationTime, m_scene->mAnimations[0], m_scene->mRootNode, identity);
 
@@ -328,7 +561,6 @@ void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_tran
     }
 
 }
-
 
 void RevisionViewer::ReadNodeHierarchy(const float _animationTime, const aiAnimation* _pAnimation, const aiNode* _pNode, const aiMatrix4x4 &_parentTransform)
 {
@@ -381,7 +613,6 @@ void RevisionViewer::ReadNodeHierarchy(const float _animationTime, const aiAnima
     }
 
 }
-
 
 const aiNodeAnim* RevisionViewer::FindNodeAnim(const aiAnimation* _pAnimation, const std::string _nodeName)
 {

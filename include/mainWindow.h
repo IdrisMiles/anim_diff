@@ -4,6 +4,7 @@
 
 // Qt includes
 #include <QMainWindow>
+#include <QPushButton>
 
 #include "revisionViewer.h"
 
@@ -20,10 +21,19 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+private slots:
+    void LoadRevision();
+    void UpdateRevisionTimers();
 
 private:
     Ui::MainWindow *ui;
-    RevisionViewer *m_scene;
+
+    QTimer *m_animTimer;
+    float m_time;
+    float m_dt;
+
+    std::vector<RevisionViewer*> m_revisions;
+    QPushButton * m_loadRevisionButton;
 };
 
 #endif // MAINWINDOW_H

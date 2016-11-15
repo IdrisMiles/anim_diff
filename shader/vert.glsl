@@ -1,4 +1,4 @@
-#version 150
+#version 330
 in vec4 vertex;
 in vec3 normal;
 out vec3 vert;
