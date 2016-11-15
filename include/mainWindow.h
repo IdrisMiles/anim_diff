@@ -6,7 +6,7 @@
 #include <QMainWindow>
 #include <QPushButton>
 
-#include "revisionviewer.h"
+#include "revisionViewer.h"
 
 
 namespace Ui {
