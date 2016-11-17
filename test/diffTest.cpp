@@ -75,7 +75,7 @@ TEST(DiffTest, matchingTimesCheck) {
 
     // load files
     test1->LoadModel("../bin/boblampclean.md5mesh");
-    test2->LoadModel("../bin/BaseMesh_Anim.fbx");
+    test2->LoadModel("../bin/bony2.dae");
 
     try 
     {
@@ -85,6 +85,28 @@ TEST(DiffTest, matchingTimesCheck) {
     catch(const std::string& ex) 
     {
         EXPECT_EQ(std::string("ticks/duration do not match"), ex);
+    }
+}
+
+TEST(DiffTest, loading2Anims) { 
+
+    // testing the testing stuff
+    std::shared_ptr<RevisionNode> test1(new RevisionNode());
+    std::shared_ptr<RevisionNode> test2(new RevisionNode());
+    RevisionDiff diff;
+
+    // load files
+    test1->LoadModel("../bin/bony2.dae");
+    test2->LoadModel("../bin/bony3.dae");
+
+    try 
+    {
+        diff = RevisionUtils::getDiff(test1, test2);
+        SUCCEED() << "Loaded 2 animation file";
+    }
+    catch(const std::string& ex) 
+    {
+        FAIL() << "failed to load animation files"; 
     }
 }
 
