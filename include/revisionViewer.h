@@ -47,18 +47,19 @@ public:
     /// @param _t : The time we are settting.
     void SetTime(const float _t);
 
-protected:
-    /// @brief Method to do OpenGL drawing.
-    void paintGL() override;
-    void customInitGL() override;
-    void keyPressEvent(QKeyEvent *event) override;
 
 private slots:
     /// @brief Method to update the bone animation. This takes advantage of Qt's Signals and Slots so that we can update the animation on a timer event to decouple it from the rest of the drawing.
     virtual void UpdateAnimation();
 
 
-private:
+protected:
+    /// @brief Method to do OpenGL drawing.
+    void paintGL() override;
+    void customInitGL() override;
+    void keyPressEvent(QKeyEvent *event) override;
+
+
     /// @brief Method to initialise all the relevant VAO and VBO's to draw an animated mesh.
     void InitVAO();
 

@@ -428,18 +428,6 @@ void RevisionViewer::paintGL()
         m_waitingForInitGL = false;
     }
 
-    // test hack
-//    static bool init = false;
-
-//    if(!init)
-//    {
-//        std::shared_ptr<RevisionNode> test(new RevisionNode());
-//        test->LoadModel("boblampclean.md5mesh");
-//        init = true;
-
-//        LoadRevision(test);
-//    }
-
     // clean gl window
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);

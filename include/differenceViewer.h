@@ -1,10 +1,10 @@
 #ifndef DIFFERENCEVIEWER_H
 #define DIFFERENCEVIEWER_H
 
-#include "include/openglscene.h"
-#include "include/revisionviewer.h"
+#include "include/openglScene.h"
+#include "include/revisionViewer.h"
 
-class DifferenceViewer : public OpenGLScene
+class DifferenceViewer : public RevisionViewer
 {
 
 public:
@@ -24,16 +24,18 @@ public:
 
     std::shared_ptr<RevisionViewer> GetRevisionView(const int &_i);
 
-protected:
-    /// @brief Method to do OpenGL drawing.
-    void paintGL() override;
-    void customInitGL() override;
-    void keyPressEvent(QKeyEvent *event) override;
 
 private slots:
+    /// @brief Method to update the bone animation. This takes advantage of Qt's Signals and Slots so that we can update the animation on a timer event to decouple it from the rest of the drawing.
+    virtual void UpdateAnimation() override;
 
+protected:
 
 private:
+    // New revision stuff
+    std::shared_ptr<RevisionNode> m_newRevision;
+    const aiScene *m_newScene;
+
 
 };
 
