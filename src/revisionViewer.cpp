@@ -26,7 +26,7 @@ RevisionViewer::RevisionViewer(QWidget *parent) : OpenGLScene(parent)
     m_t = 0.0f;
 
     m_animTimer = new QTimer(this);
-    connect(m_animTimer, SIGNAL(timeout()), this, SLOT(UpdateAnimation()));
+    connect(m_animTimer, &QTimer::timeout, this, &RevisionViewer::UpdateAnimation);
 
     m_drawTimer = new QTimer(this);
     connect(m_drawTimer, SIGNAL(timeout()), this, SLOT(update()));
@@ -170,8 +170,13 @@ void RevisionViewer::InitMesh()
     if(m_scene->HasAnimations())
     {
         m_animExists = true;
-        m_ticksPerSecond = m_scene->mAnimations[0]->mTicksPerSecond;
-        m_animationDuration = m_scene->mAnimations[0]->mDuration;
+        m_numAnimations = m_scene->mNumAnimations;
+        m_animationID = m_numAnimations - 1;
+        m_ticksPerSecond = m_scene->mAnimations[m_animationID]->mTicksPerSecond;
+        m_animationDuration = m_scene->mAnimations[m_animationID]->mDuration;
+
+        std::cout<<"Animation duration:\t"<<m_animationDuration<<"\n";
+        std::cout<<"Number of animations:\t"<<m_scene->mNumAnimations<<"\n";
     }
     else
     {
@@ -212,7 +217,7 @@ void RevisionViewer::SetRigVerts(aiNode* _pNode, const aiMatrix4x4 &_parentTrans
     for (uint i = 0 ; i < _pNode->mNumChildren ; i++)
     {
         //orig method
-        if(isBone)
+        if(isBone && m_boneMapping.find(std::string(_pNode->mChildren[i]->mName.data)) != m_boneMapping.end())
         {
             VertexBoneData v2;
 
@@ -233,7 +238,7 @@ void RevisionViewer::SetJointVert(const std::string _nodeName, const aiMatrix4x4
     m_rigVerts.push_back(glm::vec3(glm::vec4(0.0f,0.0f,0.0f,1.0f)*ConvertToGlmMat(_transform)));
     m_rigJointColours.push_back(glm::vec3(0.4f, 1.0f, 0.4f));
 
-    if(FindNodeAnim(m_scene->mAnimations[0], _nodeName) != NULL)
+    if(FindNodeAnim(m_scene->mAnimations[m_animationID], _nodeName) != NULL)
     {
         _vb.boneID[0] = m_boneMapping[_nodeName];
         _vb.boneWeight[0] = 1.0f;
@@ -243,6 +248,7 @@ void RevisionViewer::SetJointVert(const std::string _nodeName, const aiMatrix4x4
     }
     else
     {
+        std::cout<<"Not a bone????\n";
         _vb.boneID[0] = 0;
         _vb.boneWeight[0] = 0.0f;
         _vb.boneWeight[1] = 0.0f;
@@ -340,7 +346,7 @@ void RevisionViewer::InitVAO()
     glEnableVertexAttribArray(m_boneIDAttrLoc[SKINNED]);
     glVertexAttribIPointer(m_boneIDAttrLoc[SKINNED], 4, GL_UNSIGNED_INT, sizeof(VertexBoneData), (const GLvoid*)0);
     glEnableVertexAttribArray(m_boneWeightAttrLoc[SKINNED]);
-    glVertexAttribPointer(m_boneWeightAttrLoc[SKINNED], 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*)4);
+    glVertexAttribPointer(m_boneWeightAttrLoc[SKINNED], 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*)(4*sizeof(unsigned int)));
     m_meshBWBO[SKINNED].release();
 
     m_meshVAO[SKINNED].release();
@@ -394,7 +400,7 @@ void RevisionViewer::InitVAO()
     glEnableVertexAttribArray(m_boneIDAttrLoc[RIG]);
     glVertexAttribIPointer(m_boneIDAttrLoc[RIG], 4, GL_UNSIGNED_INT, sizeof(VertexBoneData), (const GLvoid*)0);
     glEnableVertexAttribArray(m_boneWeightAttrLoc[RIG]);
-    glVertexAttribPointer(m_boneWeightAttrLoc[RIG], 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*)4);
+    glVertexAttribPointer(m_boneWeightAttrLoc[RIG], 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*) (4*sizeof(unsigned int)));
     m_meshBWBO[RIG].release();
 
     m_meshVAO[RIG].release();
@@ -567,8 +573,11 @@ void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_tran
 
     float timeInTicks = _t * m_ticksPerSecond;
     float animationTime = fmod(timeInTicks, m_animationDuration);
+//    std::cout<<"Orig Time:\t"<<_t<<"\n";
+//    std::cout<<"Time in Ticks:\t"<<timeInTicks<<"\n";
+//    std::cout<<"Anim Time:\t"<<animationTime<<"\n";
 
-    ReadNodeHierarchy(animationTime, m_scene->mAnimations[0], m_scene->mRootNode, identity);
+    ReadNodeHierarchy(animationTime, m_scene->mAnimations[m_animationID], m_scene->mRootNode, identity);
 
     unsigned int numBones = m_boneInfo.size();
     _transforms.resize(numBones);
@@ -589,6 +598,7 @@ void RevisionViewer::ReadNodeHierarchy(const float _animationTime, const aiAnima
 
     std::string nodeName(_pNode->mName.data);
 
+    // Set defualt to bind pose
     aiMatrix4x4 nodeTransform(_pNode->mTransformation);
 
     const aiNodeAnim* pNodeAnim = FindNodeAnim(_pAnimation, nodeName);
@@ -658,7 +668,7 @@ void RevisionViewer::CalcInterpolatedRotation(aiQuaternion& _out, const float _a
     assert(NextRotationIndex < _pNodeAnim->mNumRotationKeys);
     float DeltaTime = _pNodeAnim->mRotationKeys[NextRotationIndex].mTime - _pNodeAnim->mRotationKeys[RotationIndex].mTime;
     float Factor = (_animationTime - (float)_pNodeAnim->mRotationKeys[RotationIndex].mTime) / DeltaTime;
-    assert(Factor >= 0.0f && Factor <= 1.0f);
+    //assert(Factor >= 0.0f && Factor <= 1.0f);
     const aiQuaternion& StartRotationQ = _pNodeAnim->mRotationKeys[RotationIndex].mValue;
     const aiQuaternion& EndRotationQ = _pNodeAnim->mRotationKeys[NextRotationIndex].mValue;
     aiQuaternion::Interpolate(_out, StartRotationQ, EndRotationQ, Factor);
@@ -678,7 +688,7 @@ void RevisionViewer::CalcInterpolatedPosition(aiVector3D& _out, const float _ani
     assert(NextPositionIndex < _pNodeAnim->mNumPositionKeys);
     float DeltaTime = _pNodeAnim->mPositionKeys[NextPositionIndex].mTime - _pNodeAnim->mPositionKeys[PositionIndex].mTime;
     float Factor = (_animationTime - (float)_pNodeAnim->mPositionKeys[PositionIndex].mTime) / DeltaTime;
-    assert(Factor >= 0.0f && Factor <= 1.0f);
+    //assert(Factor >= 0.0f && Factor <= 1.0f);
     const aiVector3D& startPositionV = _pNodeAnim->mPositionKeys[PositionIndex].mValue;
     const aiVector3D& endPositionV = _pNodeAnim->mPositionKeys[NextPositionIndex].mValue;
     _out = startPositionV + (Factor*(endPositionV-startPositionV));
@@ -698,7 +708,7 @@ void RevisionViewer::CalcInterpolatedScaling(aiVector3D& _out, const float _anim
     assert(nextScalingIndex < _pNodeAnim->mNumScalingKeys);
     float DeltaTime = _pNodeAnim->mScalingKeys[nextScalingIndex].mTime - _pNodeAnim->mScalingKeys[scalingIndex].mTime;
     float Factor = (_animationTime - (float)_pNodeAnim->mScalingKeys[scalingIndex].mTime) / DeltaTime;
-    assert(Factor >= 0.0f && Factor <= 1.0f);
+    //assert(Factor >= 0.0f && Factor <= 1.0f);
     const aiVector3D& startScalingV = _pNodeAnim->mScalingKeys[scalingIndex].mValue;
     const aiVector3D& endScalingV = _pNodeAnim->mScalingKeys[nextScalingIndex].mValue;
     _out = startScalingV + (Factor*(endScalingV-startScalingV));

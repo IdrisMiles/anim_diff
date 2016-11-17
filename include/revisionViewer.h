@@ -171,8 +171,9 @@ protected:
     std::map<std::string, unsigned int> m_boneMapping;
     float m_ticksPerSecond;
     float m_animationDuration;
+    unsigned int m_numAnimations;
+    unsigned int m_animationID;
     aiMatrix4x4 m_globalInverseTransform;
-    std::vector<std::string> m_boneNames;
 
     // Revision stuff
     std::shared_ptr<RevisionNode> m_revision;
