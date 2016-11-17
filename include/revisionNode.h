@@ -1,7 +1,7 @@
 #ifndef REVISIONNODE_H
 #define REVISIONNODE_H
 
-#include "include/model.h"
+#include "model.h"
 
 class RevisionNode
 {
@@ -12,11 +12,7 @@ public:
 
     void LoadModel(const std::string &_modelFile);
 
-
-
     std::shared_ptr<Model> m_model;
-
-
 };
 
 #endif // REVISIONNODE_H
