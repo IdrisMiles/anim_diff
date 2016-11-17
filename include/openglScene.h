@@ -5,7 +5,7 @@
 #include <GL/glew.h>
 
 #include <QOpenGLWidget>
-#include <QOpenGLContext>
+//#include <QOpenGLContext>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>

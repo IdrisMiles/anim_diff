@@ -200,84 +200,109 @@ void RevisionViewer::InitMesh()
 
 void RevisionViewer::InitRig()
 {
-    aiMatrix4x4 mat = m_globalInverseTransform;
+    aiMatrix4x4 mat = m_scene->mRootNode->mTransformation * m_globalInverseTransform;
 
-    SetRigVerts(m_scene->mRootNode, mat);
+    for (uint i = 0 ; i < m_scene->mRootNode->mNumChildren ; i++)
+    {
+        SetRigVerts(m_scene->mRootNode, m_scene->mRootNode->mChildren[i], mat, mat);
+    }
+
+    if(m_rigVerts.size() % 2)
+    {
+        for(unsigned int i=0; i<m_rigVerts.size()/2; i++)
+        {
+            int id = i*2;
+            if(m_rigVerts[id] == m_rigVerts[id+1])
+            {
+                std::cout<<"Repeated joint causing rig issue, removing joint\n";
+                m_rigVerts.erase(m_rigVerts.begin()+id);
+                m_rigJointColours.erase(m_rigJointColours.begin()+id);
+                m_rigBoneWeights.erase(m_rigBoneWeights.begin()+id);
+
+                break;
+            }
+        }
+    }
+
+    std::cout<<"Number of rig verts:\t"<<m_rigVerts.size()<<"\n";
 
 }
 
-void RevisionViewer::SetRigVerts(aiNode* _pNode, const aiMatrix4x4 &_parentTransform)
+
+void RevisionViewer::SetRigVerts(aiNode* _pParentNode, aiNode* _pNode, const aiMatrix4x4 &_parentTransform, const aiMatrix4x4 &_thisTransform)
 {
+    const std::string parentNodeName(_pParentNode->mName.data);
     const std::string nodeName = _pNode->mName.data;
     bool isBone = m_boneMapping.find(nodeName) != m_boneMapping.end();
 
-    aiMatrix4x4 globalTransformation = _parentTransform * _pNode->mTransformation;
+    aiMatrix4x4 newThisTransform = _thisTransform * _pNode->mTransformation;
+    aiMatrix4x4 newParentTransform = _parentTransform;
+    aiNode* newParent = _pParentNode;
+
+    VertexBoneData v2;
+
+    if(isBone)
+    {
+        // parent joint
+        SetJointVert(parentNodeName, _parentTransform, v2);
+
+        // This joint
+        SetJointVert(nodeName, newThisTransform, v2);
+
+        // This joint becomes new parent
+        newParentTransform = newThisTransform;
+        newParent = _pNode;
+    }
 
 
+    // Repeat for rest of the joints
     for (uint i = 0 ; i < _pNode->mNumChildren ; i++)
     {
-        //orig method
-        if(isBone && m_boneMapping.find(std::string(_pNode->mChildren[i]->mName.data)) != m_boneMapping.end())
-        {
-            VertexBoneData v2;
-
-            // This joint
-            SetJointVert(nodeName, globalTransformation, v2);
-
-            // Child joint
-            SetJointVert(std::string(_pNode->mChildren[i]->mName.data), globalTransformation*_pNode->mChildren[i]->mTransformation, v2);
-        }
-
-        // Repeat for rest of the joints
-        SetRigVerts(_pNode->mChildren[i], globalTransformation);
+        SetRigVerts(newParent, _pNode->mChildren[i], newParentTransform, newThisTransform);
     }
 }
 
 void RevisionViewer::SetJointVert(const std::string _nodeName, const aiMatrix4x4 &_transform, VertexBoneData &_vb)
 {
-    m_rigVerts.push_back(glm::vec3(glm::vec4(0.0f,0.0f,0.0f,1.0f)*ConvertToGlmMat(_transform)));
-    m_rigJointColours.push_back(glm::vec3(0.4f, 1.0f, 0.4f));
-
-    if(FindNodeAnim(m_scene->mAnimations[m_animationID], _nodeName) != NULL)
+    if(m_boneMapping.find(_nodeName) != m_boneMapping.end())
     {
         _vb.boneID[0] = m_boneMapping[_nodeName];
         _vb.boneWeight[0] = 1.0f;
         _vb.boneWeight[1] = 0.0f;
         _vb.boneWeight[2] = 0.0f;
         _vb.boneWeight[3] = 0.0f;
+
+        m_rigVerts.push_back(glm::vec3(glm::vec4(0.0f,0.0f,0.0f,1.0f)*ConvertToGlmMat(_transform)));
+        m_rigJointColours.push_back(glm::vec3(0.4f, 1.0f, 0.4f));
+        m_rigBoneWeights.push_back(_vb);
     }
     else
     {
-        std::cout<<"Not a bone????\n";
-        _vb.boneID[0] = 0;
-        _vb.boneWeight[0] = 0.0f;
-        _vb.boneWeight[1] = 0.0f;
-        _vb.boneWeight[2] = 0.0f;
-        _vb.boneWeight[3] = 0.0f;
+        std::cout<<"This Node is not a bone, skipping\n";
     }
-    m_rigBoneWeights.push_back(_vb);
+
 }
 
 
-void RevisionViewer::RecursiveTraverseGetInitBoneTransform(const aiNode* _pNode, const aiBone** _pBone, aiMatrix4x4 _parentTrans, std::vector<aiMatrix4x4> _resultTrans)
+const aiNode* RevisionViewer::getParentBone(const aiNode* _pNode)
 {
-    std::string nodeName(_pNode->mName.data);
-    aiMatrix4x4 newTrans = _parentTrans * _pNode->mTransformation;
-
-    if(m_boneMapping.find(nodeName) != m_boneMapping.end())
+    if(_pNode->mParent != NULL)
     {
-        // This is a bone
+        if(m_boneMapping.find(std::string(_pNode->mName.data)) != m_boneMapping.end())
+        {
+            return _pNode->mParent;
+        }
+        else
+        {
+            return getParentBone(_pNode->mParent);
+        }
     }
     else
     {
-        // this is just a transform not a bone
-    }
-
-    for (uint i = 0 ; i < _pNode->mNumChildren ; i++)
-    {
-        RecursiveTraverseGetInitBoneTransform(_pNode->mChildren[i], _pBone, newTrans, _resultTrans);
+        return NULL;
     }
 }
+
 
 void RevisionViewer::InitAnimation()
 {

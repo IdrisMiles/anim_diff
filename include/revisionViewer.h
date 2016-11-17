@@ -64,7 +64,7 @@ protected:
 
     void InitMesh();
     void InitRig();
-    void SetRigVerts(aiNode *_pNode, const aiMatrix4x4 &_parentTransform);
+    void SetRigVerts(aiNode *_pParentNode, aiNode *_pNode, const aiMatrix4x4 &_parentTransform, const aiMatrix4x4 &_thisTransform);
     void SetJointVert(const std::string _nodeName, const aiMatrix4x4 &_transform, VertexBoneData &_vb);
     void InitAnimation();
     void DrawMesh();
@@ -128,6 +128,7 @@ protected:
     uint FindScalingKeyFrame(const float _animationTime, const aiNodeAnim* _pNodeAnim);
 
 
+    const aiNode* getParentBone(const aiNode* _pNode);
     void RecursiveTraverseGetInitBoneTransform(const aiNode* _pNode, const aiBone** _pBone, aiMatrix4x4 _parentTrans, std::vector<aiMatrix4x4> _resultTrans);
 
 
