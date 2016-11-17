@@ -33,6 +33,5 @@
 *.qmake.stash
 
 moc/*
-bin/*
 Makefile
 ui/*
