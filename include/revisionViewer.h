@@ -30,7 +30,6 @@ class RevisionViewer : public OpenGLScene
 
 public:
 
-    enum RenderType { SKINNED = 0, RIG = 1, NUMRENDERTYPES };
 
     /// @brief Constructor.
     /// @param parent : The parent widget to this widget.
@@ -66,7 +65,7 @@ protected:
     void InitMesh();
     void InitRig();
     void SetRigVerts(aiNode *_pNode, const aiMatrix4x4 &_parentTransform);
-    void SetJointVert(const aiNode *_pNode, const aiMatrix4x4 &_transform, VertexBoneData &_vb);
+    void SetJointVert(const std::string _nodeName, const aiMatrix4x4 &_transform, VertexBoneData &_vb);
     void InitAnimation();
     void DrawMesh();
     void DrawRig();
@@ -129,6 +128,9 @@ protected:
     uint FindScalingKeyFrame(const float _animationTime, const aiNodeAnim* _pNodeAnim);
 
 
+    void RecursiveTraverseGetInitBoneTransform(const aiNode* _pNode, const aiBone** _pBone, aiMatrix4x4 _parentTrans, std::vector<aiMatrix4x4> _resultTrans);
+
+
     bool m_revisionLoaded;
     bool m_initGL;
     bool m_waitingForInitGL;
@@ -170,6 +172,7 @@ protected:
     float m_ticksPerSecond;
     float m_animationDuration;
     aiMatrix4x4 m_globalInverseTransform;
+    std::vector<std::string> m_boneNames;
 
     // Revision stuff
     std::shared_ptr<RevisionNode> m_revision;

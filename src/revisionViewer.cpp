@@ -196,37 +196,46 @@ void RevisionViewer::InitMesh()
 void RevisionViewer::InitRig()
 {
     aiMatrix4x4 mat = m_globalInverseTransform;
+
     SetRigVerts(m_scene->mRootNode, mat);
+
 }
 
 void RevisionViewer::SetRigVerts(aiNode* _pNode, const aiMatrix4x4 &_parentTransform)
 {
+    const std::string nodeName = _pNode->mName.data;
+    bool isBone = m_boneMapping.find(nodeName) != m_boneMapping.end();
+
     aiMatrix4x4 globalTransformation = _parentTransform * _pNode->mTransformation;
+
 
     for (uint i = 0 ; i < _pNode->mNumChildren ; i++)
     {
-        VertexBoneData v2;
+        //orig method
+        if(isBone)
+        {
+            VertexBoneData v2;
 
-        // This joint
-        SetJointVert(_pNode, globalTransformation, v2);
+            // This joint
+            SetJointVert(nodeName, globalTransformation, v2);
 
-        // Child joint
-        SetJointVert(_pNode->mChildren[i], globalTransformation*_pNode->mChildren[i]->mTransformation, v2);
+            // Child joint
+            SetJointVert(std::string(_pNode->mChildren[i]->mName.data), globalTransformation*_pNode->mChildren[i]->mTransformation, v2);
+        }
 
         // Repeat for rest of the joints
         SetRigVerts(_pNode->mChildren[i], globalTransformation);
     }
 }
 
-void RevisionViewer::SetJointVert(const aiNode* _pNode, const aiMatrix4x4 &_transform, VertexBoneData &_vb)
+void RevisionViewer::SetJointVert(const std::string _nodeName, const aiMatrix4x4 &_transform, VertexBoneData &_vb)
 {
     m_rigVerts.push_back(glm::vec3(glm::vec4(0.0f,0.0f,0.0f,1.0f)*ConvertToGlmMat(_transform)));
     m_rigJointColours.push_back(glm::vec3(0.4f, 1.0f, 0.4f));
 
-    if(FindNodeAnim(m_scene->mAnimations[0], _pNode->mName.data) != NULL)
+    if(FindNodeAnim(m_scene->mAnimations[0], _nodeName) != NULL)
     {
-        std::string nodeName(_pNode->mName.data);
-        _vb.boneID[0] = m_boneMapping[nodeName];
+        _vb.boneID[0] = m_boneMapping[_nodeName];
         _vb.boneWeight[0] = 1.0f;
         _vb.boneWeight[1] = 0.0f;
         _vb.boneWeight[2] = 0.0f;
@@ -241,6 +250,27 @@ void RevisionViewer::SetJointVert(const aiNode* _pNode, const aiMatrix4x4 &_tran
         _vb.boneWeight[3] = 0.0f;
     }
     m_rigBoneWeights.push_back(_vb);
+}
+
+
+void RevisionViewer::RecursiveTraverseGetInitBoneTransform(const aiNode* _pNode, const aiBone** _pBone, aiMatrix4x4 _parentTrans, std::vector<aiMatrix4x4> _resultTrans)
+{
+    std::string nodeName(_pNode->mName.data);
+    aiMatrix4x4 newTrans = _parentTrans * _pNode->mTransformation;
+
+    if(m_boneMapping.find(nodeName) != m_boneMapping.end())
+    {
+        // This is a bone
+    }
+    else
+    {
+        // this is just a transform not a bone
+    }
+
+    for (uint i = 0 ; i < _pNode->mNumChildren ; i++)
+    {
+        RecursiveTraverseGetInitBoneTransform(_pNode->mChildren[i], _pBone, newTrans, _resultTrans);
+    }
 }
 
 void RevisionViewer::InitAnimation()

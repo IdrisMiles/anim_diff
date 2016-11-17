@@ -3,13 +3,13 @@
 
 #include "include/openglScene.h"
 #include "include/revisionViewer.h"
+#include "include/revisionDiff.h"
 
 class DifferenceViewer : public RevisionViewer
 {
 
 public:
 
-    enum RenderType { SKINNED = 0, RIG = 1, NUMRENDERTYPES };
 
     /// @brief Constructor.
     /// @param parent : The parent widget to this widget.
@@ -20,9 +20,11 @@ public:
 
     /// @brief Method to load in a RevisionNode for rendering.
     /// @param _revision : The revision we want to draw.
-    void LoadRevision(std::shared_ptr<RevisionNode> _revision);
+    void LoadDifference(std::shared_ptr<RevisionDiff> _diff);
 
     std::shared_ptr<RevisionViewer> GetRevisionView(const int &_i);
+
+
 
 
 private slots:
@@ -32,6 +34,10 @@ private slots:
 protected:
 
 private:
+
+    // Difference stuff
+    std::shared_ptr<RevisionDiff> m_revisionDiff;
+
     // New revision stuff
     std::shared_ptr<RevisionNode> m_newRevision;
     const aiScene *m_newScene;

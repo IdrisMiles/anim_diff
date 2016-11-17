@@ -27,6 +27,9 @@ public:
     QSize minimumSizeHint() const Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
 
+    enum RenderType { SKINNED = 0, RIG = 1, NUMRENDERTYPES };
+
+
 public slots:
     void setXRotation(int angle);
     void setYRotation(int angle);
