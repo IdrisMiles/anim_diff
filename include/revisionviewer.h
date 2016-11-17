@@ -43,6 +43,8 @@ public:
     /// @param _revision : The revision we want to draw.
     void LoadRevision(std::shared_ptr<RevisionNode> _revision);
 
+    /// @brief Method to set the current time of the animation, to be used externally.
+    /// @param _t : The time we are settting.
     void SetTime(const float _t);
 
 protected:
@@ -186,8 +188,6 @@ private:
     GLuint m_lightPosLoc[NUMRENDERTYPES];
 
     QOpenGLShaderProgram *m_shaderProg[NUMRENDERTYPES];
-
-
 
 };
 
