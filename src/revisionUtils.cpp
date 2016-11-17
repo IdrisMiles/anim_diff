@@ -42,7 +42,9 @@ RevisionDiff RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::
             // compare animation times.
             if((master_ticksPerSecond == branch_ticksPerSecond) && (master_animationDuration == branch_animationDuration))
             {
-
+                // whoooooo
+                // we have something that we can actually compare
+                return diff(pMasterScene, pBranchScene);
             }
             else
             {
@@ -61,4 +63,15 @@ RevisionDiff RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::
     }
 
     return revDiff;
+}
+
+RevisionDiff RevisionUtils::diff(const aiScene* master, const aiScene* branch)
+{
+    // actual diff stuff;
+    RevisionDiff diff;
+
+    
+
+
+    return diff;
 }

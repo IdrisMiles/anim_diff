@@ -5,6 +5,7 @@
 #include "revisionDiff.h"
 
 class RevisionNode;
+class aiScene;
 
 class RevisionUtils
 {
@@ -14,6 +15,10 @@ public:
 
     // will not be void once structure is created
     static RevisionDiff getDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch);
+
+private:
+    static RevisionDiff diff(const aiScene* master, const aiScene* branch);
+
 };
 
 #endif // REVISIONUTILS_H
