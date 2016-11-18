@@ -1,7 +1,6 @@
 #include "revisionUtils.h"
 
 #include "revisionNode.h"
-#include "revisionDiff.h"
 #include <assimp/scene.h>
 
 #include <iostream>
@@ -16,7 +15,7 @@ RevisionUtils::~RevisionUtils()
 
 }
 
-RevisionDiff RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch)
+void RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch)
 {   
     if(!_master && !_branch) throw std::string("null pointer: revision node");
 
@@ -24,9 +23,6 @@ RevisionDiff RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::
     // public members, so so bad and dirty raw pointers
     const aiScene *pMasterScene = _master->m_model->m_scene ? _master->m_model->m_scene : nullptr;
     const aiScene *pBranchScene = _branch->m_model->m_scene ? _branch->m_model->m_scene : nullptr;
-
-    //create our return 
-    RevisionDiff revDiff;
 
     if(pMasterScene != nullptr && pBranchScene != nullptr)
     {
@@ -44,7 +40,7 @@ RevisionDiff RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::
             {
                 // whoooooo
                 // we have something that we can actually compare
-                return diff(pMasterScene, pBranchScene);
+                diff(pMasterScene, pBranchScene);
             }
             else
             {
@@ -61,17 +57,9 @@ RevisionDiff RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::
         // don't think it'll ever get here.. supposedly
         throw std::string("null pointer: scene");
     }
-
-    return revDiff;
 }
 
-RevisionDiff RevisionUtils::diff(const aiScene* master, const aiScene* branch)
+void RevisionUtils::diff(const aiScene* master, const aiScene* branch)
 {
-    // actual diff stuff;
-    RevisionDiff diff;
 
-    
-
-
-    return diff;
 }

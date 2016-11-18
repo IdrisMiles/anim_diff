@@ -17,9 +17,7 @@ LIBS += -L${GTEST_LIBRARIES} \
         -L${HOME}/dev/lib -L/usr/local/lib -lassimp
 
 # adding sources manually, because of qt include things
-SOURCES +=      ../src/revisionDiff.cpp         \
-                ../src/revisionUtils.cpp        \
-                ../src/animNodeDiff.cpp         \
+SOURCES +=      ../src/revisionUtils.cpp        \
                 ../src/revisionNode.cpp         \
                 ../src/model.cpp                \
                 diffTest.cpp
