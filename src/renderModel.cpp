@@ -1,4 +1,4 @@
-#include "include/rendermodel.h"
+#include "include/renderModel.h"
 
 RenderModel::RenderModel()
 {

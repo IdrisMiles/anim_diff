@@ -4,8 +4,8 @@
 #include <vector>
 #include <map>
 
-#include "include/vertexbonedata.h"
-#include "include/bonetransform.h"
+#include "include/vertexBoneData.h"
+#include "include/boneTransform.h"
 
 // ASSIMP includes
 #include <assimp/scene.h>

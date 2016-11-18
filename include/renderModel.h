@@ -11,8 +11,8 @@
 #include <assimp/scene.h>
 #include <assimp/matrix4x4.h>
 
-#include "include/vertexbonedata.h"
-#include "bonetransform.h"
+#include "include/vertexBoneData.h"
+#include "boneTransform.h"
 
 
 class RenderModel

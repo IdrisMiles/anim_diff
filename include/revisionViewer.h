@@ -8,8 +8,8 @@
 
 #include "include/openglScene.h"
 #include "include/revisionNode.h"
-#include "viewerutilities.h"
-#include "include/rendermodel.h"
+#include "viewerUtilities.h"
+#include "include/renderModel.h"
 
 #include <assimp/matrix4x4.h>
 
