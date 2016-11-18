@@ -6,10 +6,10 @@
 #include <vector>
 #include <map>
 
-#include "include/openglScene.h"
-#include "include/revisionNode.h"
+#include "openglScene.h"
+#include "revisionNode.h"
 #include "viewerutilities.h"
-#include "include/rendermodel.h"
+#include "rendermodel.h"
 
 #include <assimp/matrix4x4.h>
 
