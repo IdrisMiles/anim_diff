@@ -7,9 +7,9 @@ OpenGLScene::OpenGLScene(QWidget *parent) : QOpenGLWidget(parent),
     m_xRot(0),
     m_yRot(0),
     m_zRot(0),
-    m_zDis(200),
     m_xDis(0),
-    m_yDis(0)
+    m_yDis(0),
+    m_zDis(200)
 {
     QSurfaceFormat format;
     format.setVersion(4, 3);
@@ -114,7 +114,7 @@ void OpenGLScene::cleanup()
 
 void OpenGLScene::initializeGL()
 {
-    connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &OpenGLScene::cleanup);
+    //connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &OpenGLScene::cleanup);
 
     glewInit();
 
