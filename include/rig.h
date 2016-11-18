@@ -2,24 +2,18 @@
 #define RIG_H
 
 #include <vector>
+#include <memory>
 
-#include "bone.h"
-#include "boneAnim.h"
-#include "boneAnimDiff.h"
-
+class Bone;
 
 class Rig
 {
 public:
     Rig();
+    virtual ~Rig() = 0;
 
-
-private:
-    Bone* m_rootBone;
-
-    // vector of vectors because we can have multiple animations
-    std::vector<std::vector<BoneAnim>> m_boneAnims;
-    std::vector<std::vector<BoneAnimDiff>> m_boneAnimDiff;
+protected:
+    std::shared_ptr<Bone> m_rootBone;
 
 };
 

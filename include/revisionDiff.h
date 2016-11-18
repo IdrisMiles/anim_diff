@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "animNodeDiff.h"
+#include "diffRig.h"
 
 class RevisionDiff
 {
@@ -12,8 +12,8 @@ public:
     ~RevisionDiff();
 
 private:
+    DiffRig rig;
 
-    std::vector<AnimNodeDiff> diffNodes;
 };
 
 #endif // REVISIONDIFF_H
