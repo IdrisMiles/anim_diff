@@ -12,10 +12,10 @@ void main()
     vec3 projVec = norm - (projZ*vec3(0.0, 0.0, 1.0));
     vec4 offset = 0.5 * normalize(vec4(projVec, 0.0));
 
-    vec4 offsetTR = vec4(1.0, 1.0, 0.0, 0.0);
-    vec4 offsetBR = vec4(1.0, -1.0, 0.0, 0.0);
-    vec4 offsetTL = vec4(-1.0, 1.0, 0.0, 0.0);
-    vec4 offsetBL = vec4(-1.0, -1.0, 0.0, 0.0);
+    vec4 offsetTR = 0.9f*vec4(1.0, 1.0, 0.0, 0.0);
+    vec4 offsetBR = 0.9f*vec4(1.0, -1.0, 0.0, 0.0);
+    vec4 offsetTL = 0.9f*vec4(-1.0, 1.0, 0.0, 0.0);
+    vec4 offsetBL = 0.9f*vec4(-1.0, -1.0, 0.0, 0.0);
 
     // Top joint
     gl_Position = gl_in[0].gl_Position + offsetBL;    // bottom left
@@ -47,7 +47,7 @@ void main()
 
 
     // Bone
-    gl_Position = gl_in[1].gl_Position - offset;    // bottom left
+    gl_Position = gl_in[1].gl_Position - 0.1f*offset;    // bottom left
     gVertColour = vertColour[1];
     EmitVertex();
 
@@ -59,7 +59,7 @@ void main()
     gVertColour = vertColour[0];
     EmitVertex();
 
-    gl_Position = gl_in[1].gl_Position - offset;    // bottom left
+    gl_Position = gl_in[1].gl_Position - 0.1f*offset;    // bottom left
     gVertColour = vertColour[1];
     EmitVertex();
 
@@ -67,7 +67,7 @@ void main()
     gVertColour = vertColour[0];
     EmitVertex();
 
-    gl_Position = gl_in[1].gl_Position + offset;    // bottom right
+    gl_Position = gl_in[1].gl_Position + 0.1f*offset;    // bottom right
     gVertColour = vertColour[1];
     EmitVertex();
 
