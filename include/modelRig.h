@@ -5,16 +5,17 @@
 #include <unordered_map>
 
 #include "boneAnim.h"
+#include "rig.h"
 
-class ModelRig
+class ModelRig : public Rig
 {
 public:
     ModelRig();
-    ~ModelRig(){};
+    ~ModelRig();
 
 private:
     
-    std::vector<std::unordered_map<std::string, BoneAnim>> m_boneAnims
+    std::vector<std::unordered_map<std::string, BoneAnim>> m_boneAnims;
 
 };
 

@@ -1,4 +1,4 @@
-#include "include/rig.h"
+#include "rig.h"
 
 Rig::Rig()
 {

@@ -1,4 +1,4 @@
-#include "include/openglScene.h"
+#include "openglScene.h"
 #include <iostream>
 #include <QMouseEvent>
 #include <math.h>

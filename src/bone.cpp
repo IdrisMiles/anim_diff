@@ -1,4 +1,4 @@
-#include "include/bone.h"
+#include "bone.h"
 
 Bone::Bone()
 {

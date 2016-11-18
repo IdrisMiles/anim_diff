@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "include/boneAnimDelta.h"
+#include "boneAnimDelta.h"
 
 class BoneAnimDiff
 {

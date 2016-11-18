@@ -5,16 +5,17 @@
 #include <unordered_map>
 
 #include "boneAnimDiff.h"
+#include "rig.h"
 
-class DiffRig
+class DiffRig : public Rig
 {
 public:
     DiffRig();
-    ~DiffRig(){};
+    ~DiffRig();
 
 private:
     
-    std::vector<std::unordered_map<std::string, BoneAnimDiff>> m_boneAnimDiffs
+    std::vector<std::unordered_map<std::string, BoneAnimDiff>> m_boneAnimDiffs;
 
 };
 
