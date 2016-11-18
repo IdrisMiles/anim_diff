@@ -3,7 +3,6 @@
 // our includes
 #include "revisionUtils.h"
 #include "revisionNode.h"
-#include "revisionDiff.h"
 
 //standard includes
 #include <memory>
@@ -13,11 +12,10 @@ TEST(DiffTest, RevisionNodeNullCheck) {
     // testing the testing stuff
     std::shared_ptr<RevisionNode> test1;
     std::shared_ptr<RevisionNode> test2;
-    RevisionDiff diff;
 
     try 
     {
-        diff = RevisionUtils::getDiff(test1, test2);
+        RevisionUtils::getDiff(test1, test2);
         FAIL() << "Expected null pointer exception";
     }
     catch(const std::string& ex) 
@@ -31,11 +29,10 @@ TEST(DiffTest, aiSceneNullCheck) {
     // testing the testing stuff
     std::shared_ptr<RevisionNode> test1(new RevisionNode());
     std::shared_ptr<RevisionNode> test2(new RevisionNode());
-    RevisionDiff diff;
 
     try 
     {
-        diff = RevisionUtils::getDiff(test1, test2);
+        RevisionUtils::getDiff(test1, test2);
         FAIL() << "Expected null pointer exception";
     }
     catch(const std::string& ex) 
@@ -49,7 +46,6 @@ TEST(DiffTest, noAnimationCheck) {
     // testing the testing stuff
     std::shared_ptr<RevisionNode> test1(new RevisionNode());
     std::shared_ptr<RevisionNode> test2(new RevisionNode());
-    RevisionDiff diff;
 
     // load files
     test1->LoadModel("../bin/pighead.obj");
@@ -57,7 +53,7 @@ TEST(DiffTest, noAnimationCheck) {
 
     try 
     {
-        diff = RevisionUtils::getDiff(test1, test2);
+        RevisionUtils::getDiff(test1, test2);
         FAIL() << "No animation exception expected";
     }
     catch(const std::string& ex) 
@@ -71,20 +67,40 @@ TEST(DiffTest, matchingTimesCheck) {
     // testing the testing stuff
     std::shared_ptr<RevisionNode> test1(new RevisionNode());
     std::shared_ptr<RevisionNode> test2(new RevisionNode());
-    RevisionDiff diff;
 
     // load files
     test1->LoadModel("../bin/boblampclean.md5mesh");
-    test2->LoadModel("../bin/BaseMesh_Anim.fbx");
+    test2->LoadModel("../bin/bony2.dae");
 
     try 
     {
-        diff = RevisionUtils::getDiff(test1, test2);
+        RevisionUtils::getDiff(test1, test2);
         FAIL() << "No matching ticks/duration exception expected";
     }
     catch(const std::string& ex) 
     {
         EXPECT_EQ(std::string("ticks/duration do not match"), ex);
+    }
+}
+
+TEST(DiffTest, loading2Anims) { 
+
+    // testing the testing stuff
+    std::shared_ptr<RevisionNode> test1(new RevisionNode());
+    std::shared_ptr<RevisionNode> test2(new RevisionNode());
+
+    // load files
+    test1->LoadModel("../bin/bony2.dae");
+    test2->LoadModel("../bin/bony3.dae");
+
+    try 
+    {
+        RevisionUtils::getDiff(test1, test2);
+        SUCCEED() << "Loaded 2 animation file";
+    }
+    catch(const std::string& ex) 
+    {
+        FAIL() << "failed to load animation files"; 
     }
 }
 

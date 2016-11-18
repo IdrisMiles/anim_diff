@@ -1,4 +1,4 @@
-#include "include/boneAnim.h"
+#include "boneAnim.h"
 
 BoneAnim::BoneAnim()
 {

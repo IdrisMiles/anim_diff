@@ -1,9 +1,9 @@
 #ifndef DIFFERENCEVIEWER_H
 #define DIFFERENCEVIEWER_H
 
-#include "include/openglScene.h"
-#include "include/revisionViewer.h"
-#include "include/revisionDiff.h"
+#include "openglScene.h"
+#include "revisionViewer.h"
+#include "revisionDiff.h"
 
 class DifferenceViewer : public OpenGLScene
 {

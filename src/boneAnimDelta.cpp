@@ -1,4 +1,4 @@
-#include "include/boneAnimDelta.h"
+#include "boneAnimDelta.h"
 
 BoneAnimDelta::BoneAnimDelta()
 {

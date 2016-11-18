@@ -1,4 +1,4 @@
-#include "include/revisionViewer.h"
+#include "revisionViewer.h"
 #include <iostream>
 #include <glm/ext.hpp>
 #include <QKeyEvent>

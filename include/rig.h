@@ -10,7 +10,7 @@ class Rig
 {
 public:
     Rig();
-    virtual ~Rig() = 0;
+    virtual ~Rig() {};
 
 protected:
     std::shared_ptr<Bone> m_rootBone;

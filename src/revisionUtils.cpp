@@ -1,7 +1,6 @@
 #include "revisionUtils.h"
 
 #include "revisionNode.h"
-#include "revisionDiff.h"
 #include <assimp/scene.h>
 
 #include <iostream>
@@ -25,9 +24,6 @@ RevisionDiff RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::
     const aiScene *pMasterScene = _master->m_model->m_scene ? _master->m_model->m_scene : nullptr;
     const aiScene *pBranchScene = _branch->m_model->m_scene ? _branch->m_model->m_scene : nullptr;
 
-    //create our return 
-    RevisionDiff revDiff;
-
     if(pMasterScene != nullptr && pBranchScene != nullptr)
     {
         if(pMasterScene->HasAnimations() && pBranchScene->HasAnimations())
@@ -42,7 +38,9 @@ RevisionDiff RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::
             // compare animation times.
             if((master_ticksPerSecond == branch_ticksPerSecond) && (master_animationDuration == branch_animationDuration))
             {
-
+                // whoooooo
+                // we have something that we can actually compare
+                 return diff(pMasterScene, pBranchScene);
             }
             else
             {
@@ -60,5 +58,10 @@ RevisionDiff RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::
         throw std::string("null pointer: scene");
     }
 
-    return revDiff;
+    return RevisionDiff();
+}
+
+RevisionDiff RevisionUtils::diff(const aiScene* master, const aiScene* branch)
+{
+    return RevisionDiff();
 }
