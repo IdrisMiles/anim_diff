@@ -3,7 +3,7 @@
 
 #include "include/modelRig.h"
 
-class MergedRig : ModelRig
+class MergedRig : public ModelRig
 {
 public:
     MergedRig();

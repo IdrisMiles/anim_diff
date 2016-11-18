@@ -4,3 +4,8 @@ MergedRig::MergedRig()
 {
 
 }
+
+MergedRig::~MergedRig()
+{
+
+}
