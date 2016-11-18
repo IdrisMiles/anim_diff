@@ -5,7 +5,7 @@
 #include "include/revisionViewer.h"
 #include "include/revisionDiff.h"
 
-class DifferenceViewer : public RevisionViewer
+class DifferenceViewer : public OpenGLScene
 {
 
 public:
@@ -21,6 +21,10 @@ public:
     /// @brief Method to load in a RevisionNode for rendering.
     /// @param _revision : The revision we want to draw.
     void LoadDifference(std::shared_ptr<RevisionDiff> _diff);
+
+
+    void LoadRevision(std::shared_ptr<RevisionNode> _revision);
+
 
     std::shared_ptr<RevisionViewer> GetRevisionView(const int &_i);
 
