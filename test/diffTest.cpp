@@ -15,7 +15,7 @@ TEST(DiffTest, RevisionNodeNullCheck) {
 
     try 
     {
-        RevisionUtils::getDiff(test1, test2);
+        RevisionUtils::getRevisionDiff(test1, test2);
         FAIL() << "Expected null pointer exception";
     }
     catch(const std::string& ex) 
@@ -32,7 +32,7 @@ TEST(DiffTest, aiSceneNullCheck) {
 
     try 
     {
-        RevisionUtils::getDiff(test1, test2);
+        RevisionUtils::getRevisionDiff(test1, test2);
         FAIL() << "Expected null pointer exception";
     }
     catch(const std::string& ex) 
@@ -53,7 +53,7 @@ TEST(DiffTest, noAnimationCheck) {
 
     try 
     {
-        RevisionUtils::getDiff(test1, test2);
+        RevisionUtils::getRevisionDiff(test1, test2);
         FAIL() << "No animation exception expected";
     }
     catch(const std::string& ex) 
@@ -74,7 +74,7 @@ TEST(DiffTest, matchingTimesCheck) {
 
     try 
     {
-        RevisionUtils::getDiff(test1, test2);
+        RevisionUtils::getRevisionDiff(test1, test2);
         FAIL() << "No matching ticks/duration exception expected";
     }
     catch(const std::string& ex) 
@@ -95,7 +95,7 @@ TEST(DiffTest, loading2Anims) {
 
     try 
     {
-        RevisionUtils::getDiff(test1, test2);
+        RevisionUtils::getRevisionDiff(test1, test2);
         SUCCEED() << "Loaded 2 animation file";
     }
     catch(const std::string& ex) 

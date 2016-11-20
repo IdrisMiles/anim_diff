@@ -4,9 +4,10 @@
 #include <memory>
 
 #include "revisionDiff.h"
+#include "diffRig.h"
 
 class RevisionNode;
-class aiScene;
+class ModelRig;
 
 class RevisionUtils
 {
@@ -15,10 +16,10 @@ public:
     ~RevisionUtils();
 
     // will not be void once structure is created
-    static RevisionDiff getDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch);
+    static RevisionDiff getRevisionDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch);
 
 private:
-    static RevisionDiff diff(const aiScene* master, const aiScene* branch);
+    static DiffRig diff(std::shared_ptr<ModelRig>, std::shared_ptr<ModelRig> branch);
 
 };
 

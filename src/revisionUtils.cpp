@@ -15,7 +15,7 @@ RevisionUtils::~RevisionUtils()
 
 }
 
-RevisionDiff RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch)
+RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch)
 {   
     if(!_master && !_branch) throw std::string("null pointer: revision node");
 
@@ -40,7 +40,7 @@ RevisionDiff RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::
             {
                 // whoooooo
                 // we have something that we can actually compare
-                 return diff(pMasterScene, pBranchScene);
+                //diff(pMasterScene, pBranchScene);
             }
             else
             {
@@ -55,13 +55,13 @@ RevisionDiff RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::
     else
     {
         // don't think it'll ever get here.. supposedly
-        throw std::string("null pointer: scene");
+        throw std::string("null pointer: rig");
     }
 
     return RevisionDiff();
 }
 
-RevisionDiff RevisionUtils::diff(const aiScene* master, const aiScene* branch)
+DiffRig RevisionUtils::diff(std::shared_ptr<ModelRig> master, std::shared_ptr<ModelRig> branch)
 {
-    return RevisionDiff();
+    return DiffRig();
 }
