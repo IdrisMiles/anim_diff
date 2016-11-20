@@ -1,5 +1,5 @@
-#ifndef REVISIONVIEWER_H
-#define REVISIONVIEWER_H
+#ifndef DIFFERENCEVIEWER_H
+#define DIFFERENCEVIEWER_H
 
 #include <QTimer>
 
@@ -7,17 +7,13 @@
 #include <map>
 
 #include "include/openglScene.h"
-#include "include/revisionNode.h"
+#include "include/revisionMerge.h"
 #include "include/viewerUtilities.h"
 #include "include/renderModel.h"
-#include "include/modelRig.h"
 
 #include <assimp/matrix4x4.h>
 
-
-
-/// @class RevisionViewer is a class designed to specifically draw a RevisionNode, it inherits from OpenGLSene so that it has the relevant components for drawing with OpenGL. It is intended to decouple the front end visualisation with the backend version control.
-class RevisionViewer : public OpenGLScene
+class MergedViewer : public OpenGLScene
 {
 
 public:
@@ -25,24 +21,24 @@ public:
 
     /// @brief Constructor.
     /// @param parent : The parent widget to this widget.
-    RevisionViewer(QWidget *parent);
+    MergedViewer(QWidget *parent);
 
     /// @brief Virtual destructor.
-    virtual ~RevisionViewer();
+    virtual ~MergedViewer();
 
     /// @brief Method to load in a RevisionNode for rendering.
     /// @param _revision : The revision we want to draw.
-    void LoadRevision(std::shared_ptr<RevisionNode> _revision);
+    void LoadMerge(std::shared_ptr<RevisionMerge> _diff);
 
     /// @brief Method to set the current time of the animation, to be used externally.
     /// @param _t : The time we are settting.
     void SetTime(const float _t);
 
 
+
 private slots:
     /// @brief Method to update the bone animation. This takes advantage of Qt's Signals and Slots so that we can update the animation on a timer event to decouple it from the rest of the drawing.
-    virtual void UpdateAnimation();
-
+    virtual void UpdateAnimation() override;
 
 protected:
     /// @brief Method to do OpenGL drawing.
@@ -56,6 +52,7 @@ private:
     void InitVAO();
     void InitMesh();
     void InitRig();
+
     void SetRigVerts(aiNode *_pParentNode, aiNode *_pNode, const aiMatrix4x4 &_parentTransform, const aiMatrix4x4 &_thisTransform);
     void SetJointVert(const std::string _nodeName, const aiMatrix4x4 &_transform, VertexBoneData &_vb);
 
@@ -69,8 +66,6 @@ private:
     /// @param _t : animation time, this automatically gets looped if greater than animation duration.
     /// @param _transforms : bone transforms to be updated before sending to shader
     void BoneTransform(const float _t, std::vector<glm::mat4> &_transforms);
-
-
 
 
     bool m_revisionLoaded;
@@ -87,8 +82,8 @@ private:
     QTimer * m_animTimer;
     QTimer * m_drawTimer;
 
-    // Model and Rig to draw
-    ModelRig m_rig;
+
+    MergedRig m_rig;
     RenderModel m_renderModel;
 
     float m_ticksPerSecond;
@@ -97,11 +92,11 @@ private:
     unsigned int m_animationID;
 
     // Revision stuff
-    std::shared_ptr<RevisionNode> m_revision;
+    std::shared_ptr<RevisionMerge> m_revisionMerged;
     const aiScene *m_scene;
 
 
 
 };
 
-#endif // REVISIONVIEWER_H
+#endif //DIFFERENCEVIEWER_H

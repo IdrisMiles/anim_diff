@@ -275,12 +275,6 @@ void RevisionViewer::SetJointVert(const std::string _nodeName, const aiMatrix4x4
 }
 
 
-
-void RevisionViewer::InitAnimation()
-{
-
-}
-
 void RevisionViewer::InitVAO()
 {
 
