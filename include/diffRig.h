@@ -13,9 +13,20 @@ public:
     DiffRig();
     ~DiffRig();
 
+    void setTicks(double _ticks);
+    void setDuration(double _duration);
+
+    double getDuration();
+    double getTicks();
+
+    void addBoneAnimDiff(std::string name, BoneAnimDiff boneDiff);
+
 private:
+
+    double m_ticks;
+    double m_duration;
     
-    std::vector<std::unordered_map<std::string, BoneAnimDiff>> m_boneAnimDiffs;
+    std::unordered_map<std::string, BoneAnimDiff> m_boneAnimDiffs;
 
 };
 

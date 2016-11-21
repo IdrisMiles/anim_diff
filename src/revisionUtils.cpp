@@ -36,7 +36,8 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
 
         // Todo our ticks and duration calculations to match
 
-        // Then diff
+        // Then diff the animation info on a per tick basis;
+        
 
     }
     else
