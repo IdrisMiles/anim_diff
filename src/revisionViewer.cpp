@@ -345,19 +345,19 @@ void RevisionViewer::UploadBonesToShader(const float _t, RenderType _rt)
 
 void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_transforms)
 {
-    aiMatrix4x4 identity = aiMatrix4x4();
+    glm::mat4 identity;
 
-    if(!m_animExists)
+    if(!m_model.m_animExists)
     {
         _transforms.resize(1);
         _transforms[0] = glm::mat4(1.0);
         return;
     }
 
-    float timeInTicks = _t * m_ticksPerSecond;
-    float animationTime = fmod(timeInTicks, m_animationDuration);
+    float timeInTicks = _t * m_model.m_ticksPerSecond;
+    float animationTime = fmod(timeInTicks, m_model.m_animationDuration);
 
-    ViewerUtilities::ReadNodeHierarchy2(m_model.m_boneMapping, m_model.m_boneInfo, m_model.m_globalInverseTransform, animationTime, m_scene->mAnimations[m_animationID], m_scene->mRootNode, identity);
+    ViewerUtilities::ReadNodeHierarchy2(m_model.m_globalInverseTransform, animationTime, m_model.m_rig, m_model.m_rig.m_rootBone, identity);
 
     unsigned int numBones = m_model.m_boneInfo.size();
     _transforms.resize(numBones);

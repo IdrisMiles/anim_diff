@@ -80,28 +80,15 @@ private:
     bool m_wireframe;
     bool m_drawMesh;
     bool m_playAnim;
-    bool m_animExists;
     float m_dt;
     float m_t;
 
     QTimer * m_animTimer;
     QTimer * m_drawTimer;
 
-    // Model and Rig to draw
-    //ModelRig m_rig;
-    //RenderModel m_renderModel;
-
-//    float m_ticksPerSecond;
-//    float m_animationDuration;
-//    unsigned int m_numAnimations;
-//    unsigned int m_animationID;
-
     // Revision stuff
     std::shared_ptr<RevisionNode> m_revision;
     Model m_model;
-    //const aiScene *m_scene;
-
-
 
 };
 
