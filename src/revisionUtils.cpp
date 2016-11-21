@@ -27,6 +27,9 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
 
     if(masterRig.hasAnimation() && branchRig.hasAnimation())
     {   
+        //TODO check to see if rigs match
+
+
         //just look at the first animation for now
         double masterTicks = masterRig.getTicks();
         double masterDuration = masterRig.getDuration();
@@ -42,6 +45,8 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
         }
 
         // Then diff the animation info on a per tick basis for their durations
+
+
     }
     else
     {
@@ -54,15 +59,22 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
 
 DiffRig RevisionUtils::getAnimDiff(std::shared_ptr<ModelRig>, std::shared_ptr<ModelRig> branch)
 {
+    //TODO 
+    // iterate through bones in each rig and compare 
+
     return DiffRig();
 }
 
 BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
 {
+    //TODO
+    // iterate throught boneAnims and compare
     return BoneAnimDiff();
 }
 
 BoneAnimDelta RevisionUtils::getBoneAnimDelta(BoneAnim master, BoneAnim branch)
 {
+    // TODO
+    // compare individual values and store the deltas
     return BoneAnimDelta();
 }
