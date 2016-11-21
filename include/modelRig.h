@@ -13,8 +13,12 @@ public:
     ModelRig();
     ~ModelRig();
 
-    std::unordered_map<std::string, BoneAnim> m_boneAnims;
+    bool hasAnimation();
 
+    double m_ticks;
+    double m_duration;
+
+    std::unordered_map<std::string, BoneAnim> m_boneAnims;
 };
 
 #endif // RIG_H
