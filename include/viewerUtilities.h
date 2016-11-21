@@ -15,8 +15,10 @@
 
 // GLM
 #include <glm/glm.hpp>
+#include <glm/gtx/transform.hpp>
 
-
+#include "include/modelRig.h"
+#include "include/bone.h"
 
 namespace ViewerUtilities
 {
@@ -77,6 +79,22 @@ namespace ViewerUtilities
     /// @param _boneMapping : a map that holds bone names and their index.
     /// _pNode : The node we want to find the parent off.
     static const aiNode* getParentBone(const std::map<std::__cxx11::string, unsigned int> _boneMapping, const aiNode* _pNode);
+
+    //-----------------------------------------------------------------------------------------------------------------------------
+    void ReadNodeHierarchy2(const glm::mat4 _globalInverseTransform, const float _animationTime, const ModelRig *_pRig, Bone *_pBone, const glm::mat4& _parentTransform);
+
+    BoneAnim FindBoneAnim(ModelRig _pRig, std::__cxx11::string _nodeName);
+
+    void CalcInterpolatedRotation2(glm::quat& _out, const float _animationTime, const BoneAnim* _pBoneAnin);
+
+    void CalcInterpolatedPosition2(glm::vec3& _out, const float _animationTime, const BoneAnim* _boneAnim);
+
+    void CalcInterpolatedScaling2(glm::vec3& _out, const float _animationTime, const BoneAnim* _boneAnim);
+
+    uint FindKeyFrame(const float _animationTime, const BoneAnim* _pBoneAnim);
+
+    const Bone* getParentBone2(const Bone* _pNode);
+
 
 
     //___________________________________________________________________________________________________________________________________________________

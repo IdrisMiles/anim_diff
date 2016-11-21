@@ -17,13 +17,3 @@ bool ModelRig::hasAnimation()
 {
     return m_boneAnims.empty();
 }
-
-double ModelRig::getTicks()
-{
-    return m_ticks;
-}
-
-double ModelRig::getDuration()
-{
-    return m_duration;
-}
