@@ -1,7 +1,7 @@
 #ifndef REVISIONMERGE_H
 #define REVISIONMERGE_H
 
-#include "include/mergedRig.h"
+#include "mergedRig.h"
 
 class RevisionMerge
 {

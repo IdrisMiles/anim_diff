@@ -1,4 +1,4 @@
-#include "include/viewerUtilities.h"
+#include "viewerUtilities.h"
 
 void ViewerUtilities::ReadNodeHierarchy2(const glm::mat4 _globalInverseTransform, const float _animationTime, const ModelRig *_pRig, Bone* _pBone, const glm::mat4& _parentTransform)
 {

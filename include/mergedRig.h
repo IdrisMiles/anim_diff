@@ -1,7 +1,7 @@
 #ifndef MERGEDRIG_H
 #define MERGEDRIG_H
 
-#include "include/modelRig.h"
+#include "modelRig.h"
 
 class MergedRig : public ModelRig
 {

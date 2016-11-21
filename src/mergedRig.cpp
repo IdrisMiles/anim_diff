@@ -1,4 +1,4 @@
-#include "include/mergedRig.h"
+#include "mergedRig.h"
 
 MergedRig::MergedRig()
 {

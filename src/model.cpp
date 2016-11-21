@@ -1,6 +1,8 @@
 #include "model.h"
 #include <iostream>
 
+#include <QOpenGLShaderProgram>
+
 Model::Model()
 {
 

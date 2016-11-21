@@ -7,19 +7,20 @@
 #include <assimp/postprocess.h>
 #include <assimp/matrix4x4.h>
 
-#include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 
-#include "include/modelRig.h"
-#include "include/vertexBoneData.h"
-#include "include/boneTransform.h"
-#include "include/viewerUtilities.h"
+#include "modelRig.h"
+#include "vertexBoneData.h"
+#include "boneTransform.h"
+#include "viewerUtilities.h"
 
 #include <memory>
+
+class QOpenGLShaderProgram;
 
 class Model
 {
@@ -88,7 +89,6 @@ public:
     GLuint m_lightPosLoc[NUMRENDERTYPES];
 
     QOpenGLShaderProgram *m_shaderProg[NUMRENDERTYPES];
-
 
 };
 

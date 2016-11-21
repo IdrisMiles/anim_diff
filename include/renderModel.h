@@ -11,7 +11,7 @@
 #include <assimp/scene.h>
 #include <assimp/matrix4x4.h>
 
-#include "include/vertexBoneData.h"
+#include "vertexBoneData.h"
 #include "boneTransform.h"
 
 

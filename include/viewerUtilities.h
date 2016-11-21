@@ -5,8 +5,8 @@
 #include <map>
 
 
-#include "include/vertexBoneData.h"
-#include "include/boneTransform.h"
+#include "vertexBoneData.h"
+#include "boneTransform.h"
 
 
 // ASSIMP includes
@@ -17,8 +17,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 
-#include "include/modelRig.h"
-#include "include/bone.h"
+#include "modelRig.h"
+#include "bone.h"
 
 namespace ViewerUtilities
 {
