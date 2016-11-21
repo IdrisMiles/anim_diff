@@ -5,6 +5,9 @@
 
 #include "revisionDiff.h"
 #include "diffRig.h"
+#include "boneAnim.h"
+#include "boneAnimDelta.h"
+#include "boneAnimDiff.h"
 
 class RevisionNode;
 class ModelRig;
@@ -19,8 +22,9 @@ public:
     static RevisionDiff getRevisionDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch);
 
 private:
-    static DiffRig diff(std::shared_ptr<ModelRig>, std::shared_ptr<ModelRig> branch);
-
+    static DiffRig getAnimDiff(std::shared_ptr<ModelRig>, std::shared_ptr<ModelRig> branch);
+    static BoneAnimDiff getBoneDiff(BoneAnim master, BoneAnim branch);
+    static BoneAnimDelta getBoneAnimDelta(BoneAnim master, BoneAnim branch);
 };
 
 #endif // REVISIONUTILS_H

@@ -51,7 +51,18 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
     return RevisionDiff();
 }
 
-DiffRig RevisionUtils::diff(std::shared_ptr<ModelRig> master, std::shared_ptr<ModelRig> branch)
+
+DiffRig RevisionUtils::getAnimDiff(std::shared_ptr<ModelRig>, std::shared_ptr<ModelRig> branch)
 {
     return DiffRig();
+}
+
+BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
+{
+    return BoneAnimDiff();
+}
+
+BoneAnimDelta RevisionUtils::getBoneAnimDelta(BoneAnim master, BoneAnim branch)
+{
+    return BoneAnimDelta();
 }

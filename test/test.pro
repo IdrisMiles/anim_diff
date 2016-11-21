@@ -24,6 +24,9 @@ SOURCES +=      ../src/revisionUtils.cpp        \
                 ../src/diffRig.cpp              \
                 ../src/modelRig.cpp             \
                 ../src/rig.cpp                  \
+                ../src/boneAnim.cpp             \
+                ../src/boneAnimDiff.cpp         \
+                ../src/boneAnimDelta.cpp        \
                 diffTest.cpp
 
 CONFIG += console c++11
