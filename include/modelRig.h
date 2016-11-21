@@ -13,9 +13,7 @@ public:
     ModelRig();
     ~ModelRig();
 
-private:
-    
-    std::vector<std::unordered_map<std::string, BoneAnim>> m_boneAnims;
+    std::unordered_map<std::string, BoneAnim> m_boneAnims;
 
 };
 

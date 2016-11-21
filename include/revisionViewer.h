@@ -54,10 +54,10 @@ protected:
 private:
     /// @brief Method to initialise all the relevant VAO and VBO's to draw an animated mesh.
     void InitVAO();
-    void InitMesh();
-    void InitRig();
-    void SetRigVerts(aiNode *_pParentNode, aiNode *_pNode, const aiMatrix4x4 &_parentTransform, const aiMatrix4x4 &_thisTransform);
-    void SetJointVert(const std::string _nodeName, const aiMatrix4x4 &_transform, VertexBoneData &_vb);
+    //void InitMesh();
+    //void InitRig();
+    //void SetRigVerts(aiNode *_pParentNode, aiNode *_pNode, const aiMatrix4x4 &_parentTransform, const aiMatrix4x4 &_thisTransform);
+    //void SetJointVert(const std::string _nodeName, const aiMatrix4x4 &_transform, VertexBoneData &_vb);
 
     void DrawMesh();
     void DrawRig();
@@ -88,17 +88,18 @@ private:
     QTimer * m_drawTimer;
 
     // Model and Rig to draw
-    ModelRig m_rig;
-    RenderModel m_renderModel;
+    //ModelRig m_rig;
+    //RenderModel m_renderModel;
 
-    float m_ticksPerSecond;
-    float m_animationDuration;
-    unsigned int m_numAnimations;
-    unsigned int m_animationID;
+//    float m_ticksPerSecond;
+//    float m_animationDuration;
+//    unsigned int m_numAnimations;
+//    unsigned int m_animationID;
 
     // Revision stuff
     std::shared_ptr<RevisionNode> m_revision;
-    const aiScene *m_scene;
+    Model m_model;
+    //const aiScene *m_scene;
 
 
 
