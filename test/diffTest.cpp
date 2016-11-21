@@ -96,7 +96,7 @@ TEST(DiffTest, loading2Anims) {
     try 
     {
         RevisionUtils::getRevisionDiff(test1, test2);
-        SUCCEED() << "Loaded 2 animation file";
+        SUCCEED() << "Loaded 2 animation files";
     }
     catch(const std::string& ex) 
     {

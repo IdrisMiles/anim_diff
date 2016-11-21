@@ -28,17 +28,20 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
     if(masterRig.hasAnimation() && branchRig.hasAnimation())
     {   
         //just look at the first animation for now
-        double master_ticksPerSecond = masterRig.getTicks();
-        double master_animationDuration = masterRig.getDuration();
+        double masterTicks = masterRig.getTicks();
+        double masterDuration = masterRig.getDuration();
 
-        double branch_ticksPerSecond = branchRig.getTicks();
-        double branch_animationDuration = branchRig.getDuration();
+        double branchTicks = branchRig.getTicks();
+        double branchDuration = branchRig.getDuration();
 
         // Todo our ticks and duration calculations to match
+        if((masterTicks != branchTicks) || 
+            (masterDuration != branchDuration))
+        {
+            // match some ticks and duration
+        }
 
-        // Then diff the animation info on a per tick basis;
-        
-
+        // Then diff the animation info on a per tick basis for their durations
     }
     else
     {
