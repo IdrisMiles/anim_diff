@@ -1,12 +1,7 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-// ASSIMP includes
-#include <assimp/scene.h>
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
-
-#include <memory>
+#include "modelRig.h"
 
 class Model
 {
@@ -16,8 +11,10 @@ public:
 
     void LoadModel(const std::string &_modelFile);
 
-    const aiScene *m_scene;
-    Assimp::Importer m_importer;
+    const ModelRig getRig();
+
+private:
+    ModelRig m_rig;
 };
 
 #endif // MODEL_H
