@@ -207,7 +207,7 @@ const aiNode* ViewerUtilities::getParentBone(const std::map<std::__cxx11::string
 // ViewerUtilities for new rig structure
 //-----------------------------------------------------------------------------------------------------------------------------------------
 
-void ViewerUtilities::ReadNodeHierarchy(std::vector<BoneTransformData> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, ModelRig &_pRig, std::shared_ptr<Bone> _pBone, const glm::mat4& _parentTransform)
+void ViewerUtilities::ReadNodeHierarchy(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, ModelRig &_pRig, std::shared_ptr<Bone> _pBone, const glm::mat4& _parentTransform)
 {
     if(!_pBone)
     {
@@ -247,14 +247,15 @@ void ViewerUtilities::ReadNodeHierarchy(std::vector<BoneTransformData> &_boneInf
 
     glm::mat4 globalTransformation = _parentTransform * nodeTransform;
 
-    if (!_pBone->m_name.empty())
-    {
-        _pBone->m_currentTransform = _globalInverseTransform * globalTransformation * _pBone->m_boneOffset;
+
+    if (_boneMapping.find(_pBone->m_name) != _boneMapping.end()) {
+        uint BoneIndex = _boneMapping.at(_pBone->m_name);
+        _pBone->m_currentTransform = _boneInfo[BoneIndex] = _globalInverseTransform * globalTransformation * _pBone->m_boneOffset;
     }
 
     for (uint i = 0 ; i < _pBone->m_children.size() ; i++)
     {
-        ReadNodeHierarchy(_boneInfo, _globalInverseTransform, _animationTime, _pRig, std::shared_ptr<Bone>(_pBone->m_children[i]), globalTransformation);
+        ReadNodeHierarchy(_boneMapping, _boneInfo, _globalInverseTransform, _animationTime, _pRig, std::shared_ptr<Bone>(_pBone->m_children[i]), globalTransformation);
     }
 
 }

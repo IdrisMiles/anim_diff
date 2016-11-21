@@ -81,7 +81,7 @@ namespace ViewerUtilities
     const aiNode* getParentBone(const std::map<std::__cxx11::string, unsigned int> _boneMapping, const aiNode* _pNode);
 
     //-----------------------------------------------------------------------------------------------------------------------------
-    void ReadNodeHierarchy(std::vector<BoneTransformData> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, ModelRig &_pRig, std::shared_ptr<Bone> _pBone, const glm::mat4& _parentTransform);
+    void ReadNodeHierarchy(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, ModelRig &_pRig, std::shared_ptr<Bone> _pBone, const glm::mat4& _parentTransform);
 
     BoneAnim FindBoneAnim(ModelRig _pRig, std::__cxx11::string _nodeName);
 

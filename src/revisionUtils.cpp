@@ -15,53 +15,66 @@ RevisionUtils::~RevisionUtils()
 
 }
 
-RevisionDiff RevisionUtils::getDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch)
+RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch)
 {   
     if(!_master && !_branch) throw std::string("null pointer: revision node");
 
     if(!_master->m_model && !_master->m_model) throw std::string("null pointer: no model loaded");
+    
     // public members, so so bad and dirty raw pointers
-    const aiScene *pMasterScene = _master->m_model->m_scene ? _master->m_model->m_scene : nullptr;
-    const aiScene *pBranchScene = _branch->m_model->m_scene ? _branch->m_model->m_scene : nullptr;
+    ModelRig masterRig = _master->m_model->m_rig;
+    ModelRig branchRig = _branch->m_model->m_rig;
 
-    if(pMasterScene != nullptr && pBranchScene != nullptr)
-    {
-        if(pMasterScene->HasAnimations() && pBranchScene->HasAnimations())
-        {   
-            //just look at the first animation for now
-            double master_ticksPerSecond = pMasterScene->mAnimations[0]->mTicksPerSecond;
-            double master_animationDuration = pMasterScene->mAnimations[0]->mDuration;
+    if(masterRig.hasAnimation() && branchRig.hasAnimation())
+    {   
+        //TODO check to see if rigs match
 
-            double branch_ticksPerSecond = pBranchScene->mAnimations[0]->mTicksPerSecond;
-            double branch_animationDuration = pBranchScene->mAnimations[0]->mDuration;
 
-            // compare animation times.
-            if((master_ticksPerSecond == branch_ticksPerSecond) && (master_animationDuration == branch_animationDuration))
-            {
-                // whoooooo
-                // we have something that we can actually compare
-                 return diff(pMasterScene, pBranchScene);
-            }
-            else
-            {
-                throw std::string("ticks/duration do not match");
-            }
-        }
-        else
+        //just look at the first animation for now
+        double masterTicks = masterRig.m_ticks;
+        double masterDuration = masterRig.m_duration;
+
+        double branchTicks = branchRig.m_ticks;
+        double branchDuration = branchRig.m_duration;
+
+        // Todo our ticks and duration calculations to match
+        if((masterTicks != branchTicks) || 
+            (masterDuration != branchDuration))
         {
-            throw std::string("no animation present");
+            // match some ticks and duration
         }
+
+        // Then diff the animation info on a per tick basis for their durations
+
+
     }
     else
     {
-        // don't think it'll ever get here.. supposedly
-        throw std::string("null pointer: scene");
+        throw std::string("no animation present");
     }
 
     return RevisionDiff();
 }
 
-RevisionDiff RevisionUtils::diff(const aiScene* master, const aiScene* branch)
+
+DiffRig RevisionUtils::getAnimDiff(std::shared_ptr<ModelRig>, std::shared_ptr<ModelRig> branch)
 {
-    return RevisionDiff();
+    //TODO 
+    // iterate through bones in each rig and compare 
+
+    return DiffRig();
+}
+
+BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
+{
+    //TODO
+    // iterate throught boneAnims and compare
+    return BoneAnimDiff();
+}
+
+BoneAnimDelta RevisionUtils::getBoneAnimDelta(BoneAnim master, BoneAnim branch)
+{
+    // TODO
+    // compare individual values and store the deltas
+    return BoneAnimDelta();
 }
