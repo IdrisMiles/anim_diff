@@ -88,6 +88,27 @@ TEST(DiffTest, loading2Anims) {
     }
 }
 
+TEST(DiffTest, checkNodes) { 
+    testing::internal::CaptureStdout();
+    // testing the testing stuff
+    std::shared_ptr<RevisionNode> test1(new RevisionNode());
+    std::shared_ptr<RevisionNode> test2(new RevisionNode());
+
+    // load files
+    test1->LoadModel("../bin/bony2.dae");
+    test2->LoadModel("../bin/bony3.dae");
+
+    testing::internal::GetCapturedStdout();
+
+    RevisionDiff diff = RevisionUtils::getRevisionDiff(test1, test2);
+    
+    // check master node is correct
+    EXPECT_EQ(test1.get(), diff.getMasterNode().get());
+
+    // now branch
+    EXPECT_EQ(test2.get(), diff.getBranchNode().get());
+}
+
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
