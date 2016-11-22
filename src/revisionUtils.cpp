@@ -17,6 +17,8 @@ RevisionUtils::~RevisionUtils()
 
 RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch)
 {   
+    RevisionDiff diff(_master, _branch);
+
     if(!_master && !_branch) throw std::string("null pointer: revision node");
 
     if(!_master->m_model && !_branch->m_model) throw std::string("null pointer: no model loaded");
@@ -46,24 +48,26 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
         diffRig.m_duration = masterDuration > branchDuration ? masterDuration : branchDuration;
 
         // Then diff the animation info on a per tick basis for their durations
+        getAnimDiff(masterRig, branchRig, diffRig);
 
-
+        //return 
+        diff.setDiffRig(diffRig);
+        return diff;
     }
     else
     {
         throw std::string("no animation present");
     }
 
-    return RevisionDiff();
+    return diff;
 }
 
 
-DiffRig RevisionUtils::getAnimDiff(std::shared_ptr<ModelRig>, std::shared_ptr<ModelRig> branch)
+void RevisionUtils::getAnimDiff(ModelRig master, ModelRig branch, DiffRig &outRig)
 {
     //TODO 
-    // iterate through bones in each rig and compare 
-
-    return DiffRig();
+    // iterate through bones in each rig and compare
+     
 }
 
 BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
