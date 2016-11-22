@@ -41,19 +41,9 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
         double branchTicks = branchRig.m_ticks;
         double branchDuration = branchRig.m_duration;
 
-        // Todo our ticks and duration calculations to match
-        if((masterTicks != branchTicks) || 
-            (masterDuration != branchDuration))
-        {
-            // match some ticks and duration
-            
-        }
-        else
-        {
-            // they're the same so use master's'
-            diffRig.m_ticks = masterTicks;
-            diffRig.m_duration = masterDuration;
-        }
+        // use master tick speed, and duration is the larger of the two 
+        diffRig.m_ticks = masterTicks;
+        diffRig.m_duration = masterDuration > branchDuration ? masterDuration : branchDuration;
 
         // Then diff the animation info on a per tick basis for their durations
 
