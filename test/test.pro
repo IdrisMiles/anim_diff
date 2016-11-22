@@ -1,16 +1,15 @@
-
-QT += gui core opengl
+QT += core gui opengl
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = test
 TEMPLATE = app
 
 INCLUDEPATH += . ../include /usr/local/include /usr/include \
-                /home/idris/dev/include ${GTEST_INCLUDE_DIRS}
+                /home/idris/dev/include
 
-LIBS += -L${GTEST_LIBRARIES} \
-        -L/usr/local/lib -L/usr/lib -lGL -lGLU -lGLEW  -lgtest  \
-        -L${HOME}/dev/lib -L/usr/local/lib -lassimp
+LIBS += -L/usr/local/lib -L/usr/lib -lGL -lGLU -lGLEW  \
+        -L${HOME}/dev/lib -L/usr/local/lib -lassimp -lgtest \
+        -L${GTEST_LIBRARIES}
 
 # adding sources manually, because of qt include things
 SOURCES +=      diffTest.cpp                    \
@@ -23,8 +22,7 @@ SOURCES +=      diffTest.cpp                    \
                 ../src/rig.cpp                  \
                 ../src/boneAnim.cpp             \
                 ../src/boneAnimDiff.cpp         \
-                ../src/boneAnimDelta.cpp        
-                
+                ../src/viewerUtilities.cpp      \
+                ../src/boneAnimDelta.cpp           
 
-CONFIG += console c++11
-
+CONFIG += qt console c++11

@@ -1,4 +1,4 @@
-#include "include/revisionMerge.h"
+#include "revisionMerge.h"
 
 RevisionMerge::RevisionMerge()
 {
