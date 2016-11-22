@@ -80,6 +80,12 @@ namespace ViewerUtilities
     /// _pNode : The node we want to find the parent off.
     const aiNode* getParentBone(const std::map<std::__cxx11::string, unsigned int> _boneMapping, const aiNode* _pNode);
 
+    const aiBone* GetBone(const aiScene *_aiScene, std::string _name);
+
+    const aiNode* GetNode(const aiScene *_aiScene, std::string _name);
+
+    const aiNode* GetNode(const aiNode *_aiNode, std::string _name);
+
     //-----------------------------------------------------------------------------------------------------------------------------
     void ReadNodeHierarchy(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, ModelRig &_pRig, std::shared_ptr<Bone> _pBone, const glm::mat4& _parentTransform);
 
@@ -91,9 +97,13 @@ namespace ViewerUtilities
 
     void CalcInterpolatedScaling(glm::vec3& _out, const float _animationTime, const BoneAnim* _boneAnim);
 
-    uint FindKeyFrame(const float _animationTime, const BoneAnim* _pBoneAnim);
+    uint FindRotationKeyFrame(const float _animationTime, const BoneAnim* _pBoneAnim);
 
-    const Bone* getParentBone(const Bone* _pNode);
+    uint FindPositionKeyFrame(const float _animationTime, const BoneAnim* _pBoneAnim);
+
+    uint FindScalingKeyFrame(const float _animationTime, const BoneAnim* _pBoneAnim);
+
+    const std::shared_ptr<Bone> getParentBone(const std::shared_ptr<Bone> _pNode);
 
 
 

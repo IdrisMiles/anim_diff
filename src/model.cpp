@@ -28,8 +28,6 @@ void Model::LoadModel(const std::string &_modelFile)
         std::cout<<"Error loading "<<_modelFile<<" with assimp\n";
     }
 
-//    m_revision = _revision;
-//    _scene = m_revision->m_model->scene;
     m_globalInverseTransform = ViewerUtilities::ConvertToGlmMat(scene->mRootNode->mTransformation);
     m_globalInverseTransform = glm::inverse(m_globalInverseTransform);
 
@@ -42,7 +40,34 @@ void Model::LoadModel(const std::string &_modelFile)
         InitMesh(scene);
         InitRig(scene);
 
-    } // end if aiScene is valid
+
+        for(int i=0; i<scene->mNumMeshes; i++)
+        {
+            for(int j=0; j<scene->mMeshes[i]->mNumBones; j++)
+            {
+                std::cout<<std::string(scene->mMeshes[i]->mBones[j]->mName.data)<<"\n";
+            }
+        }
+        std::cout<<"_______________________________\nBones:\n";
+        for(auto a : m_boneMapping)
+        {
+            std::cout<<"["<<a.first<<"] : "<< a.second<<"\n";
+        }
+        std::cout<<"_______________________________\n";
+
+        m_rig.m_rootBone = std::shared_ptr<Bone>(new Bone());
+        m_rig.m_rootBone->m_name = std::string(scene->mRootNode->mName.data);
+        m_rig.m_rootBone->m_transform = ViewerUtilities::ConvertToGlmMat(scene->mRootNode->mTransformation);
+        m_rig.m_rootBone->m_boneOffset = glm::mat4(1.0f);
+        m_rig.m_rootBone->m_parent = NULL;
+
+
+        unsigned int numChildren = scene->mRootNode->mNumChildren;
+        for (unsigned int i=0; i<numChildren; i++)
+        {
+            CopyRigStructure(scene, scene->mRootNode->mChildren[i], m_rig.m_rootBone, ViewerUtilities::ConvertToGlmMat(scene->mRootNode->mTransformation));
+        }
+    }
 
 }
 
@@ -198,7 +223,7 @@ void Model::SetRigVerts(aiNode* _pParentNode, aiNode* _pNode, const glm::mat4 &_
     const std::string nodeName = _pNode->mName.data;
     bool isBone = m_boneMapping.find(nodeName) != m_boneMapping.end();
 
-    glm::mat4 newThisTransform = _thisTransform * ViewerUtilities::ConvertToGlmMat(_pNode->mTransformation);
+    glm::mat4 newThisTransform = ViewerUtilities::ConvertToGlmMat(_pNode->mTransformation) * _thisTransform;
     glm::mat4 newParentTransform = _parentTransform;
     aiNode* newParent = _pParentNode;
 
@@ -246,3 +271,115 @@ void Model::SetJointVert(const std::string _nodeName, const glm::mat4 &_transfor
 
 }
 
+void Model::CopyRigStructure(const aiScene *_aiScene, aiNode *_aiNode, std::shared_ptr<Bone> _parentBone, const glm::mat4 &_parentTransform)
+{
+    std::cout<<"\n";
+    std::shared_ptr<Bone> newBone = std::shared_ptr<Bone>(new Bone());
+    glm::mat4 newParentTransform = _parentTransform;
+
+    // Check if this is a bone
+    if(m_boneMapping.find(std::string(_aiNode->mName.data)) != m_boneMapping.end())
+    {
+        newBone->m_name = std::string(_aiNode->mName.data);
+        newBone->m_transform = ViewerUtilities::ConvertToGlmMat(_aiNode->mTransformation) * _parentTransform;
+
+        // Get bone offset matrix
+        const aiBone* paiBone = ViewerUtilities::GetBone(_aiScene, newBone->m_name);
+        if(paiBone)
+        {
+            std::cout<<std::string(paiBone->mName.data)<< "valid bone\n";
+            newBone->m_boneOffset = ViewerUtilities::ConvertToGlmMat(paiBone->mOffsetMatrix);
+        }
+        else
+        {
+            std::cout<<"Well sheet, didn't find a bone in aiScene with name matching: "<<newBone->m_name<<". Thus not boneOffsetMatrix\n";
+            newBone->m_boneOffset = glm::mat4(1.0f);
+        }
+
+        // Get animation data
+        const aiNodeAnim *pNodeAnim = ViewerUtilities::FindNodeAnim(_aiScene->mAnimations[_aiScene->mNumAnimations-1], newBone->m_name);
+        if(pNodeAnim)
+        {
+            std::cout<<std::string(pNodeAnim->mNodeName.data)<<" valid nodeAnim\n";
+            m_rig.m_boneAnims[newBone->m_name] = TransferAnim(pNodeAnim);
+            newBone->m_boneAnim = &m_rig.m_boneAnims[newBone->m_name];
+
+        }
+        else
+        {
+            std::cout<<"Daaannnng, didn't find aiNodeAnim in aiAnimation["<<_aiScene->mNumAnimations<<"] with matching name: "<<newBone->m_name<<". Thus No animation.\n";
+        }
+
+        // Set parent and set child
+        newBone->m_parent = _parentBone;
+        _parentBone->m_children.push_back(newBone);
+
+        newParentTransform = glm::mat4(1.0f);
+    }
+    else
+    {
+        // forward on this nodes transform to affect the next bone
+        std::cout<<"Model::CopyRigStructure | "<<std::string(_aiNode->mName.data)<<" Is not a Bone, probably an arbitrary transform.\n";
+        newBone = _parentBone;
+        newParentTransform = ViewerUtilities::ConvertToGlmMat(_aiNode->mTransformation) * _parentTransform;
+    }
+
+
+    unsigned int numChildren = _aiNode->mNumChildren;
+    for (unsigned int i=0; i<numChildren; i++)
+    {
+        CopyRigStructure(_aiScene, _aiNode->mChildren[i], newBone, newParentTransform);
+    }
+}
+
+
+BoneAnim Model::TransferAnim(const aiNodeAnim *_pNodeAnim)
+{
+    BoneAnim newBoneAnim;
+
+    if(_pNodeAnim != NULL)
+    {
+        // Rotation animation
+        for(unsigned int i=0; i<_pNodeAnim->mNumRotationKeys; i++)
+        {
+            float time = _pNodeAnim->mRotationKeys[i].mTime;
+            glm::quat rot;
+            rot.x = _pNodeAnim->mRotationKeys[i].mValue.x;
+            rot.y = _pNodeAnim->mRotationKeys[i].mValue.y;
+            rot.z = _pNodeAnim->mRotationKeys[i].mValue.z;
+            rot.w = _pNodeAnim->mRotationKeys[i].mValue.w;
+            RotAnim rotAnim = {time, rot};
+            newBoneAnim.m_rotAnim.push_back(rotAnim);
+        }
+
+        // Position animation
+        for(unsigned int i=0; i<_pNodeAnim->mNumPositionKeys; i++)
+        {
+            float time = _pNodeAnim->mPositionKeys[i].mTime;
+            glm::vec3 pos;
+            pos.x = _pNodeAnim->mPositionKeys[i].mValue.x;
+            pos.y = _pNodeAnim->mPositionKeys[i].mValue.y;
+            pos.z = _pNodeAnim->mPositionKeys[i].mValue.z;
+            PosAnim posAnim = {time, pos};
+            newBoneAnim.m_posAnim.push_back(posAnim);
+        }
+
+        // Scaling animation
+        for(unsigned int i=0; i<_pNodeAnim->mNumScalingKeys; i++)
+        {
+            float time = _pNodeAnim->mScalingKeys[i].mTime;
+            glm::vec3 scale;
+            scale.x = _pNodeAnim->mScalingKeys[i].mValue.x;
+            scale.y = _pNodeAnim->mScalingKeys[i].mValue.y;
+            scale.z = _pNodeAnim->mScalingKeys[i].mValue.z;
+            ScaleAnim scaleAnim = {time, scale};
+            newBoneAnim.m_scaleAnim.push_back(scaleAnim);
+        }
+    }
+    else
+    {
+        std::cout<<"Invalid aiNodeAnim\n";
+    }
+
+    return newBoneAnim;
+}

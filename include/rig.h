@@ -14,6 +14,7 @@ public:
 
 //protected:
     std::shared_ptr<Bone> m_rootBone;
+    //std::vector<Bone> m_bones;
 
 };
 
