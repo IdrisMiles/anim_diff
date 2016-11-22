@@ -32,8 +32,8 @@ void Model::LoadModel(const std::string &_modelFile)
 
 //    m_revision = _revision;
 //    _scene = m_revision->m_model->scene;
-    m_globalInverseTransform = scene->mRootNode->mTransformation;
-    m_globalInverseTransform.Inverse();
+    m_globalInverseTransform = ViewerUtilities::ConvertToGlmMat(scene->mRootNode->mTransformation);
+    m_globalInverseTransform = glm::inverse(m_globalInverseTransform);
 
     if(!scene)
     {
@@ -165,7 +165,7 @@ void Model::InitMesh(const aiScene *_scene)
 
 void Model::InitRig(const aiScene *_scene)
 {
-    aiMatrix4x4 mat = _scene->mRootNode->mTransformation * m_globalInverseTransform;
+    glm::mat4 mat = ViewerUtilities::ConvertToGlmMat(_scene->mRootNode->mTransformation) * m_globalInverseTransform;
 
     for (uint i = 0 ; i < _scene->mRootNode->mNumChildren ; i++)
     {
@@ -194,14 +194,14 @@ void Model::InitRig(const aiScene *_scene)
 }
 
 
-void Model::SetRigVerts(aiNode* _pParentNode, aiNode* _pNode, const aiMatrix4x4 &_parentTransform, const aiMatrix4x4 &_thisTransform)
+void Model::SetRigVerts(aiNode* _pParentNode, aiNode* _pNode, const glm::mat4 &_parentTransform, const glm::mat4 &_thisTransform)
 {
     const std::string parentNodeName(_pParentNode->mName.data);
     const std::string nodeName = _pNode->mName.data;
     bool isBone = m_boneMapping.find(nodeName) != m_boneMapping.end();
 
-    aiMatrix4x4 newThisTransform = _thisTransform * _pNode->mTransformation;
-    aiMatrix4x4 newParentTransform = _parentTransform;
+    glm::mat4 newThisTransform = _thisTransform * ViewerUtilities::ConvertToGlmMat(_pNode->mTransformation);
+    glm::mat4 newParentTransform = _parentTransform;
     aiNode* newParent = _pParentNode;
 
     VertexBoneData v2;
@@ -227,7 +227,7 @@ void Model::SetRigVerts(aiNode* _pParentNode, aiNode* _pNode, const aiMatrix4x4 
     }
 }
 
-void Model::SetJointVert(const std::string _nodeName, const aiMatrix4x4 &_transform, VertexBoneData &_vb)
+void Model::SetJointVert(const std::string _nodeName, const glm::mat4 &_transform, VertexBoneData &_vb)
 {
     if(m_boneMapping.find(_nodeName) != m_boneMapping.end())
     {
@@ -237,7 +237,7 @@ void Model::SetJointVert(const std::string _nodeName, const aiMatrix4x4 &_transf
         _vb.boneWeight[2] = 0.0f;
         _vb.boneWeight[3] = 0.0f;
 
-        m_rigVerts.push_back(glm::vec3(glm::vec4(0.0f,0.0f,0.0f,1.0f)*ViewerUtilities::ConvertToGlmMat(_transform)));
+        m_rigVerts.push_back(glm::vec3(glm::vec4(0.0f,0.0f,0.0f,1.0f) * _transform));
         m_rigJointColours.push_back(glm::vec3(0.4f, 1.0f, 0.4f));
         m_rigBoneWeights.push_back(_vb);
     }
@@ -248,129 +248,3 @@ void Model::SetJointVert(const std::string _nodeName, const aiMatrix4x4 &_transf
 
 }
 
-/*
-void Model::InitVAO()
-{
-
-    glPointSize(10);
-
-    //--------------------------------------------------------------------------------------
-    // Skinned mesh
-    m_shaderProg[SKINNED]->bind();
-
-    // Get shader locations
-    m_colour = glm::vec3(0.8f,0.4f,0.4f);
-    m_colourLoc[SKINNED] = m_shaderProg[SKINNED]->uniformLocation("uColour");
-    glUniform3fv(m_colourLoc[SKINNED], 1, &m_colour[0]);
-    m_vertAttrLoc[SKINNED] = m_shaderProg[SKINNED]->attributeLocation("vertex");
-    m_normAttrLoc[SKINNED] = m_shaderProg[SKINNED]->attributeLocation("normal");
-    m_boneIDAttrLoc[SKINNED] = m_shaderProg[SKINNED]->attributeLocation("BoneIDs");
-    m_boneWeightAttrLoc[SKINNED] = m_shaderProg[SKINNED]->attributeLocation("Weights");
-    m_boneUniformLoc[SKINNED] = m_shaderProg[SKINNED]->uniformLocation("Bones");
-
-    std::cout<<"SKINNED | vert Attr loc:\t"<<m_vertAttrLoc[SKINNED]<<"\n";
-    std::cout<<"SKINNED | norm Attr loc:\t"<<m_normAttrLoc[SKINNED]<<"\n";
-    std::cout<<"SKINNED | boneID Attr loc:\t"<<m_boneIDAttrLoc[SKINNED]<<"\n";
-    std::cout<<"SKINNED | boneWei Attr loc:\t"<<m_boneWeightAttrLoc[SKINNED]<<"\n";
-    std::cout<<"SKINNED | Bones Unif loc:\t"<<m_boneUniformLoc[SKINNED]<<"\n";
-
-
-    // Set up VAO
-    m_meshVAO[SKINNED].create();
-    m_meshVAO[SKINNED].bind();
-
-    // Set up element array
-    m_meshIBO[SKINNED].create();
-    m_meshIBO[SKINNED].bind();
-    m_meshIBO[SKINNED].allocate(&m_meshTris[0], m_meshTris.size() * sizeof(int));
-    m_meshIBO[SKINNED].release();
-
-
-    // Setup our vertex buffer object.
-    m_meshVBO[SKINNED].create();
-    m_meshVBO[SKINNED].bind();
-    m_meshVBO[SKINNED].allocate(&m_meshVerts[0], m_meshVerts.size() * sizeof(glm::vec3));
-    glEnableVertexAttribArray(m_vertAttrLoc[SKINNED]);
-    glVertexAttribPointer(m_vertAttrLoc[SKINNED], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-    m_meshVBO[SKINNED].release();
-
-
-    // Setup our normals buffer object.
-    m_meshNBO[SKINNED].create();
-    m_meshNBO[SKINNED].bind();
-    m_meshNBO[SKINNED].allocate(&m_meshNorms[0], m_meshNorms.size() * sizeof(glm::vec3));
-    glEnableVertexAttribArray(m_normAttrLoc[SKINNED]);
-    glVertexAttribPointer(m_normAttrLoc[SKINNED], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-    m_meshNBO[SKINNED].release();
-
-
-    // Set up vertex bone weighting buffer object
-    m_meshBWBO[SKINNED].create();
-    m_meshBWBO[SKINNED].bind();
-    m_meshBWBO[SKINNED].allocate(&m_meshBoneWeights[0], m_meshBoneWeights.size() * sizeof(VertexBoneData));
-    glEnableVertexAttribArray(m_boneIDAttrLoc[SKINNED]);
-    glVertexAttribIPointer(m_boneIDAttrLoc[SKINNED], 4, GL_UNSIGNED_INT, sizeof(VertexBoneData), (const GLvoid*)0);
-    glEnableVertexAttribArray(m_boneWeightAttrLoc[SKINNED]);
-    glVertexAttribPointer(m_boneWeightAttrLoc[SKINNED], 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*)(4*sizeof(unsigned int)));
-    m_meshBWBO[SKINNED].release();
-
-    m_meshVAO[SKINNED].release();
-    m_shaderProg[SKINNED]->release();
-
-
-
-    //--------------------------------------------------------------------------------------
-    // Rigged mesh
-    m_shaderProg[RIG]->bind();
-
-    // Get shader locations
-    m_colour = glm::vec3(0.8f,0.4f,0.4f);
-    m_vertAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("vertex");
-    m_boneIDAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("BoneIDs");
-    m_boneWeightAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("Weights");
-    m_boneUniformLoc[RIG] = m_shaderProg[RIG]->uniformLocation("Bones");
-    m_colourAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("colour");
-
-
-    std::cout<<"RIG | vert Attr loc:\t"<<m_vertAttrLoc[RIG]<<"\n";
-    std::cout<<"RIG | boneID Attr loc:\t"<<m_boneIDAttrLoc[RIG]<<"\n";
-    std::cout<<"RIG | boneWei Attr loc:\t"<<m_boneWeightAttrLoc[RIG]<<"\n";
-    std::cout<<"RIG | Bones Unif loc:\t"<<m_boneUniformLoc[RIG]<<"\n";
-    std::cout<<"RIG | colour Attr loc: "<<m_colourAttrLoc[RIG]<<"\n";
-
-
-    m_meshVAO[RIG].create();
-    m_meshVAO[RIG].bind();
-
-    // Setup our vertex buffer object.
-    m_meshVBO[RIG].create();
-    m_meshVBO[RIG].bind();
-    m_meshVBO[RIG].allocate(&m_rigVerts[0], m_rigVerts.size() * sizeof(glm::vec3));
-    glEnableVertexAttribArray(m_vertAttrLoc[RIG]);
-    glVertexAttribPointer(m_vertAttrLoc[RIG], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-    m_meshVBO[RIG].release();
-
-    // Set up our Rig joint colour buffer object
-    m_meshCBO[RIG].create();
-    m_meshCBO[RIG].bind();
-    m_meshCBO[RIG].allocate(&m_rigJointColours[0], m_rigJointColours.size() * sizeof(glm::vec3));
-    glEnableVertexAttribArray(m_colourAttrLoc[RIG]);
-    glVertexAttribPointer(m_colourAttrLoc[RIG], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
-    m_meshCBO[RIG].release();
-
-    // Set up vertex bone weighting buffer object
-    m_meshBWBO[RIG].create();
-    m_meshBWBO[RIG].bind();
-    m_meshBWBO[RIG].allocate(&m_rigBoneWeights[0], m_rigBoneWeights.size() * sizeof(VertexBoneData));
-    glEnableVertexAttribArray(m_boneIDAttrLoc[RIG]);
-    glVertexAttribIPointer(m_boneIDAttrLoc[RIG], 4, GL_UNSIGNED_INT, sizeof(VertexBoneData), (const GLvoid*)0);
-    glEnableVertexAttribArray(m_boneWeightAttrLoc[RIG]);
-    glVertexAttribPointer(m_boneWeightAttrLoc[RIG], 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*) (4*sizeof(unsigned int)));
-    m_meshBWBO[RIG].release();
-
-    m_meshVAO[RIG].release();
-
-    m_shaderProg[RIG]->release();
-
-}
-*/

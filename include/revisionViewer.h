@@ -88,7 +88,7 @@ private:
 
     // Revision stuff
     std::shared_ptr<RevisionNode> m_revision;
-    Model m_model;
+    std::shared_ptr<Model> m_model;
 
 };
 

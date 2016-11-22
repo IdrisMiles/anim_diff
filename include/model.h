@@ -31,11 +31,10 @@ public:
     void LoadModel(const std::string &_modelFile);
     void SetShader(QOpenGLShaderProgram **_shaderProg);
 
-    //void InitVAO();
     void InitMesh(const aiScene *_scene);
     void InitRig(const aiScene *_scene);
-    void SetRigVerts(aiNode *_pParentNode, aiNode *_pNode, const aiMatrix4x4 &_parentTransform, const aiMatrix4x4 &_thisTransform);
-    void SetJointVert(const std::string _nodeName, const aiMatrix4x4 &_transform, VertexBoneData &_vb);
+    void SetRigVerts(aiNode *_pParentNode, aiNode *_pNode, const glm::mat4 &_parentTransform, const glm::mat4 &_thisTransform);
+    void SetJointVert(const std::string _nodeName, const glm::mat4 &_transform, VertexBoneData &_vb);
 
 
     enum RenderType { SKINNED = 0, RIG = 1, NUMRENDERTYPES };
@@ -65,7 +64,7 @@ public:
     bool m_animExists;
     std::vector<BoneTransformData> m_boneInfo;
     std::map<std::string, unsigned int> m_boneMapping;
-    aiMatrix4x4 m_globalInverseTransform;
+    glm::mat4 m_globalInverseTransform;
 
     // OpenGL VAO and BO's
     QOpenGLVertexArrayObject m_meshVAO[NUMRENDERTYPES];

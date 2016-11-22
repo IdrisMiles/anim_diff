@@ -12,7 +12,7 @@ public:
     Rig();
     virtual ~Rig() {};
 
-protected:
+//protected:
     std::shared_ptr<Bone> m_rootBone;
 
 };
