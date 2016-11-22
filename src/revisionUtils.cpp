@@ -19,16 +19,20 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
 {   
     if(!_master && !_branch) throw std::string("null pointer: revision node");
 
-    if(!_master->m_model && !_master->m_model) throw std::string("null pointer: no model loaded");
+    if(!_master->m_model && !_branch->m_model) throw std::string("null pointer: no model loaded");
     
-    // public members, so so bad and dirty raw pointers
-    ModelRig masterRig = _master->m_model->m_rig;
-    ModelRig branchRig = _branch->m_model->m_rig;
-
-    if(masterRig.hasAnimation() && branchRig.hasAnimation())
+    if(_master->m_model->m_animExists && _branch->m_model->m_animExists)
     {   
+
+        // public members, so so bad and dirty raw pointers
+        ModelRig masterRig = _master->m_model->m_rig;
+        ModelRig branchRig = _branch->m_model->m_rig;
+
         //TODO check to see if rigs match
 
+
+        //create a DiffRig
+        DiffRig diffRig;
 
         //just look at the first animation for now
         double masterTicks = masterRig.m_ticks;
@@ -42,6 +46,13 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
             (masterDuration != branchDuration))
         {
             // match some ticks and duration
+            
+        }
+        else
+        {
+            // they're the same so use master's'
+            diffRig.m_ticks = masterTicks;
+            diffRig.m_duration = masterDuration;
         }
 
         // Then diff the animation info on a per tick basis for their durations
