@@ -354,17 +354,18 @@ void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_tran
         return;
     }
 
-    float timeInTicks = _t * m_model->m_ticksPerSecond;
-    float animationTime = fmod(timeInTicks, m_model->m_animationDuration);
-
-    ViewerUtilities::ReadNodeHierarchy(m_model->m_boneMapping,_transforms, m_model->m_globalInverseTransform, animationTime, m_model->m_rig, std::shared_ptr<Bone>(m_model->m_rig.m_rootBone), identity);
-
     unsigned int numBones = m_model->m_boneInfo.size();
     _transforms.resize(numBones);
 
-    for(unsigned int i=0; i<numBones; i++)
-    {
-        _transforms[i] = ViewerUtilities::ConvertToGlmMat(m_model->m_boneInfo[i].finalTransform);
-    }
+    float timeInTicks = _t * m_model->m_ticksPerSecond;
+    float animationTime = fmod(timeInTicks, m_model->m_animationDuration);
+
+    ViewerUtilities::ReadNodeHierarchy(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, animationTime, m_model->m_rig, std::shared_ptr<Bone>(m_model->m_rig.m_rootBone), identity);
+
+
+//    for(unsigned int i=0; i<numBones; i++)
+//    {
+//        //_transforms[i] = ViewerUtilities::ConvertToGlmMat(m_model->m_boneInfo[i].finalTransform);
+//    }
 
 }

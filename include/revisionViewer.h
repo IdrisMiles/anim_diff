@@ -12,9 +12,6 @@
 #include "renderModel.h"
 #include "modelRig.h"
 
-#include <assimp/matrix4x4.h>
-
-
 
 /// @class RevisionViewer is a class designed to specifically draw a RevisionNode, it inherits from OpenGLSene so that it has the relevant components for drawing with OpenGL. It is intended to decouple the front end visualisation with the backend version control.
 class RevisionViewer : public OpenGLScene
@@ -54,10 +51,6 @@ protected:
 private:
     /// @brief Method to initialise all the relevant VAO and VBO's to draw an animated mesh.
     void InitVAO();
-    //void InitMesh();
-    //void InitRig();
-    //void SetRigVerts(aiNode *_pParentNode, aiNode *_pNode, const aiMatrix4x4 &_parentTransform, const aiMatrix4x4 &_thisTransform);
-    //void SetJointVert(const std::string _nodeName, const aiMatrix4x4 &_transform, VertexBoneData &_vb);
 
     void DrawMesh();
     void DrawRig();

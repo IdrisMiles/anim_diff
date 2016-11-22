@@ -7,6 +7,23 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+struct PosAnim
+{
+    float time;
+    glm::vec3 pos;
+};
+
+struct ScaleAnim
+{
+    float time;
+    glm::vec3 scale;
+};
+
+struct RotAnim
+{
+    float time;
+    glm::quat rot;
+};
 
 class BoneAnim
 {
@@ -14,10 +31,9 @@ public:
     BoneAnim();
 
     std::string m_name;
-    std::vector<glm::vec3> m_pos;
-    std::vector<glm::vec3> m_scale;
-    std::vector<glm::quat> m_rot;
-    std::vector<float> m_time;
+    std::vector<PosAnim> m_posAnim;
+    std::vector<ScaleAnim> m_scaleAnim;
+    std::vector<RotAnim> m_rotAnim;
 
 };
 

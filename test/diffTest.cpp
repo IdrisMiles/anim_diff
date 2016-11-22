@@ -8,11 +8,13 @@
 #include <memory>
 
 TEST(DiffTest, RevisionNodeNullCheck) { 
+    testing::internal::CaptureStdout();
 
     // testing the testing stuff
     std::shared_ptr<RevisionNode> test1;
     std::shared_ptr<RevisionNode> test2;
 
+    testing::internal::GetCapturedStdout();
     try 
     {
         RevisionUtils::getRevisionDiff(test1, test2);
@@ -25,11 +27,12 @@ TEST(DiffTest, RevisionNodeNullCheck) {
 }
 
 TEST(DiffTest, aiSceneNullCheck) { 
-
+    testing::internal::CaptureStdout();
     // testing the testing stuff
     std::shared_ptr<RevisionNode> test1(new RevisionNode());
     std::shared_ptr<RevisionNode> test2(new RevisionNode());
 
+    testing::internal::GetCapturedStdout();
     try 
     {
         RevisionUtils::getRevisionDiff(test1, test2);
@@ -42,7 +45,7 @@ TEST(DiffTest, aiSceneNullCheck) {
 }
 
 TEST(DiffTest, noAnimationCheck) { 
-
+    testing::internal::CaptureStdout();
     // testing the testing stuff
     std::shared_ptr<RevisionNode> test1(new RevisionNode());
     std::shared_ptr<RevisionNode> test2(new RevisionNode());
@@ -51,6 +54,7 @@ TEST(DiffTest, noAnimationCheck) {
     test1->LoadModel("../bin/pighead.obj");
     test2->LoadModel("../bin/GiantTeapot.obj");
 
+    testing::internal::GetCapturedStdout();
     try 
     {
         RevisionUtils::getRevisionDiff(test1, test2);
@@ -62,29 +66,8 @@ TEST(DiffTest, noAnimationCheck) {
     }
 }
 
-TEST(DiffTest, matchingTimesCheck) { 
-
-    // testing the testing stuff
-    std::shared_ptr<RevisionNode> test1(new RevisionNode());
-    std::shared_ptr<RevisionNode> test2(new RevisionNode());
-
-    // load files
-    test1->LoadModel("../bin/boblampclean.md5mesh");
-    test2->LoadModel("../bin/bony2.dae");
-
-    try 
-    {
-        RevisionUtils::getRevisionDiff(test1, test2);
-        FAIL() << "No matching ticks/duration exception expected";
-    }
-    catch(const std::string& ex) 
-    {
-        EXPECT_EQ(std::string("ticks/duration do not match"), ex);
-    }
-}
-
 TEST(DiffTest, loading2Anims) { 
-
+    testing::internal::CaptureStdout();
     // testing the testing stuff
     std::shared_ptr<RevisionNode> test1(new RevisionNode());
     std::shared_ptr<RevisionNode> test2(new RevisionNode());
@@ -93,6 +76,7 @@ TEST(DiffTest, loading2Anims) {
     test1->LoadModel("../bin/bony2.dae");
     test2->LoadModel("../bin/bony3.dae");
 
+    testing::internal::GetCapturedStdout();
     try 
     {
         RevisionUtils::getRevisionDiff(test1, test2);
