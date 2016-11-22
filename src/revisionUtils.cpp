@@ -30,7 +30,7 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
         ModelRig masterRig = _master->m_model->m_rig;
         ModelRig branchRig = _branch->m_model->m_rig;
 
-        //TODO check to see if rigs match
+        //TODO check to see if rigs and bones match
 
 
         //create a DiffRig
@@ -62,18 +62,36 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
     return diff;
 }
 
-
+#include <iostream>
 void RevisionUtils::getAnimDiff(ModelRig master, ModelRig branch, DiffRig &outRig)
 {
     //TODO 
     // iterate through bones in each rig and compare
-     
+
+    // iterate through master bones
+    for(auto bone : master.m_boneAnims)
+    {
+        // find matching one
+        auto branchBone = branch.m_boneAnims.find(bone.first);
+
+        if(branchBone != branch.m_boneAnims.end())
+        {
+            BoneAnimDiff boneDiff = getBoneDiff(bone.second, branchBone->second);
+            outRig.addBoneAnimDiff(bone.first, boneDiff);
+        }
+        else
+        {
+            std::cout << "cannot find matching bone for: " << bone.first << "\n";
+        }
+    }
 }
 
 BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
 {
     //TODO
-    // iterate throught boneAnims and compare
+    // iterate through data and compare
+
+
     return BoneAnimDiff();
 }
 
