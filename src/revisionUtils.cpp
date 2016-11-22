@@ -62,12 +62,8 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
     return diff;
 }
 
-#include <iostream>
 void RevisionUtils::getAnimDiff(ModelRig master, ModelRig branch, DiffRig &outRig)
 {
-    //TODO 
-    // iterate through bones in each rig and compare
-
     // iterate through master bones
     for(auto bone : master.m_boneAnims)
     {
@@ -77,7 +73,7 @@ void RevisionUtils::getAnimDiff(ModelRig master, ModelRig branch, DiffRig &outRi
         if(branchBone != branch.m_boneAnims.end())
         {
             BoneAnimDiff boneDiff = getBoneDiff(bone.second, branchBone->second);
-            outRig.addBoneAnimDiff(bone.first, boneDiff);
+            outRig.m_boneAnimDiffs.insert({bone.first, boneDiff});
         }
         else
         {
@@ -90,14 +86,5 @@ BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
 {
     //TODO
     // iterate through data and compare
-
-
     return BoneAnimDiff();
-}
-
-BoneAnimDelta RevisionUtils::getBoneAnimDelta(BoneAnim master, BoneAnim branch)
-{
-    // TODO
-    // compare individual values and store the deltas
-    return BoneAnimDelta();
 }

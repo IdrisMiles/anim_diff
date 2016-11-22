@@ -12,9 +12,3 @@ DiffRig::~DiffRig()
 {
     
 }
-
-void DiffRig::addBoneAnimDiff(std::string name, BoneAnimDiff boneDiff)
-{
-    // sweet c++11 notation, check it out
-    m_boneAnimDiffs.insert({name, boneDiff});
-}

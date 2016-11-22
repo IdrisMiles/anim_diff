@@ -23,7 +23,6 @@ SOURCES +=      diffTest.cpp                    \
                 ../src/boneAnim.cpp             \
                 ../src/boneAnimDiff.cpp         \
                 ../src/viewerUtilities.cpp      \
-                ../src/bone.cpp                 \
-                ../src/boneAnimDelta.cpp           
+                ../src/bone.cpp                    
 
 CONFIG += qt console c++11

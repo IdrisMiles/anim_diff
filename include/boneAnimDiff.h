@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "boneAnimDelta.h"
+#include "boneAnim.h"
 
 class BoneAnimDiff
 {
@@ -12,7 +12,9 @@ public:
     BoneAnimDiff();
 
     std::string m_name;
-    std::vector<BoneAnimDelta> m_boneAnimDelta;
+    std::vector<PosAnim> m_posAnimDeltas;
+    std::vector<ScaleAnim> m_scaleAnimDeltas;
+    std::vector<RotAnim> m_rotAnimDeltas;
 };
 
 #endif // BONEANIMDIFF_H

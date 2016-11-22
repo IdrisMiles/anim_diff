@@ -6,7 +6,6 @@
 #include "revisionDiff.h"
 #include "diffRig.h"
 #include "boneAnim.h"
-#include "boneAnimDelta.h"
 #include "boneAnimDiff.h"
 
 class RevisionNode;
@@ -24,7 +23,6 @@ public:
 private:
     static void getAnimDiff(ModelRig master, ModelRig branch, DiffRig &outRig);
     static BoneAnimDiff getBoneDiff(BoneAnim master, BoneAnim branch);
-    static BoneAnimDelta getBoneAnimDelta(BoneAnim master, BoneAnim branch);
 };
 
 #endif // REVISIONUTILS_H
