@@ -200,10 +200,186 @@ std::vector<PosAnim> RevisionUtils::getPositionDiffs(std::vector<PosAnim>& maste
 
 std::vector<RotAnim> RevisionUtils::getRotationDiffs(std::vector<RotAnim>& master, std::vector<RotAnim>& branch)
 {
+    std::vector<RotAnim> rotAnimDiffs;
 
+    auto mItr = master.begin();
+    auto bItr = branch.begin();
+
+    while((mItr != master.end()) && (bItr != branch.end()))
+    {
+
+        if(mItr == master.end())
+        {
+            // just log branch because master is finished
+            RotAnim rotDiff;
+            rotDiff.time = (*bItr).time;
+            rotDiff.rot = glm::quat(0,0,0,0);
+            rotAnimDiffs.push_back(rotDiff);
+        }
+        else if(bItr == branch.end())
+        {
+            RotAnim rotDiff;
+            rotDiff.time = (*mItr).time;
+            rotDiff.rot = glm::quat(0,0,0,0);
+            rotAnimDiffs.push_back(rotDiff);
+        }
+
+        // we have a time match
+        if((*mItr).time == (*bItr).time)
+        {
+            // we have a match lets compare the positions
+            glm::quat mRot = (*mItr).rot;
+            glm::quat bRot = (*bItr).rot;
+
+            RotAnim rotDiff;
+
+            rotDiff.rot = glm::inverse(mRot) * bRot;
+
+            rotDiff.time = (*mItr).time; 
+
+            // add to the things
+            rotAnimDiffs.push_back(rotDiff);
+
+            mItr++;
+            bItr++;
+        }
+        // check if one time is behind the other
+        else if((*mItr).time < (*bItr).time)
+        {
+            // no matching times so make one 
+            // calc interpolate amount
+            auto PrevBItr = std::prev(bItr);
+            float interTime = ((*bItr).time - (*PrevBItr).time) / ((*mItr).time - (*PrevBItr).time);
+
+            glm::quat mRot = (*mItr).rot;
+            glm::quat bRot = glm::mix((*bItr).rot , (*PrevBItr).rot, interTime);
+
+            RotAnim rotDiff;
+
+            rotDiff.rot = glm::inverse(mRot) * bRot;
+
+            rotDiff.time = (*mItr).time; 
+
+            // add to the things
+            rotAnimDiffs.push_back(rotDiff);
+            mItr++;
+        }
+        // now the branch is more than 
+        else
+        {
+            auto PrevMItr = std::prev(mItr);
+            float interTime = ((*mItr).time - (*PrevMItr).time) / ((*bItr).time - (*PrevMItr).time);
+
+            glm::quat mRot = glm::mix((*mItr).rot , (*PrevMItr).rot, interTime);
+            glm::quat bRot = (*bItr).rot;
+
+            RotAnim rotDiff;
+
+            rotDiff.rot = glm::inverse(mRot) * bRot;
+
+            rotDiff.time = (*mItr).time; 
+
+            // add to the things
+            rotAnimDiffs.push_back(rotDiff);
+            bItr++;
+        }
+    }
+
+    return rotAnimDiffs;
 }
     
 std::vector<ScaleAnim> RevisionUtils::getScaleDiffs(std::vector<ScaleAnim>& master, std::vector<ScaleAnim>& branch)
 {
+    std::vector<ScaleAnim> scaleAnimDiffs;
 
+    auto mItr = master.begin();
+    auto bItr = branch.begin();
+
+    while((mItr != master.end()) && (bItr != branch.end()))
+    {
+
+        if(mItr == master.end())
+        {
+            // just log branch because master is finished
+            ScaleAnim scaleDiff;
+            scaleDiff.time = (*bItr).time;
+            scaleDiff.scale = glm::vec3(0,0,0);
+            scaleAnimDiffs.push_back(scaleDiff);
+        }
+        else if(bItr == branch.end())
+        {
+            ScaleAnim scaleDiff;
+            scaleDiff.time = (*mItr).time;
+            scaleDiff.scale = glm::vec3(0,0,0);
+            scaleAnimDiffs.push_back(scaleDiff);
+        }
+
+        // we have a time match
+        if((*mItr).time == (*bItr).time)
+        {
+            // we have a match lets compare the positions
+            glm::vec3 mScale = (*mItr).scale;
+            glm::vec3 bScale = (*bItr).scale;
+
+            ScaleAnim scaleDiff;
+
+            scaleDiff.scale.x = mScale.x - bScale.x;
+            scaleDiff.scale.y = mScale.y - bScale.y;
+            scaleDiff.scale.z = mScale.z - bScale.z;
+
+            scaleDiff.time = (*mItr).time; 
+
+            // add to the things
+            scaleAnimDiffs.push_back(scaleDiff);
+
+            mItr++;
+            bItr++;
+        }
+        // check if one time is behind the other
+        else if((*mItr).time < (*bItr).time)
+        {
+            // no matching times so make one 
+            // calc interpolate amount
+            auto PrevBItr = std::prev(bItr);
+            float interTime = ((*bItr).time - (*PrevBItr).time) / ((*mItr).time - (*PrevBItr).time);
+
+            glm::vec3 mScale = (*mItr).scale;
+            glm::vec3 bScale = glm::mix((*bItr).scale , (*PrevBItr).scale, interTime);
+
+            ScaleAnim scaleDiff;
+
+            scaleDiff.scale.x = mScale.x - bScale.x;
+            scaleDiff.scale.y = mScale.y - bScale.y;
+            scaleDiff.scale.z = mScale.z - bScale.z;
+
+            scaleDiff.time = (*mItr).time; 
+
+            // add to the things
+            scaleAnimDiffs.push_back(scaleDiff);
+            mItr++;
+        }
+        // now the branch is more than 
+        else
+        {
+            auto PrevMItr = std::prev(mItr);
+            float interTime = ((*mItr).time - (*PrevMItr).time) / ((*bItr).time - (*PrevMItr).time);
+
+            glm::vec3 mScale = glm::mix((*mItr).scale , (*PrevMItr).scale, interTime);
+            glm::vec3 bScale = (*bItr).scale;
+
+            ScaleAnim scaleDiff;
+
+            scaleDiff.scale.x = mScale.x - bScale.x;
+            scaleDiff.scale.y = mScale.y - bScale.y;
+            scaleDiff.scale.z = mScale.z - bScale.z;
+
+            scaleDiff.time = (*mItr).time; 
+
+            // add to the things
+            scaleAnimDiffs.push_back(scaleDiff);
+            bItr++;
+        }
+    }
+
+    return scaleAnimDiffs;
 }
