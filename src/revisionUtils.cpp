@@ -86,18 +86,11 @@ BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
 {
     BoneAnimDiff boneDiff;
 
-    //TODO
-    // iterate through data and compare
     boneDiff.m_posAnimDeltas = getPositionDiffs(master.m_posAnim, branch.m_posAnim);
 
-    //First lets do pos
-    // GLM mix for vector interp and GLM slurp for quats
+    boneDiff.m_rotAnimDeltas = getRotationDiffs(master.m_rotAnim, branch.m_rotAnim);
 
-
-    //Now Rotate
-
-
-    //Now scale
+    boneDiff.m_scaleAnimDeltas = getScaleDiffs(master.m_scaleAnim, branch.m_scaleAnim);
 
     return boneDiff;
 }
@@ -252,7 +245,7 @@ std::vector<RotAnim> RevisionUtils::getRotationDiffs(std::vector<RotAnim>& maste
             float interTime = ((*bItr).time - (*PrevBItr).time) / ((*mItr).time - (*PrevBItr).time);
 
             glm::quat mRot = (*mItr).rot;
-            glm::quat bRot = glm::mix((*bItr).rot , (*PrevBItr).rot, interTime);
+            glm::quat bRot = glm::slerp((*bItr).rot , (*PrevBItr).rot, interTime);
 
             RotAnim rotDiff;
 
@@ -270,7 +263,7 @@ std::vector<RotAnim> RevisionUtils::getRotationDiffs(std::vector<RotAnim>& maste
             auto PrevMItr = std::prev(mItr);
             float interTime = ((*mItr).time - (*PrevMItr).time) / ((*bItr).time - (*PrevMItr).time);
 
-            glm::quat mRot = glm::mix((*mItr).rot , (*PrevMItr).rot, interTime);
+            glm::quat mRot = glm::slerp((*mItr).rot , (*PrevMItr).rot, interTime);
             glm::quat bRot = (*bItr).rot;
 
             RotAnim rotDiff;
