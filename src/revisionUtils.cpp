@@ -87,30 +87,45 @@ BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
     BoneAnimDiff boneDiff;
 
     //TODO
-    // iterate through data and compare 
+    // iterate through data and compare
+    boneDiff.m_posAnimDeltas = getPositionDiffs(master.m_posAnim, branch.m_posAnim);
 
     //First lets do pos
     // GLM mix for vector interp and GLM slurp for quats
-    auto mItr = master.m_posAnim.begin();
-    auto bItr = branch.m_posAnim.begin();
 
-    while((mItr != master.m_posAnim.end()) && (bItr != branch.m_posAnim.end()))
+
+    //Now Rotate
+
+
+    //Now scale
+
+    return boneDiff;
+}
+
+std::vector<PosAnim> RevisionUtils::getPositionDiffs(std::vector<PosAnim>& master, std::vector<PosAnim>& branch)
+{
+    std::vector<PosAnim> PosAnimDiffs;
+
+    auto mItr = master.begin();
+    auto bItr = branch.begin();
+
+    while((mItr != master.end()) && (bItr != branch.end()))
     {
 
-        if(mItr == master.m_posAnim.end())
+        if(mItr == master.end())
         {
             // just log branch because master is finished
             PosAnim posDiff;
             posDiff.time = (*bItr).time;
             posDiff.pos = glm::vec3(0,0,0);
-            boneDiff.m_posAnimDeltas.push_back(posDiff);
+            PosAnimDiffs.push_back(posDiff);
         }
-        else if(bItr == branch.m_posAnim.end())
+        else if(bItr == branch.end())
         {
             PosAnim posDiff;
             posDiff.time = (*mItr).time;
             posDiff.pos = glm::vec3(0,0,0);
-            boneDiff.m_posAnimDeltas.push_back(posDiff);
+            PosAnimDiffs.push_back(posDiff);
         }
 
         // we have a time match
@@ -129,7 +144,7 @@ BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
             posDiff.time = (*mItr).time; 
 
             // add to the things
-            boneDiff.m_posAnimDeltas.push_back(posDiff);
+            PosAnimDiffs.push_back(posDiff);
 
             mItr++;
             bItr++;
@@ -154,7 +169,7 @@ BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
             posDiff.time = (*mItr).time; 
 
             // add to the things
-            boneDiff.m_posAnimDeltas.push_back(posDiff);
+            PosAnimDiffs.push_back(posDiff);
             mItr++;
         }
         // now the branch is more than 
@@ -175,15 +190,20 @@ BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
             posDiff.time = (*mItr).time; 
 
             // add to the things
-            boneDiff.m_posAnimDeltas.push_back(posDiff);
+            PosAnimDiffs.push_back(posDiff);
             bItr++;
         }
     }
 
-    //Now Rotate
+    return PosAnimDiffs;
+}
 
+std::vector<RotAnim> RevisionUtils::getRotationDiffs(std::vector<RotAnim>& master, std::vector<RotAnim>& branch)
+{
 
-    //Now scale
+}
+    
+std::vector<ScaleAnim> RevisionUtils::getScaleDiffs(std::vector<ScaleAnim>& master, std::vector<ScaleAnim>& branch)
+{
 
-    return boneDiff;
 }
