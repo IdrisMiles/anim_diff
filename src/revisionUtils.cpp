@@ -84,7 +84,56 @@ void RevisionUtils::getAnimDiff(ModelRig master, ModelRig branch, DiffRig &outRi
 
 BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
 {
+    BoneAnimDiff BoneDiff;
+
     //TODO
-    // iterate through data and compare
-    return BoneAnimDiff();
+    // iterate through data and compare 
+
+    //First lets do pos
+    // GLM mix for vector interp and GLM slurp for quats
+    auto mItr = master.m_posAnim.begin();
+    auto bItr = branch.m_posAnim.begin();
+
+    while((mItr != master.m_posAnim.end()) && (bItr != branch.m_posAnim.end()))
+    {
+
+        //TODO checks for if one is at the end and th other isnt;
+
+        // we have a time match
+        if((*mItr).time == (*bItr).time)
+        {
+            // we have a match lets compare the positions
+            glm::vec3 mPos = (*mItr).pos;
+            glm::vec3 bPos = (*bItr).pos;
+
+            glm::vec3 posDiff;
+
+            posDiff.x = mPos.x - bPos.x;
+            posDiff.y = mPos.y - bPos.y;
+            posDiff.z = mPos.z - bPos.z;
+
+            // add to the things
+            boneDiff.m_posAnimDeltas.push_back(posDiff);
+
+            mItr++;
+            bItr++;
+        }
+        // check if one time is behind the other
+        else if((*mItr).time < (*bItr).time)
+        {
+            mItr++;
+        }
+        // now the branch is more than 
+        else
+        {
+            bItr++;
+        }
+    }
+
+    //Now Rotate
+
+
+    //Now scale
+
+    return boneDiff;
 }
