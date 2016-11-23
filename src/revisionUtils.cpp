@@ -84,7 +84,7 @@ void RevisionUtils::getAnimDiff(ModelRig master, ModelRig branch, DiffRig &outRi
 
 BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
 {
-    BoneAnimDiff BoneDiff;
+    BoneAnimDiff boneDiff;
 
     //TODO
     // iterate through data and compare 
@@ -97,7 +97,21 @@ BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
     while((mItr != master.m_posAnim.end()) && (bItr != branch.m_posAnim.end()))
     {
 
-        //TODO checks for if one is at the end and th other isnt;
+        if(mItr == master.m_posAnim.end())
+        {
+            // just log branch because master is finished
+            PosAnim posDiff;
+            posDiff.time = (*bItr).time;
+            posDiff.pos = glm::vec3(0,0,0);
+            boneDiff.m_posAnimDeltas.push_back(posDiff);
+        }
+        else if(bItr == branch.m_posAnim.end())
+        {
+            PosAnim posDiff;
+            posDiff.time = (*mItr).time;
+            posDiff.pos = glm::vec3(0,0,0);
+            boneDiff.m_posAnimDeltas.push_back(posDiff);
+        }
 
         // we have a time match
         if((*mItr).time == (*bItr).time)
@@ -106,11 +120,13 @@ BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
             glm::vec3 mPos = (*mItr).pos;
             glm::vec3 bPos = (*bItr).pos;
 
-            glm::vec3 posDiff;
+            PosAnim posDiff;
 
-            posDiff.x = mPos.x - bPos.x;
-            posDiff.y = mPos.y - bPos.y;
-            posDiff.z = mPos.z - bPos.z;
+            posDiff.pos.x = mPos.x - bPos.x;
+            posDiff.pos.y = mPos.y - bPos.y;
+            posDiff.pos.z = mPos.z - bPos.z;
+
+            posDiff.time = (*mItr).time; 
 
             // add to the things
             boneDiff.m_posAnimDeltas.push_back(posDiff);
@@ -121,11 +137,45 @@ BoneAnimDiff RevisionUtils::getBoneDiff(BoneAnim master, BoneAnim branch)
         // check if one time is behind the other
         else if((*mItr).time < (*bItr).time)
         {
+            // no matching times so make one 
+            // calc interpolate amount
+            auto PrevBItr = std::prev(bItr);
+            float interTime = ((*bItr).time - (*PrevBItr).time) / ((*mItr).time - (*PrevBItr).time);
+
+            glm::vec3 mPos = (*mItr).pos;
+            glm::vec3 bPos = glm::mix((*bItr).pos , (*PrevBItr).pos, interTime);
+
+            PosAnim posDiff;
+
+            posDiff.pos.x = mPos.x - bPos.x;
+            posDiff.pos.y = mPos.y - bPos.y;
+            posDiff.pos.z = mPos.z - bPos.z;
+
+            posDiff.time = (*mItr).time; 
+
+            // add to the things
+            boneDiff.m_posAnimDeltas.push_back(posDiff);
             mItr++;
         }
         // now the branch is more than 
         else
         {
+            auto PrevMItr = std::prev(mItr);
+            float interTime = ((*mItr).time - (*PrevMItr).time) / ((*bItr).time - (*PrevMItr).time);
+
+            glm::vec3 mPos = glm::mix((*mItr).pos , (*PrevMItr).pos, interTime);
+            glm::vec3 bPos = (*bItr).pos;
+
+            PosAnim posDiff;
+
+            posDiff.pos.x = mPos.x - bPos.x;
+            posDiff.pos.y = mPos.y - bPos.y;
+            posDiff.pos.z = mPos.z - bPos.z;
+
+            posDiff.time = (*mItr).time; 
+
+            // add to the things
+            boneDiff.m_posAnimDeltas.push_back(posDiff);
             bItr++;
         }
     }
