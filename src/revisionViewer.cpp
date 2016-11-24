@@ -362,10 +362,4 @@ void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_tran
 
     ViewerUtilities::ReadNodeHierarchy(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, animationTime, m_model->m_rig, std::shared_ptr<Bone>(m_model->m_rig.m_rootBone), identity);
 
-
-//    for(unsigned int i=0; i<numBones; i++)
-//    {
-//        //_transforms[i] = ViewerUtilities::ConvertToGlmMat(m_model->m_boneInfo[i].finalTransform);
-//    }
-
 }
