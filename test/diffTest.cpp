@@ -1,13 +1,15 @@
 #include <gtest/gtest.h>
 
 // our includes
+#include "diffFunctions.h"
 #include "revisionUtils.h"
 #include "revisionNode.h"
+
 
 //standard includes
 #include <memory>
 
-TEST(DiffTest, RevisionNodeNullCheck) { 
+TEST(RevisionUtilsTest, RevisionNodeNullCheck) { 
     testing::internal::CaptureStdout();
 
     // testing the testing stuff
@@ -26,7 +28,7 @@ TEST(DiffTest, RevisionNodeNullCheck) {
     }
 }
 
-TEST(DiffTest, aiSceneNullCheck) { 
+TEST(RevisionUtilsTest, aiSceneNullCheck) { 
     testing::internal::CaptureStdout();
     // testing the testing stuff
     std::shared_ptr<RevisionNode> test1(new RevisionNode());
@@ -44,7 +46,7 @@ TEST(DiffTest, aiSceneNullCheck) {
     }
 }
 
-TEST(DiffTest, noAnimationCheck) { 
+TEST(RevisionUtilsTest, noAnimationCheck) { 
     testing::internal::CaptureStdout();
     // testing the testing stuff
     std::shared_ptr<RevisionNode> test1(new RevisionNode());
@@ -66,7 +68,7 @@ TEST(DiffTest, noAnimationCheck) {
     }
 }
 
-TEST(DiffTest, loading2Anims) { 
+TEST(RevisionUtilsTest, loading2Anims) { 
     testing::internal::CaptureStdout();
     // testing the testing stuff
     std::shared_ptr<RevisionNode> test1(new RevisionNode());
@@ -88,7 +90,7 @@ TEST(DiffTest, loading2Anims) {
     }
 }
 
-TEST(DiffTest, checkNodes) { 
+TEST(RevisionUtilsTest, checkNodes) { 
     testing::internal::CaptureStdout();
     // testing the testing stuff
     std::shared_ptr<RevisionNode> test1(new RevisionNode());
@@ -107,6 +109,17 @@ TEST(DiffTest, checkNodes) {
 
     // now branch
     EXPECT_EQ(test2.get(), diff.getBranchNode().get());
+}
+
+TEST(DiffFunctionTest, positionDiffEmpty) { 
+
+    // test data
+    std::vector<PosAnim> test1;
+    std::vector<PosAnim> test2;
+
+    std::vector<PosAnim> result = DiffFunctions::getPositionDiffs(test1, test2);
+
+    EXPECT_EQ(0, result.size();
 }
 
 
