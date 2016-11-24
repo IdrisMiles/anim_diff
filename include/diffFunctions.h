@@ -3,14 +3,15 @@
 
 #include "revisionDiff.h"
 #include "diffRig.h"
+#include "modelRig.h"
 #include "boneAnim.h"
 #include "boneAnimDiff.h"
 
 class DiffFunctions
 {
 public:
-    RevisionUtils(){};
-    ~RevisionUtils(){};
+    DiffFunctions(){};
+    ~DiffFunctions(){};
 
     static void getAnimDiff(ModelRig master, ModelRig branch, DiffRig &outRig);
     static BoneAnimDiff getBoneDiff(BoneAnim master, BoneAnim branch);

@@ -119,7 +119,7 @@ TEST(DiffFunctionTest, positionDiffEmpty) {
 
     std::vector<PosAnim> result = DiffFunctions::getPositionDiffs(test1, test2);
 
-    EXPECT_EQ(0, result.size();
+    EXPECT_EQ(0, result.size());
 }
 
 
