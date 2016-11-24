@@ -109,6 +109,7 @@ TEST(DiffTest, checkNodes) {
     EXPECT_EQ(test2.get(), diff.getBranchNode().get());
 }
 
+
 int main(int argc, char **argv) 
 {
     testing::InitGoogleTest(&argc, argv);

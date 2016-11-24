@@ -5,7 +5,7 @@ TARGET = test
 TEMPLATE = app
 
 INCLUDEPATH += . ../include /usr/local/include /usr/include \
-                /home/idris/dev/include
+                /home/idris/dev/include ${HOME}/libs
 
 LIBS += -L/usr/local/lib -L/usr/lib -lGL -lGLU -lGLEW  \
         -L${HOME}/dev/lib -L/usr/local/lib -lassimp -lgtest \

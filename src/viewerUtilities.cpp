@@ -190,7 +190,7 @@ uint ViewerUtilities::FindScalingKeyFrame(const float _animationTime, const aiNo
     assert(0);
 }
 
-const aiNode* ViewerUtilities::getParentBone(const std::map<std::__cxx11::string, unsigned int> _boneMapping, const aiNode* _pNode)
+const aiNode* ViewerUtilities::getParentBone(const std::map<std::string, unsigned int> _boneMapping, const aiNode* _pNode)
 {
     if(_pNode->mParent != NULL)
     {
