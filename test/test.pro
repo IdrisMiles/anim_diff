@@ -13,6 +13,7 @@ LIBS += -L/usr/local/lib -L/usr/lib -lGL -lGLU -lGLEW  \
 
 # adding sources manually, because of qt include things
 SOURCES +=      diffTest.cpp                    \
+                ../src/diffFunction.cpp         \
                 ../src/revisionUtils.cpp        \
                 ../src/revisionNode.cpp         \
                 ../src/revisionDiff.cpp         \
@@ -22,7 +23,7 @@ SOURCES +=      diffTest.cpp                    \
                 ../src/rig.cpp                  \
                 ../src/boneAnim.cpp             \
                 ../src/boneAnimDiff.cpp         \
-                ../src/viewerUtilities.cpp      \
+                ../src/viewerUtilities.cpp      
                 ../src/bone.cpp                    
 
 CONFIG += qt console c++11
