@@ -122,7 +122,7 @@ void Model::InitMesh(const aiScene *_scene)
                     nb++;
                     m_boneInfo.push_back(BoneTransformData());
                     m_boneMapping[boneName] = boneIndex;
-                    m_boneInfo[boneIndex].boneOffset = bone->mOffsetMatrix;
+                    m_boneInfo[boneIndex].boneOffset2 = ViewerUtilities::ConvertToGlmMat(bone->mOffsetMatrix);
                 }
                 else
                 {

@@ -9,8 +9,6 @@
 #include "include/openglScene.h"
 #include "include/revisionNode.h"
 #include "include/viewerUtilities.h"
-#include "include/renderModel.h"
-#include "include/modelRig.h"
 
 
 /// @class RevisionViewer is a class designed to specifically draw a RevisionNode, it inherits from OpenGLSene so that it has the relevant components for drawing with OpenGL. It is intended to decouple the front end visualisation with the backend version control.

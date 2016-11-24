@@ -78,7 +78,7 @@ namespace ViewerUtilities
     /// @brief Method to fine the parent bone to the current aiNode.
     /// @param _boneMapping : a map that holds bone names and their index.
     /// _pNode : The node we want to find the parent off.
-    const aiNode* getParentBone(const std::map<std::__cxx11::string, unsigned int> _boneMapping, const aiNode* _pNode);
+    const aiNode* getParentBone(const std::map<std::string, unsigned int> _boneMapping, const aiNode* _pNode);
 
     const aiBone* GetBone(const aiScene *_aiScene, std::string _name);
 
@@ -89,7 +89,7 @@ namespace ViewerUtilities
     //-----------------------------------------------------------------------------------------------------------------------------
     void ReadNodeHierarchy(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, ModelRig &_pRig, std::shared_ptr<Bone> _pBone, const glm::mat4& _parentTransform);
 
-    BoneAnim FindBoneAnim(ModelRig _pRig, std::__cxx11::string _nodeName);
+    BoneAnim FindBoneAnim(ModelRig _pRig, std::string _nodeName);
 
     void CalcInterpolatedRotation(glm::quat& _out, const float _animationTime, const BoneAnim* _pBoneAnin);
 

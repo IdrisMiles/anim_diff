@@ -12,13 +12,6 @@ glm::mat4 ViewerUtilities::ConvertToGlmMat(const aiMatrix4x4 &m)
                   m.b1, m.b2, m.b3, m.b4,
                   m.c1, m.c2, m.c3, m.c4,
                   m.d1, m.d2, m.d3, m.d4);
-
-  /*   glm::mat4 a(  m.a1, m.b1, m.c1, m.d1,
-                  m.a2, m.b2, m.c2, m.d2,
-                  m.a3, m.b3, m.c3, m.d3,
-                  m.a4, m.b4, m.c4, m.d4);
-
-*/
     return a;
 }
 
@@ -66,7 +59,7 @@ void ViewerUtilities::ReadNodeHierarchy(const std::map<std::string, unsigned int
 
     if (_boneMapping.find(nodeName) != _boneMapping.end()) {
         uint BoneIndex = _boneMapping.at(nodeName);
-        _boneInfo[BoneIndex].finalTransform = _globalInverseTransform * globalTransformation * _boneInfo[BoneIndex].boneOffset;
+        //_boneInfo[BoneIndex].finalTransform = _globalInverseTransform * globalTransformation * _boneInfo[BoneIndex].boneOffset;
     }
 
     for (uint i = 0 ; i < _pNode->mNumChildren ; i++)
@@ -189,7 +182,7 @@ uint ViewerUtilities::FindScalingKeyFrame(const float _animationTime, const aiNo
     assert(0);
 }
 
-const aiNode* ViewerUtilities::getParentBone(const std::map<std::__cxx11::string, unsigned int> _boneMapping, const aiNode* _pNode)
+const aiNode* ViewerUtilities::getParentBone(const std::map<std::string, unsigned int> _boneMapping, const aiNode* _pNode)
 {
     if(_pNode->mParent != NULL)
     {

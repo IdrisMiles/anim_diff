@@ -9,9 +9,6 @@
 #include "include/openglScene.h"
 #include "include/revisionMerge.h"
 #include "include/viewerUtilities.h"
-#include "include/renderModel.h"
-
-#include <assimp/matrix4x4.h>
 
 class MergedViewer : public OpenGLScene
 {
@@ -50,11 +47,6 @@ protected:
 private:
     /// @brief Method to initialise all the relevant VAO and VBO's to draw an animated mesh.
     void InitVAO();
-    void InitMesh();
-    void InitRig();
-
-    void SetRigVerts(aiNode *_pParentNode, aiNode *_pNode, const aiMatrix4x4 &_parentTransform, const aiMatrix4x4 &_thisTransform);
-    void SetJointVert(const std::string _nodeName, const aiMatrix4x4 &_transform, VertexBoneData &_vb);
 
     void DrawMesh();
     void DrawRig();
@@ -68,6 +60,7 @@ private:
     void BoneTransform(const float _t, std::vector<glm::mat4> &_transforms);
 
 
+
     bool m_revisionLoaded;
     bool m_initGL;
     bool m_waitingForInitGL;
@@ -75,25 +68,15 @@ private:
     bool m_wireframe;
     bool m_drawMesh;
     bool m_playAnim;
-    bool m_animExists;
     float m_dt;
     float m_t;
 
     QTimer * m_animTimer;
     QTimer * m_drawTimer;
 
-
-    MergedRig m_rig;
-    RenderModel m_renderModel;
-
-    float m_ticksPerSecond;
-    float m_animationDuration;
-    unsigned int m_numAnimations;
-    unsigned int m_animationID;
-
     // Revision stuff
-    std::shared_ptr<RevisionMerge> m_revisionMerged;
-    const aiScene *m_scene;
+    std::shared_ptr<RevisionMerge> m_revision;
+    std::shared_ptr<Model> m_model;
 
 
 
