@@ -111,6 +111,8 @@ TEST(RevisionUtilsTest, checkNodes) {
     EXPECT_EQ(test2.get(), diff.getBranchNode().get());
 }
 
+// POSITON //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 TEST(DiffFunctionTest, positionDiffEmpty) { 
 
     // test data
@@ -153,6 +155,54 @@ TEST(DiffFunctionTest, positionDiffNotMatchingTimes) {
     branch.push_back(PosAnim(2.0f, glm::vec3(0,0,0)));
 
     std::vector<PosAnim> result = DiffFunctions::getPositionDiffs(master, branch);
+    
+    EXPECT_EQ(4, result.size());
+}
+
+// SCALE //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(DiffFunctionTest, scaleDiffEmpty) { 
+
+    // test data
+    std::vector<ScaleAnim> test1;
+    std::vector<ScaleAnim> test2;
+
+    std::vector<ScaleAnim> result = DiffFunctions::getScaleDiffs(test1, test2);
+
+    EXPECT_EQ(0, result.size());
+}
+
+TEST(DiffFunctionTest, scaleDiffTest) { 
+
+    std::vector<ScaleAnim> master;
+    std::vector<ScaleAnim> branch;
+
+    master.push_back(ScaleAnim(0.0f, glm::vec3(0,0,0)));
+    branch.push_back(ScaleAnim(0.0f, glm::vec3(1,1,1)));
+
+    std::vector<ScalEAnim> result = DiffFunctions::getScaleDiffs(master, branch);
+    
+    EXPECT_EQ(1, result.size());
+
+    EXPECT_EQ(1.0, result[0].scale.x);
+    EXPECT_EQ(1.0, result[0].scale.y);
+    EXPECT_EQ(1.0, result[0].scale.z);
+}
+
+TEST(DiffFunctionTest, scaleDiffNotMatchingTimes) { 
+
+    std::vector<ScaleAnim> master;
+    std::vector<ScaleAnim> branch;
+
+    master.push_back(ScaleAnim(0.0f, glm::vec3(0,0,0)));
+    master.push_back(ScaleAnim(0.5f, glm::vec3(0,0,0)));
+    master.push_back(ScaleAnim(1.0f, glm::vec3(0,0,0)));
+
+    branch.push_back(ScaleAnim(0.0f, glm::vec3(0,0,0)));
+    branch.push_back(ScaleAnim(1.0f, glm::vec3(0,0,0)));
+    branch.push_back(ScaleAnim(2.0f, glm::vec3(0,0,0)));
+
+    std::vector<PosAnim> result = DiffFunctions::getScaleDiffs(master, branch);
     
     EXPECT_EQ(4, result.size());
 }
