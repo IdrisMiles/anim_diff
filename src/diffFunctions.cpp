@@ -69,9 +69,9 @@ std::vector<PosAnim> DiffFunctions::getPositionDiffs(std::vector<PosAnim>& maste
 
             PosAnim posDiff;
 
-            posDiff.pos.x = mPos.x - bPos.x;
-            posDiff.pos.y = mPos.y - bPos.y;
-            posDiff.pos.z = mPos.z - bPos.z;
+            posDiff.pos.x = bPos.x - mPos.x;
+            posDiff.pos.y = bPos.y - mPos.y;
+            posDiff.pos.z = bPos.z - mPos.z;
 
             posDiff.time = (*mItr).time; 
 
@@ -94,9 +94,9 @@ std::vector<PosAnim> DiffFunctions::getPositionDiffs(std::vector<PosAnim>& maste
 
             PosAnim posDiff;
 
-            posDiff.pos.x = mPos.x - bPos.x;
-            posDiff.pos.y = mPos.y - bPos.y;
-            posDiff.pos.z = mPos.z - bPos.z;
+            posDiff.pos.x = bPos.x - mPos.x;
+            posDiff.pos.y = bPos.y - mPos.y;
+            posDiff.pos.z = bPos.z - mPos.z;
 
             posDiff.time = (*mItr).time; 
 
@@ -115,9 +115,9 @@ std::vector<PosAnim> DiffFunctions::getPositionDiffs(std::vector<PosAnim>& maste
 
             PosAnim posDiff;
 
-            posDiff.pos.x = mPos.x - bPos.x;
-            posDiff.pos.y = mPos.y - bPos.y;
-            posDiff.pos.z = mPos.z - bPos.z;
+            posDiff.pos.x = bPos.x - mPos.x;
+            posDiff.pos.y = bPos.y - mPos.y;
+            posDiff.pos.z = bPos.z - mPos.z;
 
             posDiff.time = (*mItr).time; 
 
@@ -255,9 +255,9 @@ std::vector<ScaleAnim> DiffFunctions::getScaleDiffs(std::vector<ScaleAnim>& mast
 
             ScaleAnim scaleDiff;
 
-            scaleDiff.scale.x = mScale.x - bScale.x;
-            scaleDiff.scale.y = mScale.y - bScale.y;
-            scaleDiff.scale.z = mScale.z - bScale.z;
+            scaleDiff.scale.x = bScale.x - mScale.x;
+            scaleDiff.scale.y = bScale.y - mScale.y;
+            scaleDiff.scale.z = bScale.z - mScale.z;
 
             scaleDiff.time = (*mItr).time; 
 
@@ -280,9 +280,9 @@ std::vector<ScaleAnim> DiffFunctions::getScaleDiffs(std::vector<ScaleAnim>& mast
 
             ScaleAnim scaleDiff;
 
-            scaleDiff.scale.x = mScale.x - bScale.x;
-            scaleDiff.scale.y = mScale.y - bScale.y;
-            scaleDiff.scale.z = mScale.z - bScale.z;
+            scaleDiff.scale.x = bScale.x - mScale.x;
+            scaleDiff.scale.y = bScale.y - mScale.y;
+            scaleDiff.scale.z = bScale.z - mScale.z;
 
             scaleDiff.time = (*mItr).time; 
 
@@ -301,9 +301,9 @@ std::vector<ScaleAnim> DiffFunctions::getScaleDiffs(std::vector<ScaleAnim>& mast
 
             ScaleAnim scaleDiff;
 
-            scaleDiff.scale.x = mScale.x - bScale.x;
-            scaleDiff.scale.y = mScale.y - bScale.y;
-            scaleDiff.scale.z = mScale.z - bScale.z;
+            scaleDiff.scale.x = bScale.x - mScale.x;
+            scaleDiff.scale.y = bScale.y - mScale.y;
+            scaleDiff.scale.z = bScale.z - mScale.z;
 
             scaleDiff.time = (*mItr).time; 
 
