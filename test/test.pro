@@ -26,4 +26,4 @@ SOURCES +=      diffTest.cpp                    \
                 ../src/viewerUtilities.cpp      \
                 ../src/bone.cpp                    
 
-CONFIG += qt console c++11
+CONFIG += console c++11 debug
