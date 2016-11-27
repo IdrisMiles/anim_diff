@@ -122,6 +122,41 @@ TEST(DiffFunctionTest, positionDiffEmpty) {
     EXPECT_EQ(0, result.size());
 }
 
+TEST(DiffFunctionTest, positionDiffTest) { 
+
+    std::vector<PosAnim> master;
+    std::vector<PosAnim> branch;
+
+    master.push_back(PosAnim(0.0f, glm::vec3(0,0,0)));
+    branch.push_back(PosAnim(0.0f, glm::vec3(1,1,1)));
+
+    std::vector<PosAnim> result = DiffFunctions::getPositionDiffs(master, branch);
+    
+    EXPECT_EQ(1, result.size());
+
+    EXPECT_EQ(1.0, result[0].pos.x);
+    EXPECT_EQ(1.0, result[0].pos.y);
+    EXPECT_EQ(1.0, result[0].pos.z);
+}
+
+TEST(DiffFunctionTest, positionDiffNotMatchingTimes) { 
+
+    std::vector<PosAnim> master;
+    std::vector<PosAnim> branch;
+
+    master.push_back(PosAnim(0.0f, glm::vec3(0,0,0)));
+    master.push_back(PosAnim(0.5f, glm::vec3(0,0,0)));
+    master.push_back(PosAnim(1.0f, glm::vec3(0,0,0)));
+
+    branch.push_back(PosAnim(0.0f, glm::vec3(0,0,0)));
+    branch.push_back(PosAnim(1.0f, glm::vec3(0,0,0)));
+    branch.push_back(PosAnim(2.0f, glm::vec3(0,0,0)));
+
+    std::vector<PosAnim> result = DiffFunctions::getPositionDiffs(master, branch);
+    
+    EXPECT_EQ(4, result.size());
+}
+
 
 int main(int argc, char **argv) 
 {
