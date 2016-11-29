@@ -1,11 +1,10 @@
 #ifndef MODELRIG_H
 #define MODELRIG_H
 
-#include <vector>
-#include <unordered_map>
 
-#include "boneAnim.h"
+#include <unordered_map>
 #include "rig.h"
+#include "boneAnim.h"
 
 class ModelRig : public Rig
 {
@@ -19,6 +18,7 @@ public:
     double m_duration;
 
     std::unordered_map<std::string, BoneAnim> m_boneAnims;
+
 };
 
 #endif // RIG_H

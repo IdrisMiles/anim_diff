@@ -26,11 +26,21 @@ RevisionViewer::RevisionViewer(QWidget *parent) : OpenGLScene(parent)
 
 RevisionViewer::~RevisionViewer()
 {
-    m_model->m_meshVBO[SKINNED].destroy();
-    m_model->m_meshNBO[SKINNED].destroy();
-    m_model->m_meshIBO[SKINNED].destroy();
-    m_model->m_meshBWBO[SKINNED].destroy();
-    m_model->m_meshVAO[SKINNED].destroy();
+    delete m_animTimer;
+    delete m_drawTimer;
+
+    for(unsigned int i=0; i<NUMRENDERTYPES; i++)
+    {
+        m_model->m_meshVBO[i].destroy();
+        m_model->m_meshNBO[i].destroy();
+        m_model->m_meshIBO[i].destroy();
+        m_model->m_meshBWBO[i].destroy();
+        m_model->m_meshVAO[i].destroy();
+
+        m_model->m_shaderProg[i]->destroyed();
+        delete m_model->m_shaderProg[i];
+    }
+
     cleanup();
 }
 
@@ -44,6 +54,7 @@ void RevisionViewer::SetTime(const float _t)
 
 void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
 {
+    std::cout<<"Loading a Revision\n";
     update();
 
 
@@ -360,6 +371,6 @@ void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_tran
     float timeInTicks = _t * m_model->m_ticksPerSecond;
     float animationTime = fmod(timeInTicks, m_model->m_animationDuration);
 
-    ViewerUtilities::ReadNodeHierarchy(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, animationTime, m_model->m_rig, std::shared_ptr<Bone>(m_model->m_rig.m_rootBone), identity);
+    ViewerUtilities::ReadNodeHierarchy(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, animationTime, m_model->m_rig, std::shared_ptr<Bone>(m_model->m_rig->m_rootBone), identity);
 
 }

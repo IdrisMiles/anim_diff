@@ -250,7 +250,7 @@ const aiNode* ViewerUtilities::GetNode(const aiNode *_aiNode, std::string _name)
 // ViewerUtilities for new rig structure
 //-----------------------------------------------------------------------------------------------------------------------------------------
 
-void ViewerUtilities::ReadNodeHierarchy(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, ModelRig &_pRig, std::shared_ptr<Bone> _pBone, const glm::mat4& _parentTransform)
+void ViewerUtilities::ReadNodeHierarchy(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, std::shared_ptr<ModelRig> _pRig, std::shared_ptr<Bone> _pBone, const glm::mat4& _parentTransform)
 {
     if(!_pBone)
     {
@@ -260,7 +260,7 @@ void ViewerUtilities::ReadNodeHierarchy(const std::map<std::string, unsigned int
     // Set defualt to bind pose
     glm::mat4 nodeTransform(_pBone->m_transform);
 
-    const BoneAnim* pBoneAnim = &_pRig.m_boneAnims[_pBone->m_name];// _pBone->m_boneAnim;
+    const BoneAnim* pBoneAnim = &_pRig->m_boneAnims[_pBone->m_name];// _pBone->m_boneAnim;
 
 
     // Interpolate scaling and generate scaling transformation matrix

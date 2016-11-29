@@ -21,6 +21,7 @@
 #include <memory>
 
 class QOpenGLShaderProgram;
+enum RenderType { SKINNED = 0, RIG = 1, NUMRENDERTYPES };
 
 class Model
 {
@@ -31,22 +32,21 @@ public:
     void LoadModel(const std::string &_modelFile);
     void SetShader(QOpenGLShaderProgram **_shaderProg);
 
-    void InitMesh(const aiScene *_scene);
-    void InitRig(const aiScene *_scene);
+    void InitModelMesh(const aiScene *_scene);
+    void InitRigMesh(const aiScene *_scene);
     void SetRigVerts(aiNode *_pParentNode, aiNode *_pNode, const glm::mat4 &_parentTransform, const glm::mat4 &_thisTransform);
     void SetJointVert(const std::string _nodeName, const glm::mat4 &_transform, VertexBoneData &_vb);
     void CopyRigStructure(const aiScene *_aiScene, aiNode *_aiNode, std::shared_ptr<Bone> _parentBone, const glm::mat4 &_parentTransform);
     BoneAnim TransferAnim(const aiNodeAnim *_pNodeAnim);
 
 
-    enum RenderType { SKINNED = 0, RIG = 1, NUMRENDERTYPES };
     float m_ticksPerSecond;
     float m_animationDuration;
     unsigned int m_numAnimations;
     unsigned int m_animationID;
 
     // Rig
-    ModelRig m_rig;
+    std::shared_ptr<ModelRig> m_rig;
 
     // Mesh info
     std::vector<glm::vec3> m_meshVerts;

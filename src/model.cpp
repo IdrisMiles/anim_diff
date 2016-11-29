@@ -5,7 +5,7 @@
 
 Model::Model()
 {
-
+    m_rig = std::shared_ptr<ModelRig>(new ModelRig);
 }
 
 Model::~Model()
@@ -39,8 +39,8 @@ void Model::LoadModel(const std::string &_modelFile)
     }
     else
     {
-        InitMesh(scene);
-        InitRig(scene);
+        InitModelMesh(scene);
+        InitRigMesh(scene);
 
 
         for(int i=0; i<scene->mNumMeshes; i++)
@@ -57,17 +57,17 @@ void Model::LoadModel(const std::string &_modelFile)
         }
         std::cout<<"_______________________________\n";
 
-        m_rig.m_rootBone = std::shared_ptr<Bone>(new Bone());
-        m_rig.m_rootBone->m_name = std::string(scene->mRootNode->mName.data);
-        m_rig.m_rootBone->m_transform = ViewerUtilities::ConvertToGlmMat(scene->mRootNode->mTransformation);
-        m_rig.m_rootBone->m_boneOffset = glm::mat4(1.0f);
-        m_rig.m_rootBone->m_parent = NULL;
+        m_rig->m_rootBone = std::shared_ptr<Bone>(new Bone());
+        m_rig->m_rootBone->m_name = std::string(scene->mRootNode->mName.data);
+        m_rig->m_rootBone->m_transform = ViewerUtilities::ConvertToGlmMat(scene->mRootNode->mTransformation);
+        m_rig->m_rootBone->m_boneOffset = glm::mat4(1.0f);
+        m_rig->m_rootBone->m_parent = NULL;
 
 
         unsigned int numChildren = scene->mRootNode->mNumChildren;
         for (unsigned int i=0; i<numChildren; i++)
         {
-            CopyRigStructure(scene, scene->mRootNode->mChildren[i], m_rig.m_rootBone, ViewerUtilities::ConvertToGlmMat(scene->mRootNode->mTransformation));
+            CopyRigStructure(scene, scene->mRootNode->mChildren[i], m_rig->m_rootBone, ViewerUtilities::ConvertToGlmMat(scene->mRootNode->mTransformation));
         }
     }
 
@@ -80,7 +80,7 @@ void Model::SetShader(QOpenGLShaderProgram **_shaderProg)
     m_shaderProg[RIG] = _shaderProg[RIG];
 }
 
-void Model::InitMesh(const aiScene *_scene)
+void Model::InitModelMesh(const aiScene *_scene)
 {
     if(_scene->HasMeshes())
     {
@@ -188,7 +188,7 @@ void Model::InitMesh(const aiScene *_scene)
     }
 }
 
-void Model::InitRig(const aiScene *_scene)
+void Model::InitRigMesh(const aiScene *_scene)
 {
     glm::mat4 mat = ViewerUtilities::ConvertToGlmMat(_scene->mRootNode->mTransformation) * m_globalInverseTransform;
 
@@ -217,7 +217,6 @@ void Model::InitRig(const aiScene *_scene)
     std::cout<<"Number of rig verts:\t"<<m_rigVerts.size()<<"\n";
 
 }
-
 
 void Model::SetRigVerts(aiNode* _pParentNode, aiNode* _pNode, const glm::mat4 &_parentTransform, const glm::mat4 &_thisTransform)
 {
@@ -273,6 +272,7 @@ void Model::SetJointVert(const std::string _nodeName, const glm::mat4 &_transfor
 
 }
 
+
 void Model::CopyRigStructure(const aiScene *_aiScene, aiNode *_aiNode, std::shared_ptr<Bone> _parentBone, const glm::mat4 &_parentTransform)
 {
     std::cout<<"\n";
@@ -303,8 +303,8 @@ void Model::CopyRigStructure(const aiScene *_aiScene, aiNode *_aiNode, std::shar
         if(pNodeAnim)
         {
             std::cout<<std::string(pNodeAnim->mNodeName.data)<<" valid nodeAnim\n";
-            m_rig.m_boneAnims[newBone->m_name] = TransferAnim(pNodeAnim);
-            newBone->m_boneAnim = &m_rig.m_boneAnims[newBone->m_name];
+            m_rig->m_boneAnims[newBone->m_name] = TransferAnim(pNodeAnim);
+            newBone->m_boneAnim = &m_rig->m_boneAnims[newBone->m_name];
 
         }
         else
@@ -333,7 +333,6 @@ void Model::CopyRigStructure(const aiScene *_aiScene, aiNode *_aiNode, std::shar
         CopyRigStructure(_aiScene, _aiNode->mChildren[i], newBone, newParentTransform);
     }
 }
-
 
 BoneAnim Model::TransferAnim(const aiNodeAnim *_pNodeAnim)
 {

@@ -87,7 +87,7 @@ namespace ViewerUtilities
     const aiNode* GetNode(const aiNode *_aiNode, std::string _name);
 
     //-----------------------------------------------------------------------------------------------------------------------------
-    void ReadNodeHierarchy(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, ModelRig &_pRig, std::shared_ptr<Bone> _pBone, const glm::mat4& _parentTransform);
+    void ReadNodeHierarchy(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, std::shared_ptr<ModelRig> _pRig, std::shared_ptr<Bone> _pBone, const glm::mat4& _parentTransform);
 
     BoneAnim FindBoneAnim(ModelRig _pRig, std::string _nodeName);
 

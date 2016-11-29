@@ -1,5 +1,6 @@
 #include "mergedViewer.h"
 #include <QKeyEvent>
+#include <iostream>
 
 
 
@@ -40,11 +41,35 @@ MergedViewer::~MergedViewer()
         delete m_model->m_shaderProg[i];
     }
 
+    cleanup();
+
 }
 
 void MergedViewer::LoadMerge(std::shared_ptr<RevisionMerge> _diff)
 {
+    std::cout<<"Loading a Merged Revision\n";
+    update();
 
+
+    m_revision = _diff;
+    //m_model = m_revision->m_model;
+
+    if(!m_initGL)
+    {
+        std::cout<<"OpenGL has not been initialised yet\n";
+        m_waitingForInitGL = true;
+        return;
+    }
+
+    makeCurrent();
+
+    InitVAO();
+
+    m_animTimer->start(1000*m_dt);
+    m_drawTimer->start(1000*m_dt);
+
+    m_revisionLoaded = true;
+    doneCurrent();
 }
 
 void MergedViewer::UpdateAnimation()
@@ -154,7 +179,125 @@ void MergedViewer::customInitGL()
 
 void MergedViewer::InitVAO()
 {
+    glPointSize(10);
 
+    //--------------------------------------------------------------------------------------
+    // Skinned mesh
+    m_model->m_shaderProg[SKINNED]->bind();
+
+    // Get shader locations
+    m_model->m_colour = glm::vec3(0.8f,0.4f,0.4f);
+    m_model->m_colourLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->uniformLocation("uColour");
+    glUniform3fv(m_model->m_colourLoc[SKINNED], 1, &m_model->m_colour[0]);
+    m_model->m_vertAttrLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->attributeLocation("vertex");
+    m_model->m_normAttrLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->attributeLocation("normal");
+    m_model->m_boneIDAttrLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->attributeLocation("BoneIDs");
+    m_model->m_boneWeightAttrLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->attributeLocation("Weights");
+    m_model->m_boneUniformLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->uniformLocation("Bones");
+
+    std::cout<<"SKINNED | vert Attr loc:\t"<<m_model->m_vertAttrLoc[SKINNED]<<"\n";
+    std::cout<<"SKINNED | norm Attr loc:\t"<<m_model->m_normAttrLoc[SKINNED]<<"\n";
+    std::cout<<"SKINNED | boneID Attr loc:\t"<<m_model->m_boneIDAttrLoc[SKINNED]<<"\n";
+    std::cout<<"SKINNED | boneWei Attr loc:\t"<<m_model->m_boneWeightAttrLoc[SKINNED]<<"\n";
+    std::cout<<"SKINNED | Bones Unif loc:\t"<<m_model->m_boneUniformLoc[SKINNED]<<"\n";
+
+
+    // Set up VAO
+    m_model->m_meshVAO[SKINNED].create();
+    m_model->m_meshVAO[SKINNED].bind();
+
+    // Set up element array
+    m_model->m_meshIBO[SKINNED].create();
+    m_model->m_meshIBO[SKINNED].bind();
+    m_model->m_meshIBO[SKINNED].allocate(&m_model->m_meshTris[0], m_model->m_meshTris.size() * sizeof(int));
+    m_model->m_meshIBO[SKINNED].release();
+
+
+    // Setup our vertex buffer object.
+    m_model->m_meshVBO[SKINNED].create();
+    m_model->m_meshVBO[SKINNED].bind();
+    m_model->m_meshVBO[SKINNED].allocate(&m_model->m_meshVerts[0], m_model->m_meshVerts.size() * sizeof(glm::vec3));
+    glEnableVertexAttribArray(m_model->m_vertAttrLoc[SKINNED]);
+    glVertexAttribPointer(m_model->m_vertAttrLoc[SKINNED], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+    m_model->m_meshVBO[SKINNED].release();
+
+
+    // Setup our normals buffer object.
+    m_model->m_meshNBO[SKINNED].create();
+    m_model->m_meshNBO[SKINNED].bind();
+    m_model->m_meshNBO[SKINNED].allocate(&m_model->m_meshNorms[0], m_model->m_meshNorms.size() * sizeof(glm::vec3));
+    glEnableVertexAttribArray(m_model->m_normAttrLoc[SKINNED]);
+    glVertexAttribPointer(m_model->m_normAttrLoc[SKINNED], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+    m_model->m_meshNBO[SKINNED].release();
+
+
+    // Set up vertex bone weighting buffer object
+    m_model->m_meshBWBO[SKINNED].create();
+    m_model->m_meshBWBO[SKINNED].bind();
+    m_model->m_meshBWBO[SKINNED].allocate(&m_model->m_meshBoneWeights[0], m_model->m_meshBoneWeights.size() * sizeof(VertexBoneData));
+    glEnableVertexAttribArray(m_model->m_boneIDAttrLoc[SKINNED]);
+    glVertexAttribIPointer(m_model->m_boneIDAttrLoc[SKINNED], 4, GL_UNSIGNED_INT, sizeof(VertexBoneData), (const GLvoid*)0);
+    glEnableVertexAttribArray(m_model->m_boneWeightAttrLoc[SKINNED]);
+    glVertexAttribPointer(m_model->m_boneWeightAttrLoc[SKINNED], 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*)(4*sizeof(unsigned int)));
+    m_model->m_meshBWBO[SKINNED].release();
+
+    m_model->m_meshVAO[SKINNED].release();
+    m_model->m_shaderProg[SKINNED]->release();
+
+
+
+    //--------------------------------------------------------------------------------------
+    // Rigged mesh
+    m_model->m_shaderProg[RIG]->bind();
+
+    // Get shader locations
+    m_model->m_colour = glm::vec3(0.8f,0.4f,0.4f);
+    m_model->m_vertAttrLoc[RIG] = m_model->m_shaderProg[RIG]->attributeLocation("vertex");
+    m_model->m_boneIDAttrLoc[RIG] = m_model->m_shaderProg[RIG]->attributeLocation("BoneIDs");
+    m_model->m_boneWeightAttrLoc[RIG] = m_model->m_shaderProg[RIG]->attributeLocation("Weights");
+    m_model->m_boneUniformLoc[RIG] = m_model->m_shaderProg[RIG]->uniformLocation("Bones");
+    m_model->m_colourAttrLoc[RIG] = m_model->m_shaderProg[RIG]->attributeLocation("colour");
+
+
+    std::cout<<"RIG | vert Attr loc:\t"<<m_model->m_vertAttrLoc[RIG]<<"\n";
+    std::cout<<"RIG | boneID Attr loc:\t"<<m_model->m_boneIDAttrLoc[RIG]<<"\n";
+    std::cout<<"RIG | boneWei Attr loc:\t"<<m_model->m_boneWeightAttrLoc[RIG]<<"\n";
+    std::cout<<"RIG | Bones Unif loc:\t"<<m_model->m_boneUniformLoc[RIG]<<"\n";
+    std::cout<<"RIG | colour Attr loc: "<<m_model->m_colourAttrLoc[RIG]<<"\n";
+
+
+    m_model->m_meshVAO[RIG].create();
+    m_model->m_meshVAO[RIG].bind();
+
+    // Setup our vertex buffer object.
+    m_model->m_meshVBO[RIG].create();
+    m_model->m_meshVBO[RIG].bind();
+    m_model->m_meshVBO[RIG].allocate(&m_model->m_rigVerts[0], m_model->m_rigVerts.size() * sizeof(glm::vec3));
+    glEnableVertexAttribArray(m_model->m_vertAttrLoc[RIG]);
+    glVertexAttribPointer(m_model->m_vertAttrLoc[RIG], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+    m_model->m_meshVBO[RIG].release();
+
+    // Set up our Rig joint colour buffer object
+    m_model->m_meshCBO[RIG].create();
+    m_model->m_meshCBO[RIG].bind();
+    m_model->m_meshCBO[RIG].allocate(&m_model->m_rigJointColours[0], m_model->m_rigJointColours.size() * sizeof(glm::vec3));
+    glEnableVertexAttribArray(m_model->m_colourAttrLoc[RIG]);
+    glVertexAttribPointer(m_model->m_colourAttrLoc[RIG], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
+    m_model->m_meshCBO[RIG].release();
+
+    // Set up vertex bone weighting buffer object
+    m_model->m_meshBWBO[RIG].create();
+    m_model->m_meshBWBO[RIG].bind();
+    m_model->m_meshBWBO[RIG].allocate(&m_model->m_rigBoneWeights[0], m_model->m_rigBoneWeights.size() * sizeof(VertexBoneData));
+    glEnableVertexAttribArray(m_model->m_boneIDAttrLoc[RIG]);
+    glVertexAttribIPointer(m_model->m_boneIDAttrLoc[RIG], 4, GL_UNSIGNED_INT, sizeof(VertexBoneData), (const GLvoid*)0);
+    glEnableVertexAttribArray(m_model->m_boneWeightAttrLoc[RIG]);
+    glVertexAttribPointer(m_model->m_boneWeightAttrLoc[RIG], 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*) (4*sizeof(unsigned int)));
+    m_model->m_meshBWBO[RIG].release();
+
+    m_model->m_meshVAO[RIG].release();
+
+    m_model->m_shaderProg[RIG]->release();
 }
 
 void MergedViewer::DrawMesh()

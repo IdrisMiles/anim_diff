@@ -9,7 +9,11 @@ class RevisionMerge
 public:
     RevisionMerge();
 
-private:
+    void LoadModel(const std::string &_modelFile);
+
+    std::shared_ptr<Model> m_model;
+
+//private:
     MergedRig m_rig;
 };
 

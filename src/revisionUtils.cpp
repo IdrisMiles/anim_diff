@@ -22,20 +22,20 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
     if(!_master->m_model && !_master->m_model) throw std::string("null pointer: no model loaded");
     
     // public members, so so bad and dirty raw pointers
-    ModelRig masterRig = _master->m_model->m_rig;
-    ModelRig branchRig = _branch->m_model->m_rig;
+    std::shared_ptr<ModelRig> masterRig = _master->m_model->m_rig;
+    std::shared_ptr<ModelRig> branchRig = _branch->m_model->m_rig;
 
-    if(masterRig.hasAnimation() && branchRig.hasAnimation())
+    if(masterRig->hasAnimation() && branchRig->hasAnimation())
     {   
         //TODO check to see if rigs match
 
 
         //just look at the first animation for now
-        double masterTicks = masterRig.m_ticks;
-        double masterDuration = masterRig.m_duration;
+        double masterTicks = masterRig->m_ticks;
+        double masterDuration = masterRig->m_duration;
 
-        double branchTicks = branchRig.m_ticks;
-        double branchDuration = branchRig.m_duration;
+        double branchTicks = branchRig->m_ticks;
+        double branchDuration = branchRig->m_duration;
 
         // Todo our ticks and duration calculations to match
         if((masterTicks != branchTicks) || 
