@@ -36,8 +36,6 @@ public:
     void InitRigMesh(const aiScene *_scene);
     void SetRigVerts(aiNode *_pParentNode, aiNode *_pNode, const glm::mat4 &_parentTransform, const glm::mat4 &_thisTransform);
     void SetJointVert(const std::string _nodeName, const glm::mat4 &_transform, VertexBoneData &_vb);
-    void CopyRigStructure(const aiScene *_aiScene, aiNode *_aiNode, std::shared_ptr<Bone> _parentBone, const glm::mat4 &_parentTransform);
-    BoneAnim TransferAnim(const aiNodeAnim *_pNodeAnim);
 
 
     float m_ticksPerSecond;

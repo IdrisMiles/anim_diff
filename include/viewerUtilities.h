@@ -105,7 +105,9 @@ namespace ViewerUtilities
 
     const std::shared_ptr<Bone> getParentBone(const std::shared_ptr<Bone> _pNode);
 
+    BoneAnim TransferAnim(const aiNodeAnim *_pNodeAnim);
 
+    void CopyRigStructure(const std::map<std::string, unsigned int> &_boneMapping, const aiScene *_aiScene, aiNode *_aiNode, std::shared_ptr<ModelRig> _rig, std::shared_ptr<Bone> _parentBone, const glm::mat4 &_parentTransform);
 
 }
 
