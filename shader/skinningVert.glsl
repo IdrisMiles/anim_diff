@@ -10,9 +10,11 @@ uniform mat4 projMatrix;
 uniform mat4 mvMatrix;
 uniform mat3 normalMatrix;
 uniform mat4 Bones[MAX_BONES];
+uniform vec3 BoneColours[MAX_BONES];
 
 out vec3 vert;
 out vec3 vertNormal;
+out vec3 boneColour;
 
 
 void main()
@@ -22,16 +24,14 @@ void main()
     BoneTransform += Bones[BoneIDs[2]] * Weights[2];
     BoneTransform += Bones[BoneIDs[3]] * Weights[3];
 
-    /*
-    vert = vertex.xyz;
-    vertNormal = normalMatrix * normal;
-    gl_Position = projMatrix * mvMatrix * vec4(vertex,1.0);
-    */
+    boneColour = BoneColours[BoneIDs[0]] * Weights[0] +
+                 BoneColours[BoneIDs[1]] * Weights[1] +
+                 BoneColours[BoneIDs[2]] * Weights[2] +
+                 BoneColours[BoneIDs[3]] * Weights[3];
+
 
    vert = vertex.xyz;
-   //vertNormal = normalMatrix * vec3(BoneTransform * vec4(normal, 1.0));
    vertNormal = normalMatrix * normal;
-   //gl_Position = projMatrix * mvMatrix * vec4((BoneTransform * vec4(vertex, 1.0)).xyz, 1.0);
    gl_Position = projMatrix * mvMatrix * BoneTransform * vec4(vertex, 1.0);
 
 }
