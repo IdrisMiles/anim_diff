@@ -135,53 +135,60 @@ std::vector<RotAnim> DiffFunctions::getRotationDiffs(std::vector<RotAnim>& maste
 {
     std::vector<RotAnim> rotAnimDiffs;
 
-    auto mItr = master.begin();
-    auto bItr = branch.begin();
+    // lets use count instead of iterators
+    unsigned int masterSize = master.size();
+    unsigned int branchSize = branch.size();
 
-    while((mItr != master.end()) && (bItr != branch.end()))
+    unsigned int mCount = 0;
+    unsigned int bCount = 0;
+
+    while(mCount < masterSize || bCount < branchSize)
     {
-
-        if(mItr == master.end())
+        if(mCount == masterSize)
         {
             // just log branch because master is finished
             RotAnim rotDiff;
-            rotDiff.time = (*bItr).time;
+            rotDiff.time = branch[bCount].time;
             rotDiff.rot = glm::quat(0,0,0,0);
             rotAnimDiffs.push_back(rotDiff);
+            bCount++;
         }
-        else if(bItr == branch.end())
+        else if(bCount == branchSize)
         {
             RotAnim rotDiff;
-            rotDiff.time = (*mItr).time;
+            rotDiff.time = master[mCount].time;
             rotDiff.rot = glm::quat(0,0,0,0);
             rotAnimDiffs.push_back(rotDiff);
+            mCount++;
         }
-
-        // we have a time match
-        if((*mItr).time == (*bItr).time)
-        {
-            // add to the things
-            rotAnimDiffs.push_back(getRotDiff((*mItr) , (*bItr)));
-
-            mItr++;
-            bItr++;
-        }
-        // check if one time is behind the other
-        else if((*mItr).time < (*bItr).time)
-        {
-            // no matching times so make one 
-            // calc interpolate amount
-            auto PrevBItr = std::prev(bItr);
-            rotAnimDiffs.push_back(getRotDiff((*mItr) , (*bItr) , (*PrevBItr)));
-            mItr++;
-        }
-        // now the branch is more than 
         else
         {
-            auto PrevMItr = std::prev(mItr);
-            // add to the things
-            rotAnimDiffs.push_back(getRotDiff((*bItr) , (*mItr) , (*PrevMItr)));
-            bItr++;
+            // we have a time match
+            if(master[mCount].time == branch[bCount].time)
+            {
+                // add to the things
+                rotAnimDiffs.push_back(getRotDiff(master[mCount] , branch[bCount]));
+
+                mCount++;
+                bCount++;
+            }
+            // check if one time is behind the other
+            else if(master[mCount].time < branch[bCount].time)
+            {
+                // no matching times so make one 
+                // calc interpolate amount
+                unsigned int prevCount = bCount - 1;
+                rotAnimDiffs.push_back(getRotDiff(master[mCount] , branch[bCount] , branch[prevCount]));
+                mCount++;
+            }
+            // now the branch is more than 
+            else
+            {
+                unsigned int prevCount = mCount - 1;
+                // add to the things
+                rotAnimDiffs.push_back(getRotDiff(branch[bCount] , master[mCount] , master[prevCount]));
+                bCount++;
+            }
         }
     }
 
@@ -222,52 +229,59 @@ std::vector<ScaleAnim> DiffFunctions::getScaleDiffs(std::vector<ScaleAnim>& mast
 {
     std::vector<ScaleAnim> scaleAnimDiffs;
 
-    auto mItr = master.begin();
-    auto bItr = branch.begin();
+    // lets use count instead of iterators
+    unsigned int masterSize = master.size();
+    unsigned int branchSize = branch.size();
 
-    while((mItr != master.end()) && (bItr != branch.end()))
+    unsigned int mCount = 0;
+    unsigned int bCount = 0;
+
+    while(mCount < masterSize || bCount < branchSize)
     {
-
-        if(mItr == master.end())
+        if(mCount == masterSize)
         {
             // just log branch because master is finished
             ScaleAnim scaleDiff;
-            scaleDiff.time = (*bItr).time;
+            scaleDiff.time = branch[bCount].time;
             scaleDiff.scale = glm::vec3(0,0,0);
             scaleAnimDiffs.push_back(scaleDiff);
+            bCount++;
         }
-        else if(bItr == branch.end())
+        else if(bCount == branchSize)
         {
             ScaleAnim scaleDiff;
-            scaleDiff.time = (*mItr).time;
+            scaleDiff.time = master[mCount].time;
             scaleDiff.scale = glm::vec3(0,0,0);
             scaleAnimDiffs.push_back(scaleDiff);
+            mCount++;
         }
-
-        // we have a time match
-        if((*mItr).time == (*bItr).time)
-        {
-
-            // add to the things
-            scaleAnimDiffs.push_back(getScaleDiff((*mItr) , (*bItr)));
-            mItr++;
-            bItr++;
-        }
-        // check if one time is behind the other
-        else if((*mItr).time < (*bItr).time)
-        {
-            // no matching times so make one 
-            // calc interpolate amount
-            auto PrevBItr = std::prev(bItr);
-            scaleAnimDiffs.push_back(getScaleDiff((*mItr) , (*bItr) , (*PrevBItr)));
-            mItr++;
-        }
-        // now the branch is more than 
         else
         {
-            auto PrevMItr = std::prev(mItr);
-            scaleAnimDiffs.push_back(getScaleDiff((*bItr) , (*mItr) , (*PrevMItr)));
-            bItr++;
+            // we have a time match
+            if(master[mCount].time == branch[bCount].time)
+            {
+
+                // add to the things
+                scaleAnimDiffs.push_back(getScaleDiff(master[mCount] , branch[bCount]));
+                mCount++;
+                bCount++;
+            }
+            // check if one time is behind the other
+            else if(master[mCount].time < branch[bCount].time)
+            {
+                // no matching times so make one 
+                // calc interpolate amount
+                auto prevCount = bCount - 1;
+                scaleAnimDiffs.push_back(getScaleDiff(master[mCount] , branch[bCount] , branch[prevCount]));
+                mCount++;
+            }
+            // now the branch is more than 
+            else
+            {
+                unsigned int prevCount = mCount - 1;
+                scaleAnimDiffs.push_back(getScaleDiff(branch[bCount] , master[mCount] , master[prevCount]));
+                bCount++;
+            }
         }
     }
 
@@ -282,9 +296,9 @@ ScaleAnim DiffFunctions::getScaleDiff(ScaleAnim scaleA, ScaleAnim scaleB)
 
     ScaleAnim scaleDiff;
 
-    scaleDiff.scale.x = scale1.x - scale2.x;
-    scaleDiff.scale.y = scale1.y - scale2.y;
-    scaleDiff.scale.z = scale1.z - scale2.z;
+    scaleDiff.scale.x = scale2.x - scale1.x;
+    scaleDiff.scale.y = scale2.y - scale1.y;
+    scaleDiff.scale.z = scale2.z - scale1.z;
 
     scaleDiff.time = scaleA.time;
 
