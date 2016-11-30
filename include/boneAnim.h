@@ -11,18 +11,42 @@ struct PosAnim
 {
     float time;
     glm::vec3 pos;
+
+    PosAnim(){}
+
+    PosAnim(float _time, glm::vec3 _pos) : 
+    time(_time),
+    pos(_pos)
+    {
+    }
 };
 
 struct ScaleAnim
 {
     float time;
     glm::vec3 scale;
+
+    ScaleAnim(){}
+
+    ScaleAnim(float _time, glm::vec3 _scale) : 
+    time(_time),
+    scale(_scale)
+    {
+    }
 };
 
 struct RotAnim
 {
     float time;
     glm::quat rot;
+
+    RotAnim(){}
+
+    RotAnim(float _time, glm::quat _rot) : 
+    time(_time),
+    rot(_rot)
+    {
+    }
 };
 
 class BoneAnim

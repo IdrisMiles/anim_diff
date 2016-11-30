@@ -1,5 +1,5 @@
 
-#include "include/viewerUtilities.h"
+#include "viewerUtilities.h"
 #include <iostream>
 #include <glm/gtx/transform.hpp>
 

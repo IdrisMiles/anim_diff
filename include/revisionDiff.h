@@ -5,15 +5,25 @@
 
 #include "diffRig.h"
 
+class RevisionNode;
+
 class RevisionDiff
 {
 public:
-    RevisionDiff();
+    RevisionDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch);
     ~RevisionDiff();
 
-private:
-    DiffRig rig;
+    void setDiffRig(DiffRig _rig);
+    DiffRig getDiffRig();
 
+    std::shared_ptr<RevisionNode> getMasterNode();
+    std::shared_ptr<RevisionNode> getBranchNode();
+
+private:
+    std::shared_ptr<RevisionNode> m_masterNode;
+    std::shared_ptr<RevisionNode> m_branchNode;
+
+    DiffRig m_rig;
 };
 
 #endif // REVISIONDIFF_H
