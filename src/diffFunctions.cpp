@@ -38,92 +38,101 @@ std::vector<PosAnim> DiffFunctions::getPositionDiffs(std::vector<PosAnim>& maste
 {
     std::vector<PosAnim> PosAnimDiffs;
 
-    auto mItr = master.begin();
-    auto bItr = branch.begin();
+    // lets use count instead of iterators
+    unsigned int masterSize = master.size();
+    unsigned int branchSize = branch.size();
 
-    while((mItr != master.end()) && (bItr != branch.end()))
+    unsigned int mCount = 0;
+    unsigned int bCount = 0;
+
+    while(mCount < masterSize || bCount < branchSize)
     {
 
-        if(mItr == master.end())
+        // TODO check these
+        if(mCount == masterSize)
         {
             // just log branch because master is finished
             PosAnim posDiff;
-            posDiff.time = (*bItr).time;
+            posDiff.time = branch[bCount].time;
             posDiff.pos = glm::vec3(0,0,0);
             PosAnimDiffs.push_back(posDiff);
+            bCount++;
         }
-        else if(bItr == branch.end())
+        else if(bCount == branchSize)
         {
             PosAnim posDiff;
-            posDiff.time = (*mItr).time;
+            posDiff.time = master[mCount].time;
             posDiff.pos = glm::vec3(0,0,0);
             PosAnimDiffs.push_back(posDiff);
+            mCount++;
         }
-
-        // we have a time match
-        if((*mItr).time == (*bItr).time)
-        {
-            // we have a match lets compare the positions
-            glm::vec3 mPos = (*mItr).pos;
-            glm::vec3 bPos = (*bItr).pos;
-
-            PosAnim posDiff;
-
-            posDiff.pos.x = bPos.x - mPos.x;
-            posDiff.pos.y = bPos.y - mPos.y;
-            posDiff.pos.z = bPos.z - mPos.z;
-
-            posDiff.time = (*mItr).time; 
-
-            // add to the things
-            PosAnimDiffs.push_back(posDiff);
-
-            mItr++;
-            bItr++;
-        }
-        // check if one time is behind the other
-        else if((*mItr).time < (*bItr).time)
-        {
-            // no matching times so make one 
-            // calc interpolate amount
-            auto PrevBItr = std::prev(bItr);
-            float interTime = ((*bItr).time - (*PrevBItr).time) / ((*mItr).time - (*PrevBItr).time);
-
-            glm::vec3 mPos = (*mItr).pos;
-            glm::vec3 bPos = glm::mix((*bItr).pos , (*PrevBItr).pos, interTime);
-
-            PosAnim posDiff;
-
-            posDiff.pos.x = bPos.x - mPos.x;
-            posDiff.pos.y = bPos.y - mPos.y;
-            posDiff.pos.z = bPos.z - mPos.z;
-
-            posDiff.time = (*mItr).time; 
-
-            // add to the things
-            PosAnimDiffs.push_back(posDiff);
-            mItr++;
-        }
-        // now the branch is more than 
         else
         {
-            auto PrevMItr = std::prev(mItr);
-            float interTime = ((*mItr).time - (*PrevMItr).time) / ((*bItr).time - (*PrevMItr).time);
+            // we have a time match
+            if(master[mCount].time == branch[bCount].time)
+            {
+                // we have a match lets compare the positions
+                glm::vec3 mPos = master[mCount].pos;
+                glm::vec3 bPos = branch[bCount].pos;
 
-            glm::vec3 mPos = glm::mix((*mItr).pos , (*PrevMItr).pos, interTime);
-            glm::vec3 bPos = (*bItr).pos;
+                PosAnim posDiff;
 
-            PosAnim posDiff;
+                posDiff.pos.x = bPos.x - mPos.x;
+                posDiff.pos.y = bPos.y - mPos.y;
+                posDiff.pos.z = bPos.z - mPos.z;
 
-            posDiff.pos.x = bPos.x - mPos.x;
-            posDiff.pos.y = bPos.y - mPos.y;
-            posDiff.pos.z = bPos.z - mPos.z;
+                posDiff.time = master[mCount].time; 
 
-            posDiff.time = (*mItr).time; 
+                // add to the things
+                PosAnimDiffs.push_back(posDiff);
 
-            // add to the things
-            PosAnimDiffs.push_back(posDiff);
-            bItr++;
+                mCount++;
+                bCount++;
+            }
+            // check if one time is behind the other
+            else if(master[mCount].time < branch[bCount].time)
+            {
+                // no matching times so make one 
+                // calc interpolate amount
+                unsigned int prevCount = bCount - 1;
+                float interTime = (branch[bCount].time - branch[prevCount].time) / (master[mCount].time - branch[prevCount].time);
+
+                glm::vec3 mPos = master[mCount].pos;
+                glm::vec3 bPos = glm::mix(branch[bCount].pos , branch[prevCount].pos, interTime);
+
+                PosAnim posDiff;
+
+                posDiff.pos.x = bPos.x - mPos.x;
+                posDiff.pos.y = bPos.y - mPos.y;
+                posDiff.pos.z = bPos.z - mPos.z;
+
+                posDiff.time = master[mCount].time; 
+
+                // add to the things
+                PosAnimDiffs.push_back(posDiff);
+                mCount++;
+            }
+            // now the branch is more than 
+            else
+            {
+                unsigned int prevCount = bCount - 1;
+                float interTime = (master[mCount].time - master[prevCount].time) / (branch[bCount].time - master[prevCount].time);
+
+                glm::vec3 mPos = glm::mix(master[mCount].pos , master[prevCount].pos, interTime);
+                glm::vec3 bPos = branch[bCount].pos;
+
+                PosAnim posDiff;
+
+                posDiff.pos.x = bPos.x - mPos.x;
+                posDiff.pos.y = bPos.y - mPos.y;
+                posDiff.pos.z = bPos.z - mPos.z;
+
+                posDiff.time = branch[bCount].time; 
+
+                // add to the things
+                PosAnimDiffs.push_back(posDiff);
+                bCount++;
+            }
         }
     }
 
