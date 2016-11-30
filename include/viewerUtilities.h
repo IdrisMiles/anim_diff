@@ -18,6 +18,7 @@
 #include <glm/gtx/transform.hpp>
 
 #include "modelRig.h"
+#include "mergedRig.h"
 #include "bone.h"
 
 namespace ViewerUtilities
@@ -108,6 +109,8 @@ namespace ViewerUtilities
     BoneAnim TransferAnim(const aiNodeAnim *_pNodeAnim);
 
     void CopyRigStructure(const std::map<std::string, unsigned int> &_boneMapping, const aiScene *_aiScene, aiNode *_aiNode, std::shared_ptr<ModelRig> _rig, std::shared_ptr<Bone> _parentBone, const glm::mat4 &_parentTransform);
+
+    void ColourBoneDifferences(std::vector<glm::vec3> &_rigJointColour, const float _animationTime, const std::map<std::string, unsigned int> &_boneMapping, std::shared_ptr<MergedRig> _pRig, std::shared_ptr<Bone> _pBone);
 
 }
 

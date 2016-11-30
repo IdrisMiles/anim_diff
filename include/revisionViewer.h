@@ -53,6 +53,8 @@ private:
     void DrawMesh();
     void DrawRig();
 
+    void UploadBoneColoursToShader();
+
     /// @brief Method to upload all bone matrices to the shader for skinning. This is called every update.
     void UploadBonesToShader(const float _t, RenderType _rt);
 

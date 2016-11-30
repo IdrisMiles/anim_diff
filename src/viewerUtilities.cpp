@@ -559,3 +559,49 @@ void ViewerUtilities::CopyRigStructure(const std::map<std::string, unsigned int>
     }
 }
 
+void ViewerUtilities::ColourBoneDifferences(std::vector<glm::vec3> &_rigJointColour, const float _animationTime, const std::map<std::string, unsigned int> &_boneMapping, std::shared_ptr<MergedRig> _pRig, std::shared_ptr<Bone> _pBone)
+{
+    if(!_pBone)
+    {
+        return;
+    }
+
+    // Get keyframe for animation time
+    uint frameIndex;
+    for (uint i = 0 ; i < _pRig->m_boneDiffFlag[_pBone->m_name].size() - 1 ; i++) {
+        if (_animationTime < (float)_pRig->m_boneDiffFlag[_pBone->m_name][i+1].time)
+        {
+            frameIndex =  i;
+        }
+    }
+    uint nextframeIndex = (frameIndex + 1);
+
+
+    // Check if this keyframe has been flagged as different
+    glm::vec3 jointColour;
+    if( _pRig->m_boneDiffFlag[_pBone->m_name][frameIndex].flag == DiffFlagEnum::NONE &&
+        _pRig->m_boneDiffFlag[_pBone->m_name][nextframeIndex].flag == DiffFlagEnum::NONE)
+    {
+        // Joint has NO difference - green
+        jointColour = glm::vec3(0.0f, 1.0f, 0.0f);
+    }
+    else
+    {
+        // joint has a difference - red
+        jointColour = glm::vec3(1.0f, 0.0f, 0.0f);
+    }
+
+
+    // set rig joint colour
+    if (_boneMapping.find(_pBone->m_name) != _boneMapping.end()) {
+        uint BoneIndex = _boneMapping.at(_pBone->m_name);
+        _rigJointColour[BoneIndex] = jointColour;
+    }
+
+
+    // Go through rest of the bones
+    for (uint i = 0 ; i < _pBone->m_children.size() ; i++)
+    {
+        ColourBoneDifferences(_rigJointColour, _animationTime, _boneMapping, _pRig, std::shared_ptr<Bone>(_pBone->m_children[i]));
+    }
+}

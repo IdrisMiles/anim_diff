@@ -1,7 +1,8 @@
 #include "model.h"
 #include <iostream>
-
+#include <float.h>
 #include <QOpenGLShaderProgram>
+#include <glm/gtc/random.hpp>
 
 Model::Model()
 {
@@ -141,10 +142,11 @@ void Model::InitModelMesh(const aiScene *_scene)
                     float vertexWeight = bone->mWeights[bw].mWeight;
                     for(unsigned int w=0; w<4; w++)
                     {
-                        if(m_meshBoneWeights[vertexID].boneWeight[w] == 0.0f)
+                        if(m_meshBoneWeights[vertexID].boneWeight[w] < FLT_EPSILON)
                         {
                             m_meshBoneWeights[vertexID].boneWeight[w] = vertexWeight;
                             m_meshBoneWeights[vertexID].boneID[w] = boneIndex;
+                            break;
                         }
                     }
                 }

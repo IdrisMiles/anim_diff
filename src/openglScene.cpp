@@ -69,7 +69,7 @@ void OpenGLScene::setYTranslation(int y)
 
 void OpenGLScene::setZTranslation(int z)
 {
-    qNormalizeAngle(z);
+//    qNormalizeAngle(z);
     if (z != m_zDis) {
         m_zDis= z;
         emit zTranslationChanged(z);
@@ -118,7 +118,6 @@ void OpenGLScene::initializeGL()
 
     glewInit();
 
-    //initializeOpenGLFunctions();
     glClearColor(0.4, 0.4, 0.4, 1);
 
     customInitGL();
@@ -200,7 +199,7 @@ void OpenGLScene::paintGL()
 
 void OpenGLScene::resizeGL(int w, int h)
 {
-    m_projMat = glm::perspective(45.0f, GLfloat(w) / h, 0.01f, 2000.0f);
+    m_projMat = glm::perspective(45.0f, GLfloat(w) / h, 0.01f, 5000.0f);
 }
 
 

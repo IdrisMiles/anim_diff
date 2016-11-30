@@ -72,64 +72,6 @@ void MergedViewer::LoadMerge(std::shared_ptr<RevisionMerge> _diff)
     doneCurrent();
 }
 
-void MergedViewer::UpdateAnimation()
-{
-
-}
-
-
-void MergedViewer::paintGL()
-{
-    if(m_waitingForInitGL)
-    {
-        LoadMerge(m_revision);
-        m_waitingForInitGL = false;
-    }
-
-    // clean gl window
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-
-    if(!m_revisionLoaded)
-    {
-        return;
-    }
-
-    // update model matrix
-    m_modelMat = glm::mat4(1);
-    m_modelMat = glm::translate(m_modelMat, glm::vec3(0, 0, -0.1f*m_zDis));// m_zDis));
-    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_xRot/16.0f), glm::vec3(1,0,0));
-    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_yRot/16.0f), glm::vec3(0,1,0));
-    //m_modelMat = glm::translate(m_modelMat, glm::vec3(0.1f*m_xDis, -0.1f*m_yDis, 0));
-
-
-    // Set shader params
-    m_model->m_shaderProg[SKINNED]->bind();
-    glUniformMatrix4fv(m_model->m_projMatrixLoc[SKINNED], 1, false, &m_projMat[0][0]);
-    glUniformMatrix4fv(m_model->m_mvMatrixLoc[SKINNED], 1, false, &(m_modelMat*m_viewMat)[0][0]);
-    glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
-    glUniformMatrix3fv(m_model->m_normalMatrixLoc[SKINNED], 1, true, &normalMatrix[0][0]);
-    glUniform3fv(m_model->m_colourLoc[SKINNED], 1, &m_model->m_colour[0]);
-
-    //---------------------------------------------------------------------------------------
-    // Draw code - replace this with project specific draw stuff
-    DrawMesh();
-    m_model->m_shaderProg[SKINNED]->release();
-
-
-    if(m_wireframe)
-    {
-        m_model->m_shaderProg[RIG]->bind();
-        glUniformMatrix4fv(m_model->m_projMatrixLoc[RIG], 1, false, &m_projMat[0][0]);
-        glUniformMatrix4fv(m_model->m_mvMatrixLoc[RIG], 1, false, &(m_modelMat*m_viewMat)[0][0]);
-        glUniformMatrix3fv(m_model->m_normalMatrixLoc[RIG], 1, true, &normalMatrix[0][0]);
-
-        DrawRig();
-
-        m_model->m_shaderProg[RIG]->release();
-    }
-}
 
 void MergedViewer::customInitGL()
 {
@@ -300,14 +242,89 @@ void MergedViewer::InitVAO()
     m_model->m_shaderProg[RIG]->release();
 }
 
+void MergedViewer::paintGL()
+{
+    if(m_waitingForInitGL)
+    {
+        LoadMerge(m_revision);
+        m_waitingForInitGL = false;
+    }
+
+    // clean gl window
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
+    if(!m_revisionLoaded)
+    {
+        return;
+    }
+
+    // update model matrix
+    m_modelMat = glm::mat4(1);
+    m_modelMat = glm::translate(m_modelMat, glm::vec3(0, 0, -0.1f*m_zDis));// m_zDis));
+    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_xRot/16.0f), glm::vec3(1,0,0));
+    m_modelMat = glm::rotate(m_modelMat, glm::radians(m_yRot/16.0f), glm::vec3(0,1,0));
+    //m_modelMat = glm::translate(m_modelMat, glm::vec3(0.1f*m_xDis, -0.1f*m_yDis, 0));
+
+
+    // Set shader params
+    m_model->m_shaderProg[SKINNED]->bind();
+    glUniformMatrix4fv(m_model->m_projMatrixLoc[SKINNED], 1, false, &m_projMat[0][0]);
+    glUniformMatrix4fv(m_model->m_mvMatrixLoc[SKINNED], 1, false, &(m_modelMat*m_viewMat)[0][0]);
+    glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
+    glUniformMatrix3fv(m_model->m_normalMatrixLoc[SKINNED], 1, true, &normalMatrix[0][0]);
+    glUniform3fv(m_model->m_colourLoc[SKINNED], 1, &m_model->m_colour[0]);
+
+    //---------------------------------------------------------------------------------------
+    // Draw code - replace this with project specific draw stuff
+    DrawMesh();
+    m_model->m_shaderProg[SKINNED]->release();
+
+
+    if(m_wireframe)
+    {
+        m_model->m_shaderProg[RIG]->bind();
+        glUniformMatrix4fv(m_model->m_projMatrixLoc[RIG], 1, false, &m_projMat[0][0]);
+        glUniformMatrix4fv(m_model->m_mvMatrixLoc[RIG], 1, false, &(m_modelMat*m_viewMat)[0][0]);
+        glUniformMatrix3fv(m_model->m_normalMatrixLoc[RIG], 1, true, &normalMatrix[0][0]);
+
+        DrawRig();
+
+        m_model->m_shaderProg[RIG]->release();
+    }
+}
+
+void MergedViewer::UpdateAnimation()
+{
+    // Set shader params
+    m_model->m_shaderProg[SKINNED]->bind();
+    UploadBonesToShader(m_t, SKINNED);
+    UploadBoneColoursToShader();
+    m_model->m_shaderProg[SKINNED]->release();
+
+    m_model->m_shaderProg[RIG]->bind();
+    UploadBonesToShader(m_t, RIG);
+    m_model->m_shaderProg[RIG]->release();
+}
+
+
 void MergedViewer::DrawMesh()
 {
-
+    m_model->m_meshVAO[SKINNED].bind();
+    glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
+    glDrawElements(GL_TRIANGLES, 3*m_model->m_meshTris.size(), GL_UNSIGNED_INT, &m_model->m_meshTris[0]);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    m_model->m_meshVAO[SKINNED].release();
 }
 
 void MergedViewer::DrawRig()
 {
-
+    m_model->m_meshVAO[RIG].bind();
+    glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
+    glDrawArrays(GL_LINES, 0, m_model->m_rigVerts.size());
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    m_model->m_meshVAO[RIG].release();
 }
 
 void MergedViewer::keyPressEvent(QKeyEvent *event)
@@ -316,4 +333,54 @@ void MergedViewer::keyPressEvent(QKeyEvent *event)
     {
         m_wireframe = !m_wireframe;
     }
+}
+
+
+
+void MergedViewer::UploadBoneColoursToShader()
+{
+    glm::vec3 c(0.6f,0.6f,0.6f);
+    unsigned int numBones = m_model->m_boneInfo.size();
+    for(unsigned int b=0; b<numBones && b<100; b++)
+    {
+        glUniform3fv(m_model->m_colourAttrLoc[SKINNED] + b, 1, &c[0] );
+    }
+
+}
+
+void MergedViewer::UploadBonesToShader(const float _t, RenderType _rt)
+{
+    std::vector<glm::mat4> bones;
+    BoneTransform(_t, bones);
+    ViewerUtilities::ColourBoneDifferences(m_model->m_rigJointColours, /*animationTime*/ 1.0f, m_model->m_boneMapping, std::shared_ptr<MergedRig>(dynamic_cast<MergedRig*>(m_model->m_rig.get())), m_model->m_rig->m_rootBone);
+    for(unsigned int b=0; b<bones.size() && b<100; b++)
+    {
+        glUniformMatrix4fv(m_model->m_boneUniformLoc[_rt] + b, 1, true, &bones[b][0][0]);
+
+        if(_rt == RenderType::SKINNED)
+        {
+            glUniform3fv(m_model->m_colourAttrLoc[SKINNED] + b, 1, &m_model->m_rigJointColours[b][0] );
+        }
+    }
+}
+
+void MergedViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_transforms)
+{
+    glm::mat4 identity;
+
+    if(!m_model->m_animExists)
+    {
+        _transforms.resize(1);
+        _transforms[0] = glm::mat4(1.0);
+        return;
+    }
+
+    unsigned int numBones = m_model->m_boneInfo.size();
+    _transforms.resize(numBones);
+
+    float timeInTicks = _t * m_model->m_ticksPerSecond;
+    float animationTime = fmod(timeInTicks, m_model->m_animationDuration);
+
+    ViewerUtilities::ReadNodeHierarchy(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, animationTime, m_model->m_rig, m_model->m_rig->m_rootBone, identity);
+
 }

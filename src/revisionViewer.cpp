@@ -98,12 +98,14 @@ void RevisionViewer::InitVAO()
     m_model->m_boneIDAttrLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->attributeLocation("BoneIDs");
     m_model->m_boneWeightAttrLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->attributeLocation("Weights");
     m_model->m_boneUniformLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->uniformLocation("Bones");
+    m_model->m_colourAttrLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->uniformLocation("BoneColours");
 
     std::cout<<"SKINNED | vert Attr loc:\t"<<m_model->m_vertAttrLoc[SKINNED]<<"\n";
     std::cout<<"SKINNED | norm Attr loc:\t"<<m_model->m_normAttrLoc[SKINNED]<<"\n";
     std::cout<<"SKINNED | boneID Attr loc:\t"<<m_model->m_boneIDAttrLoc[SKINNED]<<"\n";
     std::cout<<"SKINNED | boneWei Attr loc:\t"<<m_model->m_boneWeightAttrLoc[SKINNED]<<"\n";
     std::cout<<"SKINNED | Bones Unif loc:\t"<<m_model->m_boneUniformLoc[SKINNED]<<"\n";
+    std::cout<<"SKINNED | Bones Colour Unif loc:\t"<<m_model->m_colourAttrLoc[SKINNED]<<"\n";
 
 
     // Set up VAO
@@ -210,7 +212,7 @@ void RevisionViewer::customInitGL()
     // initialise view and projection matrices
     m_viewMat = glm::mat4(1);
     m_viewMat = glm::lookAt(glm::vec3(0,0,0),glm::vec3(0,0,-1),glm::vec3(0,1,0));
-    m_projMat = glm::perspective(45.0f, GLfloat(width()) / height(), 0.01f, 2000.0f);
+    m_projMat = glm::perspective(45.0f, GLfloat(width()) / height(), 0.01f, 5000.0f);
 
     //------------------------------------------------------------------------------------------------
     // SKINNING Shader
@@ -329,6 +331,7 @@ void RevisionViewer::UpdateAnimation()
     // Set shader params
     m_model->m_shaderProg[SKINNED]->bind();
     UploadBonesToShader(m_t, SKINNED);
+    UploadBoneColoursToShader();
     m_model->m_shaderProg[SKINNED]->release();
 
     m_model->m_shaderProg[RIG]->bind();
@@ -342,6 +345,17 @@ void RevisionViewer::keyPressEvent(QKeyEvent *event)
     {
         m_wireframe = !m_wireframe;
     }
+}
+
+void RevisionViewer::UploadBoneColoursToShader()
+{
+    glm::vec3 c(0.6f,0.6f,0.6f);
+    unsigned int numBones = m_model->m_boneInfo.size();
+    for(unsigned int b=0; b<numBones && b<100; b++)
+    {
+        glUniform3fv(m_model->m_colourAttrLoc[SKINNED] + b, 1, &c[0] );
+    }
+
 }
 
 void RevisionViewer::UploadBonesToShader(const float _t, RenderType _rt)
@@ -371,6 +385,6 @@ void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_tran
     float timeInTicks = _t * m_model->m_ticksPerSecond;
     float animationTime = fmod(timeInTicks, m_model->m_animationDuration);
 
-    ViewerUtilities::ReadNodeHierarchy(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, animationTime, m_model->m_rig, std::shared_ptr<Bone>(m_model->m_rig->m_rootBone), identity);
+    ViewerUtilities::ReadNodeHierarchy(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, animationTime, m_model->m_rig, m_model->m_rig->m_rootBone, identity);
 
 }
