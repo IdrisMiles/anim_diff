@@ -19,6 +19,16 @@ public:
     static std::vector<PosAnim>     getPositionDiffs(std::vector<PosAnim>& master, std::vector<PosAnim>& branch);
     static std::vector<RotAnim>     getRotationDiffs(std::vector<RotAnim>& master, std::vector<RotAnim>& branch);
     static std::vector<ScaleAnim>   getScaleDiffs(std::vector<ScaleAnim>& master, std::vector<ScaleAnim>& branch);
+
+    // pos helper methods
+    static PosAnim getPosDiff(PosAnim posA, PosAnim posB);
+    static PosAnim getPosDiff(PosAnim posA, PosAnim posB1, PosAnim posB2);
+
+    static ScaleAnim getScaleDiff(ScaleAnim scaleA, ScaleAnim scaleB);
+    static ScaleAnim getScaleDiff(ScaleAnim scaleA, ScaleAnim scaleB1, ScaleAnim scaleB2);
+
+    static RotAnim getRotDiff(RotAnim rotA, RotAnim rotB);
+    static RotAnim getRotDiff(RotAnim rotA, RotAnim rotB1, RotAnim rotB2);
 };
 
 #endif // REVISIONUTILS_H
