@@ -111,7 +111,7 @@ TEST(RevisionUtilsTest, checkNodes) {
     EXPECT_EQ(test2.get(), diff.getBranchNode().get());
 }
 
-// POSITON //////////////////////////////////////////////////////////////////////////////////////////////////////////
+// POSITON TESTS //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(DiffFunctionTest, positionDiffEmpty) { 
 
@@ -180,7 +180,7 @@ TEST(DiffFunctionTest, positionDiffInterpolate) {
     EXPECT_EQ(0.5, result[1].pos.z);
 }
 
-// SCALE //////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SCALE TESTS //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(DiffFunctionTest, scaleDiffEmpty) { 
 
@@ -247,6 +247,77 @@ TEST(DiffFunctionTest, scaleDiffInterpolate) {
     EXPECT_EQ(0.5, result[1].scale.x);
     EXPECT_EQ(0.5, result[1].scale.y);
     EXPECT_EQ(0.5, result[1].scale.z);
+}
+
+// ROTATION TESTS //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(DiffFunctionTest, rotationDiffEmpty) { 
+
+    // test data
+    std::vector<RotAnim> test1;
+    std::vector<RotAnim> test2;
+
+    std::vector<RotAnim> result = DiffFunctions::getRotationDiffs(test1, test2);
+
+    EXPECT_EQ(0, result.size());
+}
+
+TEST(DiffFunctionTest, rotationDiffTest) { 
+
+    std::vector<RotAnim> master;
+    std::vector<RotAnim> branch;
+
+    master.push_back(RotAnim(0.0f, glm::quat(0,1,0, 0)));
+    branch.push_back(RotAnim(0.0f, glm::quat(0,1,0, 1)));
+
+    std::vector<RotAnim> result = DiffFunctions::getRotationDiffs(master, branch);
+    
+    EXPECT_EQ(1, result.size());
+
+    EXPECT_EQ(0.0, result[0].rot.x);
+    EXPECT_EQ(1.0, result[0].rot.y);
+    EXPECT_EQ(0.0, result[0].rot.z);
+    EXPECT_EQ(1.0, result[0].rot.z);
+}
+
+TEST(DiffFunctionTest, rotationDiffNotMatchingTimes) { 
+
+    std::vector<RotAnim> master;
+    std::vector<RotAnim> branch;
+
+    master.push_back(RotAnim(0.0f, glm::quat(0,0,0,0)));
+    master.push_back(RotAnim(0.5f, glm::quat(0,0,0,0)));
+    master.push_back(RotAnim(1.0f, glm::quat(0,0,0,0)));
+
+    branch.push_back(RotAnim(0.0f, glm::quat(0,0,0,0)));
+    branch.push_back(RotAnim(1.0f, glm::quat(0,0,0,0)));
+    branch.push_back(RotAnim(2.0f, glm::quat(0,0,0,0)));
+
+    std::vector<RotAnim> result = DiffFunctions::getRotationDiffs(master, branch);
+    
+    EXPECT_EQ(4, result.size());
+}
+
+TEST(DiffFunctionTest, rotationDiffInterpolate) { 
+
+    std::vector<RotAnim> master;
+    std::vector<RotAnim> branch;
+
+    master.push_back(RotAnim(0.0f, glm::quat(0,0,0,0)));
+    master.push_back(RotAnim(2.0f, glm::quat(1.0,0.0,0.0,1.0)));
+
+    branch.push_back(RotAnim(0.0f, glm::quat(0,0,0,0)));
+    branch.push_back(RotAnim(1.0f, glm::quat(0.5,0.0,0.0,0.5)));
+    branch.push_back(RotAnim(2.0f, glm::quat(1.0,0.0,0.0,0.0)));
+
+    std::vector<RotAnim> result = DiffFunctions::getRotationDiffs(master, branch);
+    
+    EXPECT_EQ(3, result.size());
+
+    EXPECT_EQ(0.0, result[1].rot.x);
+    EXPECT_EQ(0.0, result[1].rot.y);
+    EXPECT_EQ(0.0, result[1].rot.z);
+    EXPECT_EQ(0.0, result[1].rot.w);
 }
 
 // MAIN ///////////////////////////////////////////////////////////////////////////////////
