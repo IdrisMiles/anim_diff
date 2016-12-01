@@ -6,22 +6,111 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>777</width>
-    <height>531</height>
+    <width>1033</width>
+    <height>686</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QGridLayout" name="gridLayout"/>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="1">
+     <widget class="QGroupBox" name="s_diffRevGB">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>4</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="title">
+       <string>Difference</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0" colspan="3">
+     <widget class="QGroupBox" name="s_timelineGB">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="title">
+       <string>Timeline</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QGroupBox" name="s_branchRevGB">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>4</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="title">
+       <string>Branch Revision</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
+        <widget class="QPushButton" name="s_branchRevBtn">
+         <property name="text">
+          <string>Branch Revision</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QGroupBox" name="s_masterRevGB">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>4</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="title">
+       <string>Master Revision</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QPushButton" name="s_masterRevBtn">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Master Revision</string>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>16</width>
+           <height>16</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>777</width>
+     <width>1033</width>
      <height>19</height>
     </rect>
    </property>

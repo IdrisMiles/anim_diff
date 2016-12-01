@@ -25,6 +25,8 @@ public:
 
 private slots:
     void LoadRevision();
+    void LoadMasterRevision();
+    void LoadBranchRevision();
     void UpdateRevisionTimers();
 
 private:
@@ -34,9 +36,7 @@ private:
     float m_time;
     float m_dt;
 
-    std::vector<RevisionViewer*> m_revisions;
-    QPushButton * m_loadRevisionButton;
-
+    std::vector<RevisionViewer*> m_revisionViewers;
     std::unique_ptr<RepoController> m_repoController;
 };
 
