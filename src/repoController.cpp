@@ -6,15 +6,12 @@
 #include <iostream>
 
 RepoController::RepoController()
-:
-    m_mainNode(),
-    m_compareNode()
 {
-
 }
 
 RepoController::~RepoController()
 {
+
 }
 
 std::shared_ptr<RevisionNode> RepoController::loadMainNode(std::string _path)

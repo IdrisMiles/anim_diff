@@ -31,6 +31,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::LoadRevision()
 {
+    // this is all a hack and will be changed with the new UI
+    if(m_revisions.size() >= 2) return;
 
     QString file = QFileDialog::getOpenFileName(this,QString("Open File"), QString("./"), QString("3D files (*.*)"));
 
@@ -40,10 +42,17 @@ void MainWindow::LoadRevision()
     }
 
     m_revisions.push_back(new RevisionViewer(this));
-    std::shared_ptr<RevisionNode> test(new RevisionNode());
 
-    test->LoadModel(file.toStdString());
-    m_revisions.back()->LoadRevision(test);
+    if(m_revisions.empty())
+    {
+        auto node = m_repoController->loadMainNode(file.toStdString());
+        m_revisions.back()->LoadRevision(node);
+    }
+    else
+    {
+        auto node = m_repoController->loadCompareNode(file.toStdString());
+        m_revisions.back()->LoadRevision(node);
+    }
 
     ui->gridLayout->addWidget(m_revisions.back(), 1, m_revisions.size(), 1, 1);
 }
