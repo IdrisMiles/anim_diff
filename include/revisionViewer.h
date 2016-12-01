@@ -16,8 +16,6 @@ class RevisionViewer : public OpenGLScene
 {
 
 public:
-
-
     /// @brief Constructor.
     /// @param parent : The parent widget to this widget.
     RevisionViewer(QWidget *parent);
@@ -34,34 +32,41 @@ public:
     void SetTime(const float _t);
 
 
-private slots:
+protected slots:
     /// @brief Method to update the bone animation. This takes advantage of Qt's Signals and Slots so that we can update the animation on a timer event to decouple it from the rest of the drawing.
     virtual void UpdateAnimation();
 
 
 protected:
     /// @brief Method to do OpenGL drawing.
-    void paintGL() override;
-    void customInitGL() override;
-    void keyPressEvent(QKeyEvent *event) override;
+    virtual void paintGL() override;
 
+    /// @brief Method to set up the shaders and all the attribute/uniform locations
+    virtual void customInitGL() override;
 
-private:
+    /// @brief Method to handle key input
+    virtual void keyPressEvent(QKeyEvent *event) override;
+
     /// @brief Method to initialise all the relevant VAO and VBO's to draw an animated mesh.
-    void InitVAO();
+    virtual void InitVAO();
 
+    /// @brief Method to draw the model mesh.
     void DrawMesh();
+
+    /// @brief Method to draw the rig mesh.
     void DrawRig();
 
-    void UploadBoneColoursToShader();
+    /// @brief Method to upload custom colours associated with rig joints to shader for model mesh and rig mesh.
+    /// @param _rt : the type we are uploading colours to, either RIG or SKINNED.
+    virtual void UploadBoneColoursToShader(RenderType _rt);
 
     /// @brief Method to upload all bone matrices to the shader for skinning. This is called every update.
-    void UploadBonesToShader(const float _t, RenderType _rt);
+    void UploadBonesToShader(const std::vector<glm::mat4> &_boneTransforms, RenderType _rt);
 
     /// @brief Method to transform bone hierarchy according to animation at time _t
     /// @param _t : animation time, this automatically gets looped if greater than animation duration.
     /// @param _transforms : bone transforms to be updated before sending to shader
-    void BoneTransform(const float _t, std::vector<glm::mat4> &_transforms);
+    virtual void ComputeBoneTransform(const float _t, std::vector<glm::mat4> &_transforms);
 
 
 

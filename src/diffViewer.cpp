@@ -1,10 +1,10 @@
-#include "mergedViewer.h"
+#include "include/diffViewer.h"
 #include <QKeyEvent>
 #include <iostream>
 
 
 
-MergedViewer::MergedViewer(QWidget *parent) : OpenGLScene(parent)
+DiffViewer::DiffViewer(QWidget *parent) : RevisionViewer(parent)
 {
     m_revisionLoaded = false;
     m_initGL = false;
@@ -17,14 +17,14 @@ MergedViewer::MergedViewer(QWidget *parent) : OpenGLScene(parent)
     m_t = 0.0f;
 
     m_animTimer = new QTimer(this);
-    connect(m_animTimer, &QTimer::timeout, this, &MergedViewer::UpdateAnimation);
+    connect(m_animTimer, &QTimer::timeout, this, &DiffViewer::UpdateAnimation);
 
     m_drawTimer = new QTimer(this);
     connect(m_drawTimer, SIGNAL(timeout()), this, SLOT(update()));
 }
 
 
-MergedViewer::~MergedViewer()
+DiffViewer::~DiffViewer()
 {
     delete m_animTimer;
     delete m_drawTimer;
@@ -45,14 +45,15 @@ MergedViewer::~MergedViewer()
 
 }
 
-void MergedViewer::LoadMerge(std::shared_ptr<RevisionMerge> _diff)
+void DiffViewer::LoadDiff(std::shared_ptr<RevisionDiff> _diff)
 {
     std::cout<<"Loading a Merged Revision\n";
     update();
 
 
-    m_revision = _diff;
-    //m_model = m_revision->m_model;
+    m_revisionDiff = _diff;
+    m_revision = m_revisionDiff->getMasterNode();
+    m_model = m_revision->m_model;
 
     if(!m_initGL)
     {
@@ -72,54 +73,7 @@ void MergedViewer::LoadMerge(std::shared_ptr<RevisionMerge> _diff)
     doneCurrent();
 }
 
-
-void MergedViewer::customInitGL()
-{
-    // initialise view and projection matrices
-    m_viewMat = glm::mat4(1);
-    m_viewMat = glm::lookAt(glm::vec3(0,0,0),glm::vec3(0,0,-1),glm::vec3(0,1,0));
-    m_projMat = glm::perspective(45.0f, GLfloat(width()) / height(), 0.01f, 2000.0f);
-
-    //------------------------------------------------------------------------------------------------
-    // SKINNING Shader
-    m_model->m_shaderProg[SKINNED] = new QOpenGLShaderProgram();
-    m_model->m_shaderProg[SKINNED]->addShaderFromSourceFile(QOpenGLShader::Vertex, "../shader/skinningVert.glsl");
-    m_model->m_shaderProg[SKINNED]->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/skinningFrag.glsl");
-    m_model->m_shaderProg[SKINNED]->bindAttributeLocation("vertex", 0);
-    m_model->m_shaderProg[SKINNED]->bindAttributeLocation("normal", 1);
-    m_model->m_shaderProg[SKINNED]->link();
-
-    m_model->m_shaderProg[SKINNED]->bind();
-    m_model->m_projMatrixLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->uniformLocation("projMatrix");
-    m_model->m_mvMatrixLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->uniformLocation("mvMatrix");
-    m_model->m_normalMatrixLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->uniformLocation("normalMatrix");
-    m_model->m_lightPosLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->uniformLocation("lightPos");
-
-    // Light position is fixed.
-    m_lightPos = glm::vec3(0, 0, 70);
-    glUniform3fv(m_model->m_lightPosLoc[SKINNED], 1, &m_lightPos[0]);
-    m_model->m_shaderProg[SKINNED]->release();
-
-
-    //------------------------------------------------------------------------------------------------
-    // RIG Shader
-    m_model->m_shaderProg[RIG] = new QOpenGLShaderProgram();
-    m_model->m_shaderProg[RIG]->addShaderFromSourceFile(QOpenGLShader::Vertex, "../shader/rigVert.glsl");
-    m_model->m_shaderProg[RIG]->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/rigFrag.glsl");
-    m_model->m_shaderProg[RIG]->addShaderFromSourceFile(QOpenGLShader::Geometry, "../shader/rigGeo.glsl");
-    m_model->m_shaderProg[RIG]->bindAttributeLocation("vertex", 0);
-    m_model->m_shaderProg[RIG]->link();
-
-    m_model->m_shaderProg[RIG]->bind();
-    m_model->m_projMatrixLoc[RIG] = m_model->m_shaderProg[RIG]->uniformLocation("projMatrix");
-    m_model->m_mvMatrixLoc[RIG] = m_model->m_shaderProg[RIG]->uniformLocation("mvMatrix");
-    m_model->m_normalMatrixLoc[RIG] = m_model->m_shaderProg[RIG]->uniformLocation("normalMatrix");
-    m_model->m_shaderProg[RIG]->release();
-
-    m_initGL = true;
-}
-
-void MergedViewer::InitVAO()
+void DiffViewer::InitVAO()
 {
     glPointSize(10);
 
@@ -242,11 +196,57 @@ void MergedViewer::InitVAO()
     m_model->m_shaderProg[RIG]->release();
 }
 
-void MergedViewer::paintGL()
+void DiffViewer::customInitGL()
+{
+    // initialise view and projection matrices
+    m_viewMat = glm::mat4(1);
+    m_viewMat = glm::lookAt(glm::vec3(0,0,0),glm::vec3(0,0,-1),glm::vec3(0,1,0));
+    m_projMat = glm::perspective(45.0f, GLfloat(width()) / height(), 0.01f, 2000.0f);
+
+    //------------------------------------------------------------------------------------------------
+    // SKINNING Shader
+    m_model->m_shaderProg[SKINNED] = new QOpenGLShaderProgram();
+    m_model->m_shaderProg[SKINNED]->addShaderFromSourceFile(QOpenGLShader::Vertex, "../shader/skinningVert.glsl");
+    m_model->m_shaderProg[SKINNED]->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/skinningFrag.glsl");
+    m_model->m_shaderProg[SKINNED]->bindAttributeLocation("vertex", 0);
+    m_model->m_shaderProg[SKINNED]->bindAttributeLocation("normal", 1);
+    m_model->m_shaderProg[SKINNED]->link();
+
+    m_model->m_shaderProg[SKINNED]->bind();
+    m_model->m_projMatrixLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->uniformLocation("projMatrix");
+    m_model->m_mvMatrixLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->uniformLocation("mvMatrix");
+    m_model->m_normalMatrixLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->uniformLocation("normalMatrix");
+    m_model->m_lightPosLoc[SKINNED] = m_model->m_shaderProg[SKINNED]->uniformLocation("lightPos");
+
+    // Light position is fixed.
+    m_lightPos = glm::vec3(0, 0, 70);
+    glUniform3fv(m_model->m_lightPosLoc[SKINNED], 1, &m_lightPos[0]);
+    m_model->m_shaderProg[SKINNED]->release();
+
+
+    //------------------------------------------------------------------------------------------------
+    // RIG Shader
+    m_model->m_shaderProg[RIG] = new QOpenGLShaderProgram();
+    m_model->m_shaderProg[RIG]->addShaderFromSourceFile(QOpenGLShader::Vertex, "../shader/rigVert.glsl");
+    m_model->m_shaderProg[RIG]->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/rigFrag.glsl");
+    m_model->m_shaderProg[RIG]->addShaderFromSourceFile(QOpenGLShader::Geometry, "../shader/rigGeo.glsl");
+    m_model->m_shaderProg[RIG]->bindAttributeLocation("vertex", 0);
+    m_model->m_shaderProg[RIG]->link();
+
+    m_model->m_shaderProg[RIG]->bind();
+    m_model->m_projMatrixLoc[RIG] = m_model->m_shaderProg[RIG]->uniformLocation("projMatrix");
+    m_model->m_mvMatrixLoc[RIG] = m_model->m_shaderProg[RIG]->uniformLocation("mvMatrix");
+    m_model->m_normalMatrixLoc[RIG] = m_model->m_shaderProg[RIG]->uniformLocation("normalMatrix");
+    m_model->m_shaderProg[RIG]->release();
+
+    m_initGL = true;
+}
+
+void DiffViewer::paintGL()
 {
     if(m_waitingForInitGL)
     {
-        LoadMerge(m_revision);
+        LoadDiff(m_revisionDiff);
         m_waitingForInitGL = false;
     }
 
@@ -295,39 +295,7 @@ void MergedViewer::paintGL()
     }
 }
 
-void MergedViewer::UpdateAnimation()
-{
-    // Set shader params
-    m_model->m_shaderProg[SKINNED]->bind();
-    UploadBonesToShader(m_t, SKINNED);
-    UploadBoneColoursToShader();
-    m_model->m_shaderProg[SKINNED]->release();
-
-    m_model->m_shaderProg[RIG]->bind();
-    UploadBonesToShader(m_t, RIG);
-    m_model->m_shaderProg[RIG]->release();
-}
-
-
-void MergedViewer::DrawMesh()
-{
-    m_model->m_meshVAO[SKINNED].bind();
-    glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
-    glDrawElements(GL_TRIANGLES, 3*m_model->m_meshTris.size(), GL_UNSIGNED_INT, &m_model->m_meshTris[0]);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    m_model->m_meshVAO[SKINNED].release();
-}
-
-void MergedViewer::DrawRig()
-{
-    m_model->m_meshVAO[RIG].bind();
-    glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
-    glDrawArrays(GL_LINES, 0, m_model->m_rigVerts.size());
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    m_model->m_meshVAO[RIG].release();
-}
-
-void MergedViewer::keyPressEvent(QKeyEvent *event)
+void DiffViewer::keyPressEvent(QKeyEvent *event)
 {
     if(event->key() == Qt::Key_W)
     {
@@ -335,36 +303,36 @@ void MergedViewer::keyPressEvent(QKeyEvent *event)
     }
 }
 
-
-
-void MergedViewer::UploadBoneColoursToShader()
+void DiffViewer::UpdateAnimation()
 {
+    // Compute bone transform
+    std::vector<glm::mat4> boneTrans;
+    ComputeBoneTransform(m_t, boneTrans);
+
+    // Upload bone transforms to shaders
+    m_model->m_shaderProg[SKINNED]->bind();
+    UploadBonesToShader(boneTrans, SKINNED);
+    UploadBoneColoursToShader(SKINNED);
+    m_model->m_shaderProg[SKINNED]->release();
+
+    m_model->m_shaderProg[RIG]->bind();
+    UploadBonesToShader(boneTrans, RIG);
+    m_model->m_shaderProg[RIG]->release();
+}
+
+void DiffViewer::UploadBoneColoursToShader(RenderType _rt)
+{
+    //ViewerUtilities::ColourBoneDifferences(m_model->m_rigJointColours, /*animationTime*/ 1.0f, m_model->m_boneMapping, std::shared_ptr<MergedRig>(dynamic_cast<MergedRig*>(m_model->m_rig.get())), m_model->m_rig->m_rootBone);
     glm::vec3 c(0.6f,0.6f,0.6f);
     unsigned int numBones = m_model->m_boneInfo.size();
     for(unsigned int b=0; b<numBones && b<100; b++)
     {
-        glUniform3fv(m_model->m_colourAttrLoc[SKINNED] + b, 1, &c[0] );
+        glUniform3fv(m_model->m_colourAttrLoc[_rt] + b, 1, &c[0] );
     }
 
 }
 
-void MergedViewer::UploadBonesToShader(const float _t, RenderType _rt)
-{
-    std::vector<glm::mat4> bones;
-    BoneTransform(_t, bones);
-    ViewerUtilities::ColourBoneDifferences(m_model->m_rigJointColours, /*animationTime*/ 1.0f, m_model->m_boneMapping, std::shared_ptr<MergedRig>(dynamic_cast<MergedRig*>(m_model->m_rig.get())), m_model->m_rig->m_rootBone);
-    for(unsigned int b=0; b<bones.size() && b<100; b++)
-    {
-        glUniformMatrix4fv(m_model->m_boneUniformLoc[_rt] + b, 1, true, &bones[b][0][0]);
-
-        if(_rt == RenderType::SKINNED)
-        {
-            glUniform3fv(m_model->m_colourAttrLoc[SKINNED] + b, 1, &m_model->m_rigJointColours[b][0] );
-        }
-    }
-}
-
-void MergedViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_transforms)
+void DiffViewer::ComputeBoneTransform(const float _t, std::vector<glm::mat4> &_transforms)
 {
     glm::mat4 identity;
 
@@ -384,3 +352,4 @@ void MergedViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_transf
     ViewerUtilities::ReadNodeHierarchy(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, animationTime, m_model->m_rig, m_model->m_rig->m_rootBone, identity);
 
 }
+

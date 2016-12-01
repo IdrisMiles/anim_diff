@@ -327,15 +327,18 @@ void RevisionViewer::DrawRig()
 
 void RevisionViewer::UpdateAnimation()
 {
+    // Compute bone transform
+    std::vector<glm::mat4> boneTrans;
+    ComputeBoneTransform(m_t, boneTrans);
 
-    // Set shader params
+    // Upload bone transforms to shaders
     m_model->m_shaderProg[SKINNED]->bind();
-    UploadBonesToShader(m_t, SKINNED);
-    UploadBoneColoursToShader();
+    UploadBonesToShader(boneTrans, SKINNED);
+    UploadBoneColoursToShader(SKINNED);
     m_model->m_shaderProg[SKINNED]->release();
 
     m_model->m_shaderProg[RIG]->bind();
-    UploadBonesToShader(m_t, RIG);
+    UploadBonesToShader(boneTrans, RIG);
     m_model->m_shaderProg[RIG]->release();
 }
 
@@ -347,28 +350,26 @@ void RevisionViewer::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void RevisionViewer::UploadBoneColoursToShader()
+void RevisionViewer::UploadBoneColoursToShader(RenderType _rt)
 {
     glm::vec3 c(0.6f,0.6f,0.6f);
     unsigned int numBones = m_model->m_boneInfo.size();
     for(unsigned int b=0; b<numBones && b<100; b++)
     {
-        glUniform3fv(m_model->m_colourAttrLoc[SKINNED] + b, 1, &c[0] );
+        glUniform3fv(m_model->m_colourAttrLoc[_rt] + b, 1, &c[0] );
     }
 
 }
 
-void RevisionViewer::UploadBonesToShader(const float _t, RenderType _rt)
+void RevisionViewer::UploadBonesToShader(const std::vector<glm::mat4> &_boneTransforms, RenderType _rt)
 {
-    std::vector<glm::mat4> bones;
-    BoneTransform(_t, bones);
-    for(unsigned int b=0; b<bones.size() && b<100; b++)
+    for(unsigned int b=0; b<_boneTransforms.size() && b<100; b++)
     {
-        glUniformMatrix4fv(m_model->m_boneUniformLoc[_rt] + b, 1, true, &bones[b][0][0]);
+        glUniformMatrix4fv(m_model->m_boneUniformLoc[_rt] + b, 1, true, &_boneTransforms[b][0][0]);
     }
 }
 
-void RevisionViewer::BoneTransform(const float _t, std::vector<glm::mat4> &_transforms)
+void RevisionViewer::ComputeBoneTransform(const float _t, std::vector<glm::mat4> &_transforms)
 {
     glm::mat4 identity;
 
