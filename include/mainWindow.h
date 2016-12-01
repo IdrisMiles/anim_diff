@@ -5,9 +5,11 @@
 // Qt includes
 #include <QMainWindow>
 #include <QPushButton>
+#include <memory>
 
 #include "revisionViewer.h"
 
+class RepoController;
 
 namespace Ui {
 class MainWindow;
@@ -34,6 +36,8 @@ private:
 
     std::vector<RevisionViewer*> m_revisions;
     QPushButton * m_loadRevisionButton;
+
+    std::unique_ptr<RepoController> m_repoController;
 };
 
 #endif // MAINWINDOW_H

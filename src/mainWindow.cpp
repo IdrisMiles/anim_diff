@@ -3,9 +3,12 @@
 #include <QFileDialog>
 #include <QGridLayout>
 
+#include "repoController.h"
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    m_repoController(new RepoController())
 {
     ui->setupUi(this);
 
