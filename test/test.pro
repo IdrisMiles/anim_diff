@@ -5,7 +5,7 @@ TARGET = test
 TEMPLATE = app
 
 INCLUDEPATH += . ../include /usr/local/include /usr/include \
-                /home/idris/dev/include
+                /home/idris/dev/include ${HOME}/libs
 
 LIBS += -L/usr/local/lib -L/usr/lib -lGL -lGLU -lGLEW  \
         -L${HOME}/dev/lib -L/usr/local/lib -lassimp -lgtest \
@@ -13,6 +13,7 @@ LIBS += -L/usr/local/lib -L/usr/lib -lGL -lGLU -lGLEW  \
 
 # adding sources manually, because of qt include things
 SOURCES +=      diffTest.cpp                    \
+                ../src/diffFunctions.cpp         \
                 ../src/revisionUtils.cpp        \
                 ../src/revisionNode.cpp         \
                 ../src/revisionDiff.cpp         \
@@ -23,6 +24,6 @@ SOURCES +=      diffTest.cpp                    \
                 ../src/boneAnim.cpp             \
                 ../src/boneAnimDiff.cpp         \
                 ../src/viewerUtilities.cpp      \
-                ../src/boneAnimDelta.cpp           
+                ../src/bone.cpp                    
 
-CONFIG += qt console c++11
+CONFIG += console c++11 debug

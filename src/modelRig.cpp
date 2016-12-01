@@ -12,8 +12,3 @@ ModelRig::~ModelRig()
 {
     
 }
-
-bool ModelRig::hasAnimation()
-{
-    return m_boneAnims.empty();
-}

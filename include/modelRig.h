@@ -12,8 +12,6 @@ public:
     ModelRig();
     ~ModelRig();
 
-    bool hasAnimation();
-
     double m_ticks;
     double m_duration;
 

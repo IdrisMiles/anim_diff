@@ -20,6 +20,26 @@
             "windows": {
                 "MIMode": "gdb"
             }
+        },
+        {
+            "name": "Test launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/test/test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}/test",
+            "environment": [],
+            "externalConsole": true,
+            "linux": {
+                "MIMode": "gdb"
+            },
+            "osx": {
+                "MIMode": "lldb"
+            },
+            "windows": {
+                "MIMode": "gdb"
+            }
         }
     ]
 }
