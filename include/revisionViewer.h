@@ -47,8 +47,14 @@ protected:
     /// @brief Method to handle key input
     virtual void keyPressEvent(QKeyEvent *event) override;
 
-    /// @brief Method to initialise all the relevant VAO and VBO's to draw an animated mesh.
-    virtual void InitVAO();
+    void CreateShaders();
+    void CreateVAOs();
+
+    void DeleteShaders();
+    void DeleteVAOs();
+
+    virtual void UpdateVAOs();
+
 
     /// @brief Method to draw the model mesh.
     void DrawMesh();
@@ -69,8 +75,6 @@ protected:
     virtual void ComputeBoneTransform(const float _t, std::vector<glm::mat4> &_transforms);
 
 
-
-
     bool m_revisionLoaded;
     bool m_initGL;
     bool m_waitingForInitGL;
@@ -87,6 +91,30 @@ protected:
     // Revision stuff
     std::shared_ptr<RevisionNode> m_revision;
     std::shared_ptr<Model> m_model;
+
+
+    // OpenGL VAO and BO's
+    QOpenGLVertexArrayObject m_meshVAO[NUMRENDERTYPES];
+    QOpenGLBuffer m_meshVBO[NUMRENDERTYPES];
+    QOpenGLBuffer m_meshNBO[NUMRENDERTYPES];
+    QOpenGLBuffer m_meshIBO[NUMRENDERTYPES];
+    QOpenGLBuffer m_meshBWBO[NUMRENDERTYPES];
+    QOpenGLBuffer m_meshCBO[NUMRENDERTYPES];
+
+    // Shader locations
+    GLuint m_vertAttrLoc[NUMRENDERTYPES];
+    GLuint m_normAttrLoc[NUMRENDERTYPES];
+    GLuint m_boneIDAttrLoc[NUMRENDERTYPES];
+    GLuint m_boneWeightAttrLoc[NUMRENDERTYPES];
+    GLuint m_boneUniformLoc[NUMRENDERTYPES];
+    GLuint m_colourLoc[NUMRENDERTYPES];
+    GLuint m_colourAttrLoc[NUMRENDERTYPES];
+    GLuint m_projMatrixLoc[NUMRENDERTYPES];
+    GLuint m_mvMatrixLoc[NUMRENDERTYPES];
+    GLuint m_normalMatrixLoc[NUMRENDERTYPES];
+    GLuint m_lightPosLoc[NUMRENDERTYPES];
+
+    QOpenGLShaderProgram *m_shaderProg[NUMRENDERTYPES];
 
 };
 

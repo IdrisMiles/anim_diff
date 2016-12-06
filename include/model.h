@@ -30,7 +30,6 @@ public:
     ~Model();
 
     void LoadModel(const std::string &_modelFile);
-    void SetShader(QOpenGLShaderProgram **_shaderProg);
 
     void InitModelMesh(const aiScene *_scene);
     void InitRigMesh(const aiScene *_scene);
@@ -65,29 +64,6 @@ public:
     std::vector<BoneTransformData> m_boneInfo;
     std::map<std::string, unsigned int> m_boneMapping;
     glm::mat4 m_globalInverseTransform;
-
-    // OpenGL VAO and BO's
-    QOpenGLVertexArrayObject m_meshVAO[NUMRENDERTYPES];
-    QOpenGLBuffer m_meshVBO[NUMRENDERTYPES];
-    QOpenGLBuffer m_meshNBO[NUMRENDERTYPES];
-    QOpenGLBuffer m_meshIBO[NUMRENDERTYPES];
-    QOpenGLBuffer m_meshBWBO[NUMRENDERTYPES];
-    QOpenGLBuffer m_meshCBO[NUMRENDERTYPES];
-
-    // Shader locations
-    GLuint m_vertAttrLoc[NUMRENDERTYPES];
-    GLuint m_normAttrLoc[NUMRENDERTYPES];
-    GLuint m_boneIDAttrLoc[NUMRENDERTYPES];
-    GLuint m_boneWeightAttrLoc[NUMRENDERTYPES];
-    GLuint m_boneUniformLoc[NUMRENDERTYPES];
-    GLuint m_colourLoc[NUMRENDERTYPES];
-    GLuint m_colourAttrLoc[NUMRENDERTYPES];
-    GLuint m_projMatrixLoc[NUMRENDERTYPES];
-    GLuint m_mvMatrixLoc[NUMRENDERTYPES];
-    GLuint m_normalMatrixLoc[NUMRENDERTYPES];
-    GLuint m_lightPosLoc[NUMRENDERTYPES];
-
-    QOpenGLShaderProgram *m_shaderProg[NUMRENDERTYPES];
 
 };
 

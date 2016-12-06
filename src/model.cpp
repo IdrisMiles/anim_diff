@@ -77,12 +77,6 @@ void Model::LoadModel(const std::string &_modelFile)
 }
 
 
-void Model::SetShader(QOpenGLShaderProgram **_shaderProg)
-{
-    m_shaderProg[SKINNED] = _shaderProg[SKINNED];
-    m_shaderProg[RIG] = _shaderProg[RIG];
-}
-
 void Model::InitModelMesh(const aiScene *_scene)
 {
     if(_scene->HasMeshes())

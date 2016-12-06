@@ -42,7 +42,7 @@ protected:
     virtual void keyPressEvent(QKeyEvent *event) override;
 
     /// @brief Method to initialise all the relevant VAO and VBO's to draw an animated mesh and rig.
-    virtual void InitVAO();
+    virtual void UpdateVAOs();
 
     void ComputeBoneColours(const float _t, std::vector<glm::vec3> &_rigJointColour);
 
