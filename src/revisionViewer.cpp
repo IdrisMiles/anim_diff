@@ -69,14 +69,13 @@ void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
     }
 
     makeCurrent();
-
     InitVAO();
+    doneCurrent();
 
     m_animTimer->start(1000*m_dt);
     m_drawTimer->start(1000*m_dt);
 
     m_revisionLoaded = true;
-    doneCurrent();
 }
 
 
