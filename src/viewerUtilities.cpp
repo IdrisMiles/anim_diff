@@ -255,15 +255,21 @@ const aiNode* ViewerUtilities::GetNode(const aiNode *_aiNode, std::string _name)
 
 void ViewerUtilities::ReadNodeHierarchy(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, std::shared_ptr<ModelRig> _pRig, std::shared_ptr<Bone> _pBone, const glm::mat4& _parentTransform)
 {
-    if(!_pBone)
+    if(_pBone == nullptr)
     {
         return;
+    }
+
+    int BoneIndex = -1;
+    if (_boneMapping.find(_pBone->m_name) != _boneMapping.end())
+    {
+        BoneIndex = _boneMapping.at(_pBone->m_name);
     }
 
     // Set defualt to bind pose
     glm::mat4 nodeTransform(_pBone->m_transform);
 
-    const BoneAnim* pBoneAnim = &_pRig->m_boneAnims[_pBone->m_name];// _pBone->m_boneAnim;
+    const BoneAnim* pBoneAnim = &_pRig->m_boneAnims[_pBone->m_name];
 
 
     // Interpolate scaling and generate scaling transformation matrix
@@ -291,8 +297,8 @@ void ViewerUtilities::ReadNodeHierarchy(const std::map<std::string, unsigned int
     glm::mat4 globalTransformation = glm::transpose(nodeTransform)*_parentTransform;
 
 
-    if (_boneMapping.find(_pBone->m_name) != _boneMapping.end()) {
-        uint BoneIndex = _boneMapping.at(_pBone->m_name);
+    if (BoneIndex != -1)
+    {
         _pBone->m_currentTransform = _boneInfo[BoneIndex] = _pBone->m_boneOffset * globalTransformation * _globalInverseTransform;
     }
 
@@ -304,7 +310,7 @@ void ViewerUtilities::ReadNodeHierarchy(const std::map<std::string, unsigned int
 }
 
 
-void ViewerUtilities::ReadNodeHierarchyMasterBranch(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, const std::vector<float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, std::shared_ptr<ModelRig> _pBranchRig, std::shared_ptr<Bone> _pBranchBone, const glm::mat4& _parentTransform)
+void ViewerUtilities::ReadNodeHierarchyMasterBranch(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, const std::unordered_map<std::string, float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, std::shared_ptr<ModelRig> _pBranchRig, std::shared_ptr<Bone> _pBranchBone, const glm::mat4& _parentTransform)
 {
     if(_pMasterBone == nullptr || _pBranchRig == nullptr)
     {
@@ -323,7 +329,7 @@ void ViewerUtilities::ReadNodeHierarchyMasterBranch(const std::map<std::string, 
     const BoneAnim* pMasterBoneAnim = &_pMasterRig->m_boneAnims[_pMasterBone->m_name];
     const BoneAnim* pBranchBoneAnim = &_pBranchRig->m_boneAnims[_pBranchBone->m_name];
 
-    float delta = _boneDeltas[BoneIndex];
+    float delta = _boneDeltas.at(_pMasterBone->m_name);
 
 
     // Interpolate scaling and generate scaling transformation matrix
@@ -369,7 +375,7 @@ void ViewerUtilities::ReadNodeHierarchyMasterBranch(const std::map<std::string, 
     }
 }
 
-void ViewerUtilities::ReadNodeHierarchyDiff(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, const std::vector<float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, DiffRig _pDiffRig, const glm::mat4& _parentTransform)
+void ViewerUtilities::ReadNodeHierarchyDiff(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, const std::unordered_map<std::string, float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, DiffRig _pDiffRig, const glm::mat4& _parentTransform)
 {
     if(_pMasterBone == nullptr)
     {
@@ -388,7 +394,7 @@ void ViewerUtilities::ReadNodeHierarchyDiff(const std::map<std::string, unsigned
     const BoneAnim* pMasterBoneAnim = &_pMasterRig->m_boneAnims[_pMasterBone->m_name];
     const BoneAnimDiff* pBoneAnimDiff = &_pDiffRig.m_boneAnimDiffs[_pMasterBone->m_name];
 
-    float delta = _boneDeltas[BoneIndex];
+    float delta = _boneDeltas.at(_pMasterBone->m_name);
 
 
     // Interpolate scaling and generate scaling transformation matrix
@@ -397,7 +403,8 @@ void ViewerUtilities::ReadNodeHierarchyDiff(const std::map<std::string, unsigned
     CalcInterpolatedScaling(masterScalingVec, _animationTime, pMasterBoneAnim);
     CalcInterpolatedScaling(deltaScalingVec, _animationTime, pBoneAnimDiff);
     glm::vec3 scalingVec = masterScalingVec + (delta * deltaScalingVec);
-    glm::mat4 scalingMat = glm::scale(scalingMat, scalingVec);
+    glm::mat4 scalingMat;
+    scalingMat = glm::scale(scalingMat, scalingVec);
 
     // Interpolate rotation and generate rotation transformation matrix
     glm::quat masterRotationQ;
@@ -405,7 +412,8 @@ void ViewerUtilities::ReadNodeHierarchyDiff(const std::map<std::string, unsigned
     CalcInterpolatedRotation(masterRotationQ, _animationTime, pMasterBoneAnim);
     CalcInterpolatedRotation(deltaRotationQ, _animationTime, pBoneAnimDiff);
     glm::quat rotationQ = masterRotationQ * glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)), deltaRotationQ, delta);
-    glm::mat4 rotationMat = glm::mat4_cast(rotationQ);
+    glm::mat4 rotationMat(1.0f);
+    rotationMat = glm::mat4_cast(rotationQ);
 
     // Interpolate translation and generate translation transformation matrix
     glm::vec3 masterTranslationVec;
@@ -757,7 +765,7 @@ void ViewerUtilities::ColourBoneDifferences(std::vector<glm::vec3> &_rigJointCol
 
 
 
-void ViewerUtilities::ColourBoneDifferences(const std::map<std::string, unsigned int> &_boneMapping, const float _animationTime, const std::vector<float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, DiffRig _pDiffRig, std::vector<glm::vec3> &_rigJointColour)
+void ViewerUtilities::ColourBoneDifferences(const std::map<std::string, unsigned int> &_boneMapping, const float _animationTime, const std::unordered_map<std::string, float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, DiffRig _pDiffRig, std::vector<glm::vec3> &_rigJointColour)
 {
     if(_pMasterBone == nullptr)
     {
@@ -773,7 +781,7 @@ void ViewerUtilities::ColourBoneDifferences(const std::map<std::string, unsigned
     const BoneAnim* pMasterBoneAnim = &_pMasterRig->m_boneAnims[_pMasterBone->m_name];
     const BoneAnimDiff* pBoneAnimDiff = &_pDiffRig.m_boneAnimDiffs[_pMasterBone->m_name];
 
-    float delta = _boneDeltas[BoneIndex];
+    float delta = _boneDeltas.at(_pMasterBone->m_name);
 
 
     // Interpolate scaling and generate scaling transformation matrix
@@ -781,27 +789,30 @@ void ViewerUtilities::ColourBoneDifferences(const std::map<std::string, unsigned
     glm::vec3 deltaScalingVec;
     CalcInterpolatedScaling(masterScalingVec, _animationTime, pMasterBoneAnim);
     CalcInterpolatedScaling(deltaScalingVec, _animationTime, pBoneAnimDiff);
-    glm::vec3 scalingVec = masterScalingVec + (delta * deltaScalingVec);
+    glm::vec3 scalingVec = /*masterScalingVec + */(delta * deltaScalingVec);
 
     // Interpolate rotation and generate rotation transformation matrix
     glm::quat masterRotationQ;
     glm::quat deltaRotationQ;
     CalcInterpolatedRotation(masterRotationQ, _animationTime, pMasterBoneAnim);
     CalcInterpolatedRotation(deltaRotationQ, _animationTime, pBoneAnimDiff);
-    glm::quat rotationQ = masterRotationQ * glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)), deltaRotationQ, delta);
+    glm::quat rotationQ = /*masterRotationQ **/ glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)), deltaRotationQ, delta);
 
     // Interpolate translation and generate translation transformation matrix
     glm::vec3 masterTranslationVec;
     glm::vec3 deltaTranslationVec;
     CalcInterpolatedPosition(masterTranslationVec, _animationTime, pMasterBoneAnim);
     CalcInterpolatedPosition(deltaTranslationVec, _animationTime, pBoneAnimDiff);
-    glm::vec3 translationVec = masterTranslationVec + (delta * deltaTranslationVec);
+    glm::vec3 translationVec = /*masterTranslationVec + */(delta * deltaTranslationVec);
 
     // Check if this keyframe has been flagged as different
     glm::vec3 jointColour;
-    if( (scalingVec == glm::vec3(0,0,0))    &&
-        (translationVec == glm::vec3(0,0,0))&&
-        (rotationQ == glm::quat(0,0,0,0))       )
+//    if( (scalingVec == glm::vec3(0,0,0))    &&
+//        (translationVec == glm::vec3(0,0,0))&&
+//        (rotationQ == glm::quat(0,0,0,0))       )
+    if( (glm::length2(scalingVec) < FLT_EPSILON)        &&
+        (glm::length2(translationVec) < FLT_EPSILON)    &&
+        (glm::length2(glm::eulerAngles(rotationQ)) < FLT_EPSILON)   )
     {
         // Joint has NO difference - green
         jointColour = glm::vec3(0.0f, 1.0f, 0.0f);

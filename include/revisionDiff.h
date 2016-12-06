@@ -16,8 +16,8 @@ public:
     void setDiffRig(DiffRig _rig);
     DiffRig getDiffRig();
 
-    void SetBoneDeltas(const std::vector<float> &_boneDeltas);
-    std::vector<float> getBoneDeltas() const;
+    void SetBoneDeltas(const std::unordered_map<std::string, float> &_boneDeltas);
+    std::unordered_map<std::string, float> getBoneDeltas() const;
 
     std::shared_ptr<RevisionNode> getMasterNode();
     std::shared_ptr<RevisionNode> getBranchNode();
@@ -27,7 +27,7 @@ private:
     std::shared_ptr<RevisionNode> m_branchNode;
 
     DiffRig m_rig;
-    std::vector<float> m_boneDeltas;
+    std::unordered_map<std::string, float> m_boneDeltas;
 };
 
 #endif // REVISIONDIFF_H

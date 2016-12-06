@@ -248,6 +248,13 @@ void DiffViewer::UploadBoneColoursToShader(std::vector<glm::vec3> &_rigJointColo
     {
         glUniform3fv(m_colourAttrLoc[_rt] + b, 1, &_rigJointColour[b][0] );
     }
+
+//    glm::vec3 c(0.6f,0.6f,0.6f);
+//    unsigned int numBones = m_model->m_boneInfo.size();
+//    for(unsigned int b=0; b<numBones && b<100; b++)
+//    {
+//        glUniform3fv(m_colourAttrLoc[_rt] + b, 1, &c[0] );
+//    }
 }
 
 void DiffViewer::ComputeBoneColours(const float _t, std::vector<glm::vec3> &_rigJointColour)
@@ -268,9 +275,12 @@ void DiffViewer::ComputeBoneTransform(const float _t, std::vector<glm::mat4> &_t
 
     unsigned int numBones = m_model->m_boneInfo.size();
     _transforms.resize(numBones);
+    std::unordered_map<std::string, float> boneDeltas = m_revisionDiff->getBoneDeltas();
 
     //ViewerUtilities::ReadNodeHierarchyMasterBranch(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, animationTime, m_revisionDiff->getBoneDeltas(), m_model->m_rig, m_model->m_rig->m_rootBone, m_modelDiff->m_rig, m_modelDiff->m_rig->m_rootBone, identity);
-    ViewerUtilities::ReadNodeHierarchyDiff(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, _t, m_revisionDiff->getBoneDeltas(), m_model->m_rig, m_model->m_rig->m_rootBone, m_revisionDiff->getDiffRig(), identity);
+
+    ViewerUtilities::ReadNodeHierarchyDiff(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, _t, boneDeltas, m_model->m_rig, m_model->m_rig->m_rootBone, m_revisionDiff->getDiffRig(), identity);
+    //ViewerUtilities::ReadNodeHierarchy(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, _t, m_model->m_rig, m_model->m_rig->m_rootBone, identity);
 
 }
 

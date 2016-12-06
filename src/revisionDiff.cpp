@@ -6,6 +6,10 @@ RevisionDiff::RevisionDiff(std::shared_ptr<RevisionNode> _master, std::shared_pt
     m_masterNode(_master),
     m_branchNode(_branch)
 {
+    for(auto bone : m_masterNode->m_model->m_rig->m_boneAnims)
+    {
+        m_boneDeltas[bone.first] = 0.5;
+    }
 
 }
 
@@ -24,12 +28,12 @@ DiffRig RevisionDiff::getDiffRig()
     return m_rig;
 }
 
-void RevisionDiff::SetBoneDeltas(const std::vector<float> &_boneDeltas)
+void RevisionDiff::SetBoneDeltas(const std::unordered_map<std::__cxx11::string, float> &_boneDeltas)
 {
     m_boneDeltas = _boneDeltas;
 }
 
-std::vector<float> RevisionDiff::getBoneDeltas() const
+std::unordered_map<std::__cxx11::string, float> RevisionDiff::getBoneDeltas() const
 {
     return m_boneDeltas;
 }
