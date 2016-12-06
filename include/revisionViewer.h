@@ -68,7 +68,8 @@ protected:
     /// @param _transforms : bone transforms to be updated before sending to shader
     virtual void ComputeBoneTransform(const float _t, std::vector<glm::mat4> &_transforms);
 
-
+    /// @brief emptites all the data we have for th existing revisionNode.
+    virtual void ClearRevision();
 
 
     bool m_revisionLoaded;
