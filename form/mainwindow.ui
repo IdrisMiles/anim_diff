@@ -26,6 +26,8 @@
       <property name="title">
        <string>Difference</string>
       </property>
+        <layout class="QGridLayout" name="gridLayout_5">
+      </layout>
      </widget>
     </item>
     <item row="2" column="0" colspan="3">
