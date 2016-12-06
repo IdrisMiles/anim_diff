@@ -35,7 +35,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_animTimer = new QTimer(this);
     connect(m_animTimer, SIGNAL(timeout()), this, SLOT(UpdateRevisionTimers()));
     m_animTimer->start(1000*m_dt);
-
 }
 
 MainWindow::~MainWindow()
