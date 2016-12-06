@@ -4,6 +4,8 @@
 #include <QGridLayout>
 
 #include "repoController.h"
+#include "revisionViewer.h"
+#include "diffViewer.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -28,39 +30,8 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::LoadRevision()
-{
-    // this is all a hack and will be changed with the new UI
-    if(m_revisionViewers.size() >= 2) return;
-
-    QString file = QFileDialog::getOpenFileName(this,QString("Open File"), QString("./"), QString("3D files (*.*)"));
-
-    if (file.isNull())
-    {
-        return;
-    }
-
-    m_revisionViewers.push_back(new RevisionViewer(this));
-
-    if(m_revisionViewers.empty())
-    {
-        auto node = m_repoController->loadMainNode(file.toStdString());
-        m_revisionViewers.back()->LoadRevision(node);
-    }
-    else
-    {
-        auto node = m_repoController->loadCompareNode(file.toStdString());
-        m_revisionViewers.back()->LoadRevision(node);
-    }
-
-    ui->gridLayout->addWidget(m_revisionViewers.back(), 1, m_revisionViewers.size(), 1, 1);
-}
-
 void MainWindow::LoadMasterRevision()
 {
-    // this is all a hack and will be changed with the new UI
-    if(m_revisionViewers.size() >= 2) return;
-
     QString file = QFileDialog::getOpenFileName(this,QString("Open File"), QString("./"), QString("3D files (*.*)"));
 
     if (file.isNull())
@@ -68,29 +39,20 @@ void MainWindow::LoadMasterRevision()
         return;
     }
 
-    m_revisionViewers.push_back(new RevisionViewer(this));
-
-    if(m_revisionViewers.empty())
+    // first time intialise
+    if(!m_masterViewer)
     {
-        auto node = m_repoController->loadMainNode(file.toStdString());
-        m_revisionViewers.back()->LoadRevision(node);
-    }
-    else
-    {
-        auto node = m_repoController->loadCompareNode(file.toStdString());
-        m_revisionViewers.back()->LoadRevision(node);
+        m_masterViewer.reset(new RevisionViewer(this));
+        ui->s_masterRevGB->layout()->addWidget(m_masterViewer.get());
+        ui->s_masterRevBtn->hide();
     }
 
-    ui->s_masterRevGB->layout()->addWidget(m_revisionViewers.back());
-    ui->s_masterRevBtn->hide();
-    //ui->gridLayout->addWidget(m_revisionViewers.back(), 1, m_revisionViewers.size(), 1, 1);
+    auto node = m_repoController->loadMainNode(file.toStdString());
+    m_masterViewer->LoadRevision(node);
 }
 
 void MainWindow::LoadBranchRevision()
 {
-    // this is all a hack and will be changed with the new UI
-    if(m_revisionViewers.size() >= 2) return;
-
     QString file = QFileDialog::getOpenFileName(this,QString("Open File"), QString("./"), QString("3D files (*.*)"));
 
     if (file.isNull())
@@ -98,29 +60,22 @@ void MainWindow::LoadBranchRevision()
         return;
     }
 
-    m_revisionViewers.push_back(new RevisionViewer(this));
-
-    if(m_revisionViewers.empty())
+    if(!m_branchViewer)
     {
-        auto node = m_repoController->loadMainNode(file.toStdString());
-        m_revisionViewers.back()->LoadRevision(node);
-    }
-    else
-    {
-        auto node = m_repoController->loadCompareNode(file.toStdString());
-        m_revisionViewers.back()->LoadRevision(node);
+        m_branchViewer.reset(new RevisionViewer(this));
+        ui->s_branchRevGB->layout()->addWidget(m_branchViewer.get());
+        ui->s_branchRevBtn->hide();
     }
 
-    ui->s_branchRevGB->layout()->addWidget(m_revisionViewers.back());
-    ui->s_branchRevBtn->hide();
-    //ui->gridLayout->addWidget(m_revisionViewers.back(), 1, m_revisionViewers.size(), 1, 1);
+    auto node = m_repoController->loadCompareNode(file.toStdString());
+    m_branchViewer->LoadRevision(node);
 }
 
 void MainWindow::UpdateRevisionTimers()
 {
     m_time += m_dt;
-    for(auto rev : m_revisionViewers)
-    {
-        rev->SetTime(m_time);
-    }
+
+    if(m_masterViewer) m_masterViewer->SetTime(m_time);
+    if(m_branchViewer) m_branchViewer->SetTime(m_time);
+    if(m_diffViewer) m_diffViewer->SetTime(m_time);
 }
