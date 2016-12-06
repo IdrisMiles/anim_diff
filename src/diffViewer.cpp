@@ -54,6 +54,7 @@ void DiffViewer::LoadDiff(std::shared_ptr<RevisionDiff> _diff)
     m_revisionDiff = _diff;
     m_revision = m_revisionDiff->getMasterNode();
     m_model = m_revision->m_model;
+    m_modelDiff = m_revisionDiff->getBranchNode()->m_model;
 
     if(!m_initGL)
     {
@@ -349,7 +350,7 @@ void DiffViewer::ComputeBoneTransform(const float _t, std::vector<glm::mat4> &_t
     float timeInTicks = _t * m_model->m_ticksPerSecond;
     float animationTime = fmod(timeInTicks, m_model->m_animationDuration);
 
-    ViewerUtilities::ReadNodeHierarchy(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, animationTime, m_model->m_rig, m_model->m_rig->m_rootBone, identity);
+    ViewerUtilities::ReadNodeHierarchyMasterBranch(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, animationTime, m_revisionDiff->getBoneDeltas(), m_model->m_rig, m_model->m_rig->m_rootBone, m_modelDiff->m_rig, m_modelDiff->m_rig->m_rootBone, identity);
 
 }
 

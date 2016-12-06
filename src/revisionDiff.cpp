@@ -24,6 +24,16 @@ DiffRig RevisionDiff::getDiffRig()
     return m_rig;
 }
 
+void RevisionDiff::SetBoneDeltas(const std::vector<float> &_boneDeltas)
+{
+    m_boneDeltas = _boneDeltas;
+}
+
+std::vector<float> RevisionDiff::getBoneDeltas() const
+{
+    return m_boneDeltas;
+}
+
 std::shared_ptr<RevisionNode> RevisionDiff::getMasterNode()
 {
     return m_masterNode;

@@ -23,6 +23,8 @@
 
 namespace ViewerUtilities
 {
+    //-----------------------------------------------------------------------------------------------------------------------------
+    // Assimp viewer stuff
     /// @brief Method to convert Assimps aiMatrix4x4 class to a glm::mat4 class. This is useful for sending assimps matrices to opengl.
     /// @param m : The matrix to convert.
     glm::mat4 ConvertToGlmMat(const aiMatrix4x4 &m);
@@ -88,6 +90,7 @@ namespace ViewerUtilities
     const aiNode* GetNode(const aiNode *_aiNode, std::string _name);
 
     //-----------------------------------------------------------------------------------------------------------------------------
+    // Revision viewer stuff
     void ReadNodeHierarchy(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, std::shared_ptr<ModelRig> _pRig, std::shared_ptr<Bone> _pBone, const glm::mat4& _parentTransform);
 
     BoneAnim FindBoneAnim(ModelRig _pRig, std::string _nodeName);
@@ -111,6 +114,24 @@ namespace ViewerUtilities
     void CopyRigStructure(const std::map<std::string, unsigned int> &_boneMapping, const aiScene *_aiScene, aiNode *_aiNode, std::shared_ptr<ModelRig> _rig, std::shared_ptr<Bone> _parentBone, const glm::mat4 &_parentTransform);
 
     void ColourBoneDifferences(std::vector<glm::vec3> &_rigJointColour, const float _animationTime, const std::map<std::string, unsigned int> &_boneMapping, std::shared_ptr<ModelRig> _pModelRig, std::shared_ptr<DiffRig> _pDiffRig,  std::shared_ptr<Bone> _pBone);
+
+    //-----------------------------------------------------------------------------------------------------------------------------
+    // Diff viewer stuff
+    void ReadNodeHierarchyMasterBranch(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, const std::vector<float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, std::shared_ptr<ModelRig> _pBranchRig, std::shared_ptr<Bone> _pBranchBone, const glm::mat4& _parentTransform);
+
+    void ReadNodeHierarchyDiff(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, const std::vector<float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, std::shared_ptr<DiffRig> _pDiffRig, const glm::mat4& _parentTransform);
+
+    void CalcInterpolatedRotation(glm::quat& _out, const float _animationTime, const BoneAnimDiff* _pBoneAninDiff);
+
+    void CalcInterpolatedPosition(glm::vec3& _out, const float _animationTime, const BoneAnimDiff* _boneAnimDiff);
+
+    void CalcInterpolatedScaling(glm::vec3& _out, const float _animationTime, const BoneAnimDiff* _boneAnimDiff);
+
+    uint FindRotationKeyFrame(const float _animationTime, const BoneAnimDiff* _pBoneAnimDiff);
+
+    uint FindPositionKeyFrame(const float _animationTime, const BoneAnimDiff* _pBoneAnimDiff);
+
+    uint FindScalingKeyFrame(const float _animationTime, const BoneAnimDiff* _pBoneAnimDiff);
 
 }
 

@@ -58,6 +58,7 @@ protected:
 
     // Revision stuff
     std::shared_ptr<RevisionDiff> m_revisionDiff;
+    std::shared_ptr<Model> m_modelDiff;
 };
 
 #endif // DIFFVIEWER_H
