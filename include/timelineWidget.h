@@ -21,6 +21,8 @@ public slots:
 
 signals:
     void newTime(double _time);
+    void play();
+    void pause();
 
 private:
 
