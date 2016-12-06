@@ -2,6 +2,9 @@
 #include "viewerUtilities.h"
 #include <iostream>
 #include <glm/gtx/transform.hpp>
+#include <float.h>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 //-----------------------------------------------------------------------------------------------------------------------------------------
 // ViewerUtilities for ASSIMP animation structures
@@ -366,7 +369,7 @@ void ViewerUtilities::ReadNodeHierarchyMasterBranch(const std::map<std::string, 
     }
 }
 
-void ViewerUtilities::ReadNodeHierarchyDiff(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, const std::vector<float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, std::shared_ptr<DiffRig> _pDiffRig, const glm::mat4& _parentTransform)
+void ViewerUtilities::ReadNodeHierarchyDiff(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, const std::vector<float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, DiffRig _pDiffRig, const glm::mat4& _parentTransform)
 {
     if(_pMasterBone == nullptr)
     {
@@ -383,7 +386,7 @@ void ViewerUtilities::ReadNodeHierarchyDiff(const std::map<std::string, unsigned
     glm::mat4 nodeTransform(_pMasterBone->m_transform);
 
     const BoneAnim* pMasterBoneAnim = &_pMasterRig->m_boneAnims[_pMasterBone->m_name];
-    const BoneAnimDiff* pBoneAnimDiff = &_pDiffRig->m_boneAnimDiffs[_pMasterBone->m_name];
+    const BoneAnimDiff* pBoneAnimDiff = &_pDiffRig.m_boneAnimDiffs[_pMasterBone->m_name];
 
     float delta = _boneDeltas[BoneIndex];
 
@@ -707,54 +710,119 @@ void ViewerUtilities::CopyRigStructure(const std::map<std::string, unsigned int>
     }
 }
 
-void ViewerUtilities::ColourBoneDifferences(std::vector<glm::vec3> &_rigJointColour, const float _animationTime, const std::map<std::string, unsigned int> &_boneMapping, std::shared_ptr<ModelRig> _pModelRig, std::shared_ptr<DiffRig> _pDiffRig, std::shared_ptr<Bone> _pBone)
+void ViewerUtilities::ColourBoneDifferences(std::vector<glm::vec3> &_rigJointColour, const float _animationTime, const std::map<std::string, unsigned int> &_boneMapping, std::shared_ptr<ModelRig> _pModelRig, DiffRig _pDiffRig, std::shared_ptr<Bone> _pBone)
 {
-//    if(!_pBone)
-//    {
-//        return;
-//    }
+    /*
+    if(!_pBone)
+    {
+        return;
+    }
 
-//    // Get keyframe for animation time
-//    uint frameIndex;
-//    for (uint i = 0 ; i < _pModelRig->m_boneDiffFlag[_pBone->m_name].size() - 1 ; i++) {
-//        if (_animationTime < (float)_pModelRig->m_boneDiffFlag[_pBone->m_name][i+1].time)
-//        {
-//            frameIndex =  i;
-//        }
-//    }
-//    uint nextframeIndex = (frameIndex + 1);
+    // Get keyframe for animation time
+    uint RotationIndex = FindRotationKeyFrame(_animationTime, _pBoneAninDiff);
+    uint PositionIndex = FindPositionKeyFrame(_animationTime, _pBoneAninDiff);
+    uint ScalingIndex = FindScalingKeyFrame(_animationTime, _pBoneAninDiff);
+    uint frameIndex = (RotationIndex < PositionIndex) ? (RotationIndex < ScalingIndex ? RotationIndex : ScalingIndex) : (PositionIndex < ScalingIndex ? PositionIndex : ScalingIndex);
+    uint nextframeIndex = (frameIndex + 1);
 
-
-//    // Check if this keyframe has been flagged as different
-//    glm::vec3 jointColour;
-//    if( _pModelRig->m_boneDiffFlag[_pBone->m_name][frameIndex].flag == DiffFlagEnum::NONE &&
-//        _pModelRig->m_boneDiffFlag[_pBone->m_name][nextframeIndex].flag == DiffFlagEnum::NONE)
-//    {
-//        // Joint has NO difference - green
-//        jointColour = glm::vec3(0.0f, 1.0f, 0.0f);
-//    }
-//    else
-//    {
-//        // joint has a difference - red
-//        jointColour = glm::vec3(1.0f, 0.0f, 0.0f);
-//    }
+    // Check if this keyframe has been flagged as different
+    glm::vec3 jointColour;
+    if( _pModelRig->m_boneDiffFlag[_pBone->m_name][frameIndex].flag == DiffFlagEnum::NONE &&
+        _pModelRig->m_boneDiffFlag[_pBone->m_name][nextframeIndex].flag == DiffFlagEnum::NONE)
+    {
+        // Joint has NO difference - green
+        jointColour = glm::vec3(0.0f, 1.0f, 0.0f);
+    }
+    else
+    {
+        // joint has a difference - red
+        jointColour = glm::vec3(1.0f, 0.0f, 0.0f);
+    }
 
 
-//    // set rig joint colour
-//    if (_boneMapping.find(_pBone->m_name) != _boneMapping.end()) {
-//        uint BoneIndex = _boneMapping.at(_pBone->m_name);
-//        _rigJointColour[BoneIndex] = jointColour;
-//    }
+    // set rig joint colour
+    if (_boneMapping.find(_pBone->m_name) != _boneMapping.end()) {
+        uint BoneIndex = _boneMapping.at(_pBone->m_name);
+        _rigJointColour[BoneIndex] = jointColour;
+    }
 
 
-//    // Go through rest of the bones
-//    for (uint i = 0 ; i < _pBone->m_children.size() ; i++)
-//    {
-//        ColourBoneDifferences(_rigJointColour, _animationTime, _boneMapping, _pModelRig, std::shared_ptr<Bone>(_pBone->m_children[i]));
-//    }
+    // Go through rest of the bones
+    for (uint i = 0 ; i < _pBone->m_children.size() ; i++)
+    {
+        ColourBoneDifferences(_rigJointColour, _animationTime, _boneMapping, _pModelRig, _pDiffRig, std::shared_ptr<Bone>(_pBone->m_children[i]));
+    }
+    */
 }
 
 
+
+void ViewerUtilities::ColourBoneDifferences(const std::map<std::string, unsigned int> &_boneMapping, const float _animationTime, const std::vector<float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, DiffRig _pDiffRig, std::vector<glm::vec3> &_rigJointColour)
+{
+    if(_pMasterBone == nullptr)
+    {
+        return;
+    }
+
+    int BoneIndex = -1;
+    if (_boneMapping.find(_pMasterBone->m_name) != _boneMapping.end())
+    {
+        BoneIndex = _boneMapping.at(_pMasterBone->m_name);
+    }
+
+    const BoneAnim* pMasterBoneAnim = &_pMasterRig->m_boneAnims[_pMasterBone->m_name];
+    const BoneAnimDiff* pBoneAnimDiff = &_pDiffRig.m_boneAnimDiffs[_pMasterBone->m_name];
+
+    float delta = _boneDeltas[BoneIndex];
+
+
+    // Interpolate scaling and generate scaling transformation matrix
+    glm::vec3 masterScalingVec;
+    glm::vec3 deltaScalingVec;
+    CalcInterpolatedScaling(masterScalingVec, _animationTime, pMasterBoneAnim);
+    CalcInterpolatedScaling(deltaScalingVec, _animationTime, pBoneAnimDiff);
+    glm::vec3 scalingVec = masterScalingVec + (delta * deltaScalingVec);
+
+    // Interpolate rotation and generate rotation transformation matrix
+    glm::quat masterRotationQ;
+    glm::quat deltaRotationQ;
+    CalcInterpolatedRotation(masterRotationQ, _animationTime, pMasterBoneAnim);
+    CalcInterpolatedRotation(deltaRotationQ, _animationTime, pBoneAnimDiff);
+    glm::quat rotationQ = masterRotationQ * glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)), deltaRotationQ, delta);
+
+    // Interpolate translation and generate translation transformation matrix
+    glm::vec3 masterTranslationVec;
+    glm::vec3 deltaTranslationVec;
+    CalcInterpolatedPosition(masterTranslationVec, _animationTime, pMasterBoneAnim);
+    CalcInterpolatedPosition(deltaTranslationVec, _animationTime, pBoneAnimDiff);
+    glm::vec3 translationVec = masterTranslationVec + (delta * deltaTranslationVec);
+
+    // Check if this keyframe has been flagged as different
+    glm::vec3 jointColour;
+    if( (scalingVec == glm::vec3(0,0,0))    &&
+        (translationVec == glm::vec3(0,0,0))&&
+        (rotationQ == glm::quat(0,0,0,0))       )
+    {
+        // Joint has NO difference - green
+        jointColour = glm::vec3(0.0f, 1.0f, 0.0f);
+    }
+    else
+    {
+        // joint has a difference - red
+        jointColour = glm::vec3(1.0f, 0.0f, 0.0f);
+    }
+
+
+    if (BoneIndex != -1)
+    {
+        _rigJointColour[BoneIndex] = jointColour;
+    }
+
+    for (uint i = 0 ; i < _pMasterBone->m_children.size() ; i++)
+    {
+        ColourBoneDifferences(_boneMapping, _animationTime, _boneDeltas, _pMasterRig, std::shared_ptr<Bone>(_pMasterBone->m_children[i]), _pDiffRig, _rigJointColour);
+    }
+}
 
 
 

@@ -306,14 +306,18 @@ void DiffViewer::keyPressEvent(QKeyEvent *event)
 
 void DiffViewer::UpdateAnimation()
 {
+    float timeInTicks = m_t * m_model->m_ticksPerSecond;
+    float animationTime = fmod(timeInTicks, m_model->m_animationDuration);
+
     // Compute bone transform
     std::vector<glm::mat4> boneTrans;
-    ComputeBoneTransform(m_t, boneTrans);
+    ComputeBoneTransform(animationTime, boneTrans);
+    ComputeBoneColours(animationTime, m_model->m_rigJointColours);
 
     // Upload bone transforms to shaders
     m_model->m_shaderProg[SKINNED]->bind();
     UploadBonesToShader(boneTrans, SKINNED);
-    UploadBoneColoursToShader(SKINNED);
+    UploadBoneColoursToShader(m_model->m_rigJointColours, SKINNED);
     m_model->m_shaderProg[SKINNED]->release();
 
     m_model->m_shaderProg[RIG]->bind();
@@ -321,16 +325,17 @@ void DiffViewer::UpdateAnimation()
     m_model->m_shaderProg[RIG]->release();
 }
 
-void DiffViewer::UploadBoneColoursToShader(RenderType _rt)
+void DiffViewer::UploadBoneColoursToShader(std::vector<glm::vec3> &_rigJointColour, RenderType _rt)
 {
-    //ViewerUtilities::ColourBoneDifferences(m_model->m_rigJointColours, /*animationTime*/ 1.0f, m_model->m_boneMapping, std::shared_ptr<MergedRig>(dynamic_cast<MergedRig*>(m_model->m_rig.get())), m_model->m_rig->m_rootBone);
-    glm::vec3 c(0.6f,0.6f,0.6f);
-    unsigned int numBones = m_model->m_boneInfo.size();
-    for(unsigned int b=0; b<numBones && b<100; b++)
+    for(unsigned int b=0; b<_rigJointColour.size() && b<100; b++)
     {
-        glUniform3fv(m_model->m_colourAttrLoc[_rt] + b, 1, &c[0] );
+        glUniform3fv(m_model->m_colourAttrLoc[_rt] + b, 1, &_rigJointColour[b][0] );
     }
+}
 
+void DiffViewer::ComputeBoneColours(const float _t, std::vector<glm::vec3> &_rigJointColour)
+{
+    ViewerUtilities::ColourBoneDifferences(m_model->m_boneMapping, _t, m_revisionDiff->getBoneDeltas(), m_model->m_rig, m_model->m_rig->m_rootBone, m_revisionDiff->getDiffRig(), m_model->m_rigJointColours);
 }
 
 void DiffViewer::ComputeBoneTransform(const float _t, std::vector<glm::mat4> &_transforms)
@@ -347,10 +352,8 @@ void DiffViewer::ComputeBoneTransform(const float _t, std::vector<glm::mat4> &_t
     unsigned int numBones = m_model->m_boneInfo.size();
     _transforms.resize(numBones);
 
-    float timeInTicks = _t * m_model->m_ticksPerSecond;
-    float animationTime = fmod(timeInTicks, m_model->m_animationDuration);
-
-    ViewerUtilities::ReadNodeHierarchyMasterBranch(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, animationTime, m_revisionDiff->getBoneDeltas(), m_model->m_rig, m_model->m_rig->m_rootBone, m_modelDiff->m_rig, m_modelDiff->m_rig->m_rootBone, identity);
+    //ViewerUtilities::ReadNodeHierarchyMasterBranch(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, animationTime, m_revisionDiff->getBoneDeltas(), m_model->m_rig, m_model->m_rig->m_rootBone, m_modelDiff->m_rig, m_modelDiff->m_rig->m_rootBone, identity);
+    ViewerUtilities::ReadNodeHierarchyDiff(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, _t, m_revisionDiff->getBoneDeltas(), m_model->m_rig, m_model->m_rig->m_rootBone, m_revisionDiff->getDiffRig(), identity);
 
 }
 
