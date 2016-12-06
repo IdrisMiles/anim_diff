@@ -44,6 +44,7 @@ void Model::LoadModel(const std::string &_modelFile)
         InitRigMesh(scene);
 
 
+        /*
         for(int i=0; i<scene->mNumMeshes; i++)
         {
             for(int j=0; j<scene->mMeshes[i]->mNumBones; j++)
@@ -57,6 +58,7 @@ void Model::LoadModel(const std::string &_modelFile)
             std::cout<<"["<<a.first<<"] : "<< a.second<<"\n";
         }
         std::cout<<"_______________________________\n";
+        */
 
         m_rig->m_rootBone = std::shared_ptr<Bone>(new Bone());
         m_rig->m_rootBone->m_name = std::string(scene->mRootNode->mName.data);
