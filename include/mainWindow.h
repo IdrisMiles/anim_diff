@@ -28,6 +28,7 @@ private slots:
     void LoadMasterRevision();
     void LoadBranchRevision();
     void UpdateRevisionTimers();
+    void CompareRevisions();
 
 private:
     Ui::MainWindow *ui;

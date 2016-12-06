@@ -49,6 +49,9 @@ void MainWindow::LoadMasterRevision()
 
     auto node = m_repoController->loadMainNode(file.toStdString());
     m_masterViewer->LoadRevision(node);
+
+    //Testing
+    CompareRevisions();
 }
 
 void MainWindow::LoadBranchRevision()
@@ -69,6 +72,22 @@ void MainWindow::LoadBranchRevision()
 
     auto node = m_repoController->loadCompareNode(file.toStdString());
     m_branchViewer->LoadRevision(node);
+
+    //Testing
+    CompareRevisions();
+}
+
+//test
+#include <iostream>
+void MainWindow::CompareRevisions()
+{
+    if(m_masterViewer && m_branchViewer)
+    {
+        m_diffViewer.reset(new DiffViewer(this));
+        auto diff = m_repoController->getDiff();
+        m_diffViewer->LoadDiff(diff);
+        ui->s_diffRevGB->layout()->addWidget(m_diffViewer.get());
+    }   
 }
 
 void MainWindow::UpdateRevisionTimers()
