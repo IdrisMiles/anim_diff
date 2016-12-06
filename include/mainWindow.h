@@ -7,9 +7,9 @@
 #include <QPushButton>
 #include <memory>
 
-#include "revisionViewer.h"
-
 class RepoController;
+class RevisionViewer;
+class DiffViewer;
 
 namespace Ui {
 class MainWindow;
@@ -24,10 +24,11 @@ public:
     ~MainWindow();
 
 private slots:
-    void LoadRevision();
+
     void LoadMasterRevision();
     void LoadBranchRevision();
     void UpdateRevisionTimers();
+    void CompareRevisions();
 
 private:
     Ui::MainWindow *ui;
@@ -36,7 +37,10 @@ private:
     float m_time;
     float m_dt;
 
-    std::vector<RevisionViewer*> m_revisionViewers;
+    std::shared_ptr<RevisionViewer> m_masterViewer;
+    std::shared_ptr<RevisionViewer> m_branchViewer;
+    std::shared_ptr<DiffViewer> m_diffViewer;
+
     std::unique_ptr<RepoController> m_repoController;
 };
 
