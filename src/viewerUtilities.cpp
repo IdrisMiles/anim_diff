@@ -545,6 +545,23 @@ void ViewerUtilities::CopyRigStructure(const std::map<std::string, unsigned int>
     }
     else
     {
+        /*
+        newBone->m_name = std::string(_aiNode->mName.data);
+        newBone->m_transform = ViewerUtilities::ConvertToGlmMat(_aiNode->mTransformation) * _parentTransform;
+
+        // Set bone offset matrix
+        newBone->m_boneOffset = glm::mat4(1.0f);
+
+        // Set animation data
+        _rig->m_boneAnims[newBone->m_name] = BoneAnim();
+        newBone->m_boneAnim = &_rig->m_boneAnims[newBone->m_name];
+
+        // Set parent and set child
+        newBone->m_parent = _parentBone;
+        _parentBone->m_children.push_back(newBone);
+        newParentTransform = glm::mat4(1.0f);
+        */
+
         // forward on this nodes transform to affect the next bone
         std::cout<<"Model::CopyRigStructure | "<<std::string(_aiNode->mName.data)<<" Is not a Bone, probably an arbitrary transform.\n";
         newBone = _parentBone;
