@@ -57,8 +57,9 @@ void MainWindow::LoadMasterRevision()
     {
         m_masterViewer.reset(new RevisionViewer(this));
         ui->s_masterRevGB->layout()->addWidget(m_masterViewer.get());
-        //ui->s_masterRevBtn->setText(QString("Load New Master"));
-        ui->s_masterRevBtn->hide();
+        ui->s_masterRevBtn->setIcon(QIcon());
+        ui->s_masterRevBtn->setText(QString("Load New Master"));
+        //ui->s_masterRevBtn->hide();
     }
 
     auto node = m_repoController->loadMainNode(file.toStdString());
@@ -80,8 +81,9 @@ void MainWindow::LoadBranchRevision()
     {
         m_branchViewer.reset(new RevisionViewer(this));
         ui->s_branchRevGB->layout()->addWidget(m_branchViewer.get());
-        //ui->s_branchRevBtn->setText(QString("Load New Branch"));
-        ui->s_branchRevBtn->hide();
+        ui->s_branchRevBtn->setIcon(QIcon());
+        ui->s_branchRevBtn->setText(QString("Load New Branch"));
+        ///ui->s_branchRevBtn->hide();
     }
 
     auto node = m_repoController->loadCompareNode(file.toStdString());
