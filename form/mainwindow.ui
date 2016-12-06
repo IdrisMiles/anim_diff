@@ -26,8 +26,10 @@
       <property name="title">
        <string>Difference</string>
       </property>
-        <layout class="QGridLayout" name="gridLayout_5">
-      </layout>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_5"/>
      </widget>
     </item>
     <item row="2" column="0" colspan="3">
@@ -57,11 +59,30 @@
       <property name="title">
        <string>Branch Revision</string>
       </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="0" column="0">
         <widget class="QPushButton" name="s_branchRevBtn">
          <property name="text">
-          <string>Branch Revision</string>
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>../bin/plus.svg</normaloff>../bin/plus.svg</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>150</width>
+           <height>150</height>
+          </size>
+         </property>
+         <property name="default">
+          <bool>false</bool>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -79,6 +100,9 @@
       <property name="title">
        <string>Master Revision</string>
       </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
       <layout class="QGridLayout" name="gridLayout_2">
        <item row="0" column="0">
         <widget class="QPushButton" name="s_masterRevBtn">
@@ -92,13 +116,20 @@
           <bool>false</bool>
          </property>
          <property name="text">
-          <string>Master Revision</string>
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>../bin/plus.svg</normaloff>../bin/plus.svg</iconset>
          </property>
          <property name="iconSize">
           <size>
-           <width>16</width>
-           <height>16</height>
+           <width>150</width>
+           <height>150</height>
           </size>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -113,7 +144,7 @@
      <x>0</x>
      <y>0</y>
      <width>1033</width>
-     <height>19</height>
+     <height>25</height>
     </rect>
    </property>
   </widget>
