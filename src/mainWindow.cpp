@@ -44,6 +44,7 @@ void MainWindow::LoadMasterRevision()
     {
         m_masterViewer.reset(new RevisionViewer(this));
         ui->s_masterRevGB->layout()->addWidget(m_masterViewer.get());
+        //ui->s_masterRevBtn->setText(QString("Load New Master"));
         ui->s_masterRevBtn->hide();
     }
 
@@ -66,6 +67,7 @@ void MainWindow::LoadBranchRevision()
     {
         m_branchViewer.reset(new RevisionViewer(this));
         ui->s_branchRevGB->layout()->addWidget(m_branchViewer.get());
+        //ui->s_branchRevBtn->setText(QString("Load New Branch"));
         ui->s_branchRevBtn->hide();
     }
 
