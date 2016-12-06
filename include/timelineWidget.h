@@ -16,6 +16,12 @@ public:
     TimelineWidget(QWidget *parent = 0);
     ~TimelineWidget();
 
+public slots:
+    void updateDuration(double _duration);
+
+signals:
+    void newTime(double _time);
+
 private:
 
     Ui::TimelineWidget *ui;
