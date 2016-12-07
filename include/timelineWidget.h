@@ -3,10 +3,13 @@
 
 // Qt includes
 #include <QWidget>
+#include <memory>
 
 namespace Ui {
 class TimelineWidget;
 }
+
+class QTimer;
 
 class TimelineWidget : public QWidget
 {
@@ -16,18 +19,29 @@ public:
     TimelineWidget(QWidget *parent = 0);
     ~TimelineWidget();
 
-public slots:
-    void updateDuration(double _duration);
+    void updateMasterDuration(float _duration);
+    void updateBranchDuration(float _duration);
 
 signals:
     void newTime(double _time);
+
+private:
     void play();
     void pause();
+    void incrementTime();
+    void updateGUI();
+    void updateTime(double _newTime);
+    void updateDuration();
 
 private:
 
     Ui::TimelineWidget *ui;
 
+    std::unique_ptr<QTimer> m_timer;
+    float m_time;
+    float m_dt;
+    float m_masterDuration;
+    float m_branchDuration;
 };
 
 #endif

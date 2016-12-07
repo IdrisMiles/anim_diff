@@ -27,16 +27,12 @@ private slots:
 
     void LoadMasterRevision();
     void LoadBranchRevision();
-    void UpdateRevisionTimers();
+    void UpdateRevisionTimers(double _time);
     void CompareRevisions();
 
 private:
     Ui::MainWindow *ui;
-
-    QTimer *m_animTimer;
-    float m_time;
-    float m_dt;
-
+    
     std::shared_ptr<RevisionViewer> m_masterViewer;
     std::shared_ptr<RevisionViewer> m_branchViewer;
     std::shared_ptr<DiffViewer> m_diffViewer;
