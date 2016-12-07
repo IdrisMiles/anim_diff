@@ -30,12 +30,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->s_masterRevBtn, SIGNAL(clicked(bool)), this, SLOT(LoadMasterRevision()));
     connect(ui->s_branchRevBtn, SIGNAL(clicked(bool)), this, SLOT(LoadBranchRevision()));
 
-    m_time = 0.0f;
-    m_dt = 0.016f;
-    m_animTimer = new QTimer(this);
-    connect(m_animTimer, SIGNAL(timeout()), this, SLOT(UpdateRevisionTimers()));
-    m_animTimer->start(1000*m_dt);
-
+    // link the timer stuff
+    connect(ui->timeline, &TimelineWidget::newTime, this, &MainWindow::UpdateRevisionTimers);    
 }
 
 MainWindow::~MainWindow()
@@ -65,6 +61,9 @@ void MainWindow::LoadMasterRevision()
     auto node = m_repoController->loadMainNode(file.toStdString());
     m_masterViewer->LoadRevision(node);
 
+    // update timeline
+    ui->timeline->updateMasterDuration(node->m_model->m_animationDuration);
+
     CompareRevisions();
 }
 
@@ -89,6 +88,9 @@ void MainWindow::LoadBranchRevision()
     auto node = m_repoController->loadCompareNode(file.toStdString());
     m_branchViewer->LoadRevision(node);
 
+    // update timeline;
+    ui->timeline->updateBranchDuration(node->m_model->m_animationDuration); 
+
     CompareRevisions();
 }
 
@@ -103,11 +105,9 @@ void MainWindow::CompareRevisions()
     }   
 }
 
-void MainWindow::UpdateRevisionTimers()
+void MainWindow::UpdateRevisionTimers(double _time)
 {
-    m_time += m_dt;
-
-    if(m_masterViewer) m_masterViewer->SetTime(m_time);
-    if(m_branchViewer) m_branchViewer->SetTime(m_time);
-    if(m_diffViewer) m_diffViewer->SetTime(m_time);
+    if(m_masterViewer) m_masterViewer->SetTime(_time);
+    if(m_branchViewer) m_branchViewer->SetTime(_time);
+    if(m_diffViewer) m_diffViewer->SetTime(_time);
 }
