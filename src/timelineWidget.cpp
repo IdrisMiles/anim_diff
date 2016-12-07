@@ -18,15 +18,14 @@ TimelineWidget::TimelineWidget(QWidget *parent)
     connect(m_timer.get(), &QTimer::timeout, this, &TimelineWidget::incrementTime);
 
     // connect buttons. could of used lambda's instead of private methods but oh well 
-    connect(ui->button_play, &QPushButton::clicked, this, &TimelineWidget::play);
-    connect(ui->button_pause, &QPushButton::clicked, this, &TimelineWidget::pause);
+    connect(ui->button_playPause, &QPushButton::clicked, this, &TimelineWidget::playPause);
 
     // slider change
     // updates the timer to the side and other stuff
     connect(ui->slider_time, &QSlider::sliderMoved, this, &TimelineWidget::updateTime);
 
-    ui->slider_time->setMinimum(0.0);
-    ui->slider_time->setMaximum(0.0);
+    ui->slider_time->setMinimum(0);
+    ui->slider_time->setMaximum(0);
 }
 
 TimelineWidget::~TimelineWidget()
@@ -48,42 +47,53 @@ void TimelineWidget::updateBranchDuration(float _duration)
 
 void TimelineWidget::updateDuration()
 {
-    ui->slider_time->setMaximum(m_masterDuration > m_branchDuration ? m_masterDuration : m_branchDuration);
+    // we times by 1000 to give us 1000 steps, because they are integer values
+    ui->slider_time->setMaximum(1000 * (m_masterDuration > m_branchDuration ? m_masterDuration : m_branchDuration));
 }
 
 void TimelineWidget::updateTime(double _newTime)
 {
-    m_time = _newTime;
+    // cut down from 1000 to our actual time
+    m_time = _newTime / 1000;
 
-    updateGUI();
+    updateClock();
 
     emit newTime(m_time);
 }
 
-void TimelineWidget::updateGUI()
+void TimelineWidget::updateClock()
 {
     ui->spin_time->setValue(m_time);
+}
 
-    //update slider;
+void TimelineWidget::updateSliderPos()
+{
+    // we times by 100 because thats waht we do on the slider
+    ui->slider_time->setValue(m_time * 1000);
 }
 
 void TimelineWidget::incrementTime()
 {
     m_time += m_dt;
 
-    updateGUI();
+    // this is for looping
+    if(m_time > (m_masterDuration > m_branchDuration ? m_masterDuration : m_branchDuration)) m_time = 0.0;
+
+    updateClock();
+    updateSliderPos();
+
     // fire off a signal with the new time;
     emit newTime(m_time);
 }
 
-void TimelineWidget::play()
+void TimelineWidget::playPause()
 {
-    //start timer from existing point
-    m_timer->start(1000*m_dt);
-}
-
-void TimelineWidget::pause()
-{
-    // stop timer
-    m_timer->stop();
+    if(m_timer->isActive())
+    {
+        m_timer->stop();
+    }
+    else
+    {
+        m_timer->start(1000*m_dt);
+    }
 }

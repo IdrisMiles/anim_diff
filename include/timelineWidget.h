@@ -26,10 +26,10 @@ signals:
     void newTime(double _time);
 
 private:
-    void play();
-    void pause();
+    void playPause();
     void incrementTime();
-    void updateGUI();
+    void updateClock();
+    void updateSliderPos();
     void updateTime(double _newTime);
     void updateDuration();
 
