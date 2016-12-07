@@ -348,6 +348,9 @@ void RevisionViewer::DrawRig()
 
 void RevisionViewer::UpdateAnimation()
 {
+    //This may get removed
+    if(m_t > m_model->m_animationDuration) return;
+
     // Compute bone transform
     std::vector<glm::mat4> boneTrans;
     ComputeBoneTransform(m_t, boneTrans);
