@@ -28,12 +28,12 @@ DiffRig RevisionDiff::getDiffRig()
     return m_rig;
 }
 
-void RevisionDiff::SetBoneDeltas(const std::unordered_map<std::__cxx11::string, float> &_boneDeltas)
+void RevisionDiff::SetBoneDeltas(const std::unordered_map<std::string, float> &_boneDeltas)
 {
     m_boneDeltas = _boneDeltas;
 }
 
-std::unordered_map<std::__cxx11::string, float> RevisionDiff::getBoneDeltas() const
+std::unordered_map<std::string, float> RevisionDiff::getBoneDeltas() const
 {
     return m_boneDeltas;
 }
