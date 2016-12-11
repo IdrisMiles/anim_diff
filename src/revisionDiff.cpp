@@ -51,5 +51,6 @@ std::shared_ptr<RevisionNode> RevisionDiff::getBranchNode()
 std::shared_ptr<RevisionNode> RevisionDiff::createNodeFromCurrentDiff()
 {
     //TODO
+    // this looks like a job for the utils class
     return std::shared_ptr<RevisionNode>(new RevisionNode());
 }
