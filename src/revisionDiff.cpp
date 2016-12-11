@@ -47,3 +47,9 @@ std::shared_ptr<RevisionNode> RevisionDiff::getBranchNode()
 {
     return m_branchNode;
 }
+
+std::shared_ptr<RevisionNode> RevisionDiff::createNodeFromCurrentDiff()
+{
+    //TODO
+    return std::shared_ptr<RevisionNode>(new RevisionNode());
+}

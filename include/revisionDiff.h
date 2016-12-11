@@ -22,6 +22,8 @@ public:
     std::shared_ptr<RevisionNode> getMasterNode();
     std::shared_ptr<RevisionNode> getBranchNode();
 
+    std::shared_ptr<RevisionNode> createNodeFromCurrentDiff();
+
 private:
     std::shared_ptr<RevisionNode> m_masterNode;
     std::shared_ptr<RevisionNode> m_branchNode;
