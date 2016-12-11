@@ -29,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->s_masterRevBtn, SIGNAL(clicked(bool)), this, SLOT(LoadMasterRevision()));
     connect(ui->s_branchRevBtn, SIGNAL(clicked(bool)), this, SLOT(LoadBranchRevision()));
+    connect(ui->s_compareBtn, &QPushButton::clicked, this, &MainWindow::CompareRevisions);
 
     // link the timer stuff
     connect(ui->timeline, &TimelineWidget::newTime, this, &MainWindow::UpdateRevisionTimers);    
@@ -64,7 +65,12 @@ void MainWindow::LoadMasterRevision()
     // update timeline
     ui->timeline->updateMasterDuration(node->m_model->m_animationDuration);
 
-    CompareRevisions();
+    //disable comparison
+    if(m_diffViewer)
+    {
+        m_diffViewer->hide();
+        ui->s_compareBtn->show();
+    }
 }
 
 void MainWindow::LoadBranchRevision()
@@ -89,9 +95,14 @@ void MainWindow::LoadBranchRevision()
     m_branchViewer->LoadRevision(node);
 
     // update timeline;
-    ui->timeline->updateBranchDuration(node->m_model->m_animationDuration); 
+    ui->timeline->updateBranchDuration(node->m_model->m_animationDuration);
 
-    CompareRevisions();
+    //disable comparison and show compare button
+    if(m_diffViewer)
+    {
+        m_diffViewer->hide();
+        ui->s_compareBtn->show();
+    }
 }
 
 void MainWindow::CompareRevisions()
@@ -102,6 +113,10 @@ void MainWindow::CompareRevisions()
         auto diff = m_repoController->getDiff();
         m_diffViewer->LoadDiff(diff);
         ui->s_diffRevGB->layout()->addWidget(m_diffViewer.get());
+
+        // get rid of button
+        ui->s_compareBtn->hide();
+        m_diffViewer->show();
     }   
 }
 
