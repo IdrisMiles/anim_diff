@@ -60,7 +60,11 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
     return diff;
 }
 
-RevisionNode RevisionUtils::getRevisionNodeForDiff(RevisionDiff _diff)
+RevisionNode RevisionUtils::getRevisionNodeForDiff(std::shared_ptr<RevisionDiff> _diff)
 {
-    return RevisionNode();
+    RevisionNode node;
+
+    // TODO
+
+    return node;
 }
