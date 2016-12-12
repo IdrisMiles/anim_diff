@@ -38,7 +38,6 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
         double masterTicks = masterRig.m_ticks;
         double masterDuration = masterRig.m_duration;
 
-        double branchTicks = branchRig.m_ticks;
         double branchDuration = branchRig.m_duration;
 
         // use master tick speed, and duration is the larger of the two 
