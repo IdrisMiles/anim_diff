@@ -44,7 +44,7 @@ protected:
     /// @brief Method to initialise all the relevant VAO and VBO's to draw an animated mesh and rig.
     virtual void UpdateVAOs();
 
-    void ComputeBoneColours(const float _t, std::vector<glm::vec3> &_rigJointColour);
+    void ComputeBoneColours(const float _t);
 
     /// @brief Method to upload custom colours associated with rig joints to shader for model mesh and rig mesh.
     /// @param _rt : the type we are uploading colours to, either RIG or SKINNED.

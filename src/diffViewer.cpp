@@ -229,7 +229,7 @@ void DiffViewer::UpdateAnimation()
     // Compute bone transform
     std::vector<glm::mat4> boneTrans;
     ComputeBoneTransform(animationTime, boneTrans);
-    ComputeBoneColours(animationTime, m_model->m_rigJointColours);
+    ComputeBoneColours(animationTime);
 
     // Upload bone transforms to shaders
     m_shaderProg[SKINNED]->bind();
@@ -248,16 +248,9 @@ void DiffViewer::UploadBoneColoursToShader(std::vector<glm::vec3> &_rigJointColo
     {
         glUniform3fv(m_colourAttrLoc[_rt] + b, 1, &_rigJointColour[b][0] );
     }
-
-//    glm::vec3 c(0.6f,0.6f,0.6f);
-//    unsigned int numBones = m_model->m_boneInfo.size();
-//    for(unsigned int b=0; b<numBones && b<100; b++)
-//    {
-//        glUniform3fv(m_colourAttrLoc[_rt] + b, 1, &c[0] );
-//    }
 }
 
-void DiffViewer::ComputeBoneColours(const float _t, std::vector<glm::vec3> &_rigJointColour)
+void DiffViewer::ComputeBoneColours(const float _t)
 {
     ViewerUtilities::ColourBoneDifferences(m_model->m_boneMapping, _t, m_revisionDiff->getBoneDeltas(), m_model->m_rig, m_model->m_rig->m_rootBone, m_revisionDiff->getDiffRig(), m_model->m_rigJointColours);
 }

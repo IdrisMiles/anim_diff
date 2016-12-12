@@ -111,7 +111,7 @@ void RevisionViewer::CreateVAOs()
     m_shaderProg[SKINNED]->bind();
 
     // Get shader locations
-    m_model->m_colour = glm::vec3(0.8f,0.4f,0.4f);
+    m_model->m_colour = glm::vec3(0.6f,0.6f,0.6f);
     m_colourLoc[SKINNED] = m_shaderProg[SKINNED]->uniformLocation("uColour");
     glUniform3fv(m_colourLoc[SKINNED], 1, &m_model->m_colour[0]);
     m_vertAttrLoc[SKINNED] = m_shaderProg[SKINNED]->attributeLocation("vertex");
@@ -136,14 +136,12 @@ void RevisionViewer::CreateVAOs()
     // Set up element array
     m_meshIBO[SKINNED].create();
     m_meshIBO[SKINNED].bind();
-    //m_meshIBO[SKINNED].allocate(&m_model->m_meshTris[0], m_model->m_meshTris.size() * sizeof(int));
     m_meshIBO[SKINNED].release();
 
 
     // Setup our vertex buffer object.
     m_meshVBO[SKINNED].create();
     m_meshVBO[SKINNED].bind();
-    //m_meshVBO[SKINNED].allocate(&m_model->m_meshVerts[0], m_model->m_meshVerts.size() * sizeof(glm::vec3));
     glEnableVertexAttribArray(m_vertAttrLoc[SKINNED]);
     glVertexAttribPointer(m_vertAttrLoc[SKINNED], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
     m_meshVBO[SKINNED].release();
@@ -152,7 +150,6 @@ void RevisionViewer::CreateVAOs()
     // Setup our normals buffer object.
     m_meshNBO[SKINNED].create();
     m_meshNBO[SKINNED].bind();
-    //m_meshNBO[SKINNED].allocate(&m_model->m_meshNorms[0], m_model->m_meshNorms.size() * sizeof(glm::vec3));
     glEnableVertexAttribArray(m_normAttrLoc[SKINNED]);
     glVertexAttribPointer(m_normAttrLoc[SKINNED], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
     m_meshNBO[SKINNED].release();
@@ -161,7 +158,6 @@ void RevisionViewer::CreateVAOs()
     // Set up vertex bone weighting buffer object
     m_meshBWBO[SKINNED].create();
     m_meshBWBO[SKINNED].bind();
-    //m_meshBWBO[SKINNED].allocate(&m_model->m_meshBoneWeights[0], m_model->m_meshBoneWeights.size() * sizeof(VertexBoneData));
     glEnableVertexAttribArray(m_boneIDAttrLoc[SKINNED]);
     glVertexAttribIPointer(m_boneIDAttrLoc[SKINNED], 4, GL_UNSIGNED_INT, sizeof(VertexBoneData), (const GLvoid*)0);
     glEnableVertexAttribArray(m_boneWeightAttrLoc[SKINNED]);
@@ -178,7 +174,7 @@ void RevisionViewer::CreateVAOs()
     m_shaderProg[RIG]->bind();
 
     // Get shader locations
-    m_model->m_colour = glm::vec3(0.8f,0.4f,0.4f);
+    m_model->m_colour = glm::vec3(0.6f,0.6f,0.6f);
     m_vertAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("vertex");
     m_boneIDAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("BoneIDs");
     m_boneWeightAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("Weights");
@@ -199,7 +195,6 @@ void RevisionViewer::CreateVAOs()
     // Setup our vertex buffer object.
     m_meshVBO[RIG].create();
     m_meshVBO[RIG].bind();
-    //m_meshVBO[RIG].allocate(&m_model->m_rigVerts[0], m_model->m_rigVerts.size() * sizeof(glm::vec3));
     glEnableVertexAttribArray(m_vertAttrLoc[RIG]);
     glVertexAttribPointer(m_vertAttrLoc[RIG], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
     m_meshVBO[RIG].release();
@@ -207,7 +202,6 @@ void RevisionViewer::CreateVAOs()
     // Set up our Rig joint colour buffer object
     m_meshCBO[RIG].create();
     m_meshCBO[RIG].bind();
-    //m_meshCBO[RIG].allocate(&m_model->m_rigJointColours[0], m_model->m_rigJointColours.size() * sizeof(glm::vec3));
     glEnableVertexAttribArray(m_colourAttrLoc[RIG]);
     glVertexAttribPointer(m_colourAttrLoc[RIG], 3, GL_FLOAT, GL_FALSE, 1 * sizeof(glm::vec3), 0);
     m_meshCBO[RIG].release();
@@ -215,7 +209,6 @@ void RevisionViewer::CreateVAOs()
     // Set up vertex bone weighting buffer object
     m_meshBWBO[RIG].create();
     m_meshBWBO[RIG].bind();
-    //m_meshBWBO[RIG].allocate(&m_model->m_rigBoneWeights[0], m_model->m_rigBoneWeights.size() * sizeof(VertexBoneData));
     glEnableVertexAttribArray(m_boneIDAttrLoc[RIG]);
     glVertexAttribIPointer(m_boneIDAttrLoc[RIG], 4, GL_UNSIGNED_INT, sizeof(VertexBoneData), (const GLvoid*)0);
     glEnableVertexAttribArray(m_boneWeightAttrLoc[RIG]);
@@ -254,7 +247,7 @@ void RevisionViewer::UpdateVAOs()
     m_shaderProg[SKINNED]->bind();
 
     // Get shader locations
-    m_model->m_colour = glm::vec3(0.8f,0.4f,0.4f);
+    m_model->m_colour = glm::vec3(0.6f,0.6f,0.6f);
     glUniform3fv(m_colourLoc[SKINNED], 1, &m_model->m_colour[0]);
 
     // Set up VAO
