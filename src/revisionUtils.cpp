@@ -64,7 +64,13 @@ RevisionNode RevisionUtils::getRevisionNodeForDiff(std::shared_ptr<RevisionDiff>
 {
     RevisionNode node;
 
-    // TODO
+    node->m_model = getModelFromDiff(_diff);
 
     return node;
+}
+
+Model RevisionUtils::getModelFromDiff(std::shared_ptr<RevisionDiff> _diff)
+{
+    //TODO
+    return Model();
 }

@@ -18,6 +18,10 @@ public:
     static RevisionDiff getRevisionDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch);
 
     static RevisionNode getRevisionNodeForDiff(std::shared_ptr<RevisionDiff> _diff);
+
+private:
+
+    static Model getModelFromDiff(std::shared_ptr<RevisionDiff> _diff);
 };
 
 #endif // REVISIONUTILS_H
