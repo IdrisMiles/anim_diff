@@ -28,6 +28,8 @@ MainWindow::MainWindow(QWidget *parent) :
         this->setStyleSheet(ts.readAll());
     }
 
+    ui->s_rigDiffControlsGB->hide();
+
     connect(ui->s_masterRevBtn, SIGNAL(clicked(bool)), this, SLOT(LoadMasterRevision()));
     connect(ui->s_branchRevBtn, SIGNAL(clicked(bool)), this, SLOT(LoadBranchRevision()));
     connect(ui->s_compareBtn, &QPushButton::clicked, this, &MainWindow::CompareRevisions);
@@ -119,11 +121,19 @@ void MainWindow::CompareRevisions()
         ui->s_compareBtn->hide();
         m_diffViewer->show();
 
-
-        m_rigControls = std::shared_ptr<RigDiffControlWidget>(new RigDiffControlWidget());
-        m_rigControls->LoadRig(diff);
-        ui->centralWidget->layout()->addWidget(m_rigControls.get());
+        LoadDiffControls(diff);
     }   
+}
+
+void MainWindow::LoadDiffControls(std::shared_ptr<RevisionDiff> _diff)
+{
+    if(_diff != nullptr)
+    {
+        m_rigControls.reset(new RigDiffControlWidget(this));
+        m_rigControls->LoadRig(_diff);
+        ui->s_rigDiffControlsGB->layout()->addWidget(m_rigControls.get());
+        ui->s_rigDiffControlsGB->show();
+    }
 }
 
 void MainWindow::UpdateRevisionTimers(double _time)

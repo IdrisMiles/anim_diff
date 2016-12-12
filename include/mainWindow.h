@@ -11,6 +11,7 @@ class RepoController;
 class RevisionViewer;
 class DiffViewer;
 class RigDiffControlWidget;
+class RevisionDiff;
 
 namespace Ui {
 class MainWindow;
@@ -30,6 +31,7 @@ private slots:
     void LoadBranchRevision();
     void UpdateRevisionTimers(double _time);
     void CompareRevisions();
+    void LoadDiffControls(std::shared_ptr<RevisionDiff> _diff);
 
 private:
     Ui::MainWindow *ui;

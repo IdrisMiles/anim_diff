@@ -28,7 +28,7 @@ struct ScaleAnim
 
     ScaleAnim(){}
 
-    ScaleAnim(float _time, glm::vec3 _scale) : 
+    ScaleAnim(float _time, glm::vec3 _scale) :
     time(_time),
     scale(_scale)
     {

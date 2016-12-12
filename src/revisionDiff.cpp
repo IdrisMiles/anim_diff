@@ -8,7 +8,7 @@ RevisionDiff::RevisionDiff(std::shared_ptr<RevisionNode> _master, std::shared_pt
 {
     for(auto bone : m_masterNode->m_model->m_rig->m_boneAnims)
     {
-        m_boneDeltas[bone.first] = 0.5;
+        m_boneDeltas[bone.first] = 0.0;
     }
 
 }

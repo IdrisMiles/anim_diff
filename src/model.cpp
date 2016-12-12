@@ -3,6 +3,8 @@
 #include <float.h>
 #include <QOpenGLShaderProgram>
 #include <glm/gtc/random.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 Model::Model()
 {
@@ -44,27 +46,30 @@ void Model::LoadModel(const std::string &_modelFile)
         InitRigMesh(scene);
 
 
-        /*
-        for(int i=0; i<scene->mNumMeshes; i++)
-        {
-            for(int j=0; j<scene->mMeshes[i]->mNumBones; j++)
-            {
-                std::cout<<std::string(scene->mMeshes[i]->mBones[j]->mName.data)<<"\n";
-            }
-        }
-        std::cout<<"_______________________________\nBones:\n";
-        for(auto a : m_boneMapping)
-        {
-            std::cout<<"["<<a.first<<"] : "<< a.second<<"\n";
-        }
-        std::cout<<"_______________________________\n";
-        */
-
         m_rig->m_rootBone = std::shared_ptr<Bone>(new Bone());
-        m_rig->m_rootBone->m_name = std::string(scene->mRootNode->mName.data);
+        m_rig->m_rootBone->m_name = std::string("Parent_Bone");
         m_rig->m_rootBone->m_transform = ViewerUtilities::ConvertToGlmMat(scene->mRootNode->mTransformation);
         m_rig->m_rootBone->m_boneOffset = glm::mat4(1.0f);
         m_rig->m_rootBone->m_parent = NULL;
+
+        const aiNodeAnim *pNodeAnim = ViewerUtilities::FindNodeAnim(scene->mAnimations[scene->mNumAnimations-1], std::string(scene->mRootNode->mName.data));
+        if(pNodeAnim)
+        {
+            m_rig->m_boneAnims[m_rig->m_rootBone->m_name] = ViewerUtilities::TransferAnim(pNodeAnim);
+            m_rig->m_rootBone->m_boneAnim = &m_rig->m_boneAnims[m_rig->m_rootBone->m_name];
+
+        }
+        else
+        {
+            BoneAnim rootAnim;
+            rootAnim.m_name = m_rig->m_rootBone->m_name;
+            rootAnim.m_posAnim.push_back(PosAnim(0.0f, glm::vec3(0, 0, 0)));
+            rootAnim.m_scaleAnim.push_back(ScaleAnim(0.0f, glm::vec3(1, 1, 1)));
+            //rootAnim.m_rotAnim.push_back(RotAnim(0.0f, glm::quat(0,0,0,1)));
+            m_rig->m_boneAnims[m_rig->m_rootBone->m_name] = rootAnim;
+            m_rig->m_rootBone->m_boneAnim = &m_rig->m_boneAnims[m_rig->m_rootBone->m_name];
+        }
+
 
 
         unsigned int numChildren = scene->mRootNode->mNumChildren;

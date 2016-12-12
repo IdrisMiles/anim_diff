@@ -338,8 +338,10 @@ void ViewerUtilities::ReadNodeHierarchyDiff(const std::map<std::string, unsigned
     CalcInterpolatedScaling(masterScalingVec, _animationTime, pMasterBoneAnim);
     CalcInterpolatedScaling(deltaScalingVec, _animationTime, pBoneAnimDiff);
     glm::vec3 scalingVec = masterScalingVec + (delta * deltaScalingVec);
-    glm::mat4 scalingMat;
+    glm::mat4 scalingMat(1.0f);
     scalingMat = glm::scale(scalingMat, scalingVec);
+    //std::cout<<_pMasterBone->m_name<<" "<<masterScalingVec.x<<", "<<masterScalingVec.y<<", "<<masterScalingVec.z<<"\n";
+    //std::cout<<_pMasterBone->m_name<<" delta "<<deltaScalingVec.x<<", "<<deltaScalingVec.y<<", "<<deltaScalingVec.z<<"\n";
 
     // Interpolate rotation and generate rotation transformation matrix
     glm::quat masterRotationQ;
@@ -591,7 +593,6 @@ void ViewerUtilities::CopyRigStructure(const std::map<std::string, unsigned int>
         const aiBone* paiBone = ViewerUtilities::GetBone(_aiScene, newBone->m_name);
         if(paiBone)
         {
-            std::cout<<std::string(paiBone->mName.data)<< "valid bone\n";
             newBone->m_boneOffset = ViewerUtilities::ConvertToGlmMat(paiBone->mOffsetMatrix);
         }
         else
@@ -604,14 +605,20 @@ void ViewerUtilities::CopyRigStructure(const std::map<std::string, unsigned int>
         const aiNodeAnim *pNodeAnim = ViewerUtilities::FindNodeAnim(_aiScene->mAnimations[_aiScene->mNumAnimations-1], newBone->m_name);
         if(pNodeAnim)
         {
-            std::cout<<std::string(pNodeAnim->mNodeName.data)<<" valid nodeAnim\n";
             _rig->m_boneAnims[newBone->m_name] = ViewerUtilities::TransferAnim(pNodeAnim);
             newBone->m_boneAnim = &_rig->m_boneAnims[newBone->m_name];
-
         }
         else
         {
-            std::cout<<"Daaannnng, didn't find aiNodeAnim in aiAnimation["<<_aiScene->mNumAnimations<<"] with matching name: "<<newBone->m_name<<". Thus No animation.\n";
+            std::cout<<"Daaannnng, didn't find aiNodeAnim in aiAnimation["<<_aiScene->mNumAnimations<<"] with matching name: "<<newBone->m_name<<". Thus No animationz so creating blank animation.\n";
+            BoneAnim blankAnim;
+            blankAnim.m_name = newBone->m_name;
+            blankAnim.m_posAnim.push_back(PosAnim(0.0f, glm::vec3(0, 0, 0)));
+            blankAnim.m_scaleAnim.push_back(ScaleAnim(0.0f, glm::vec3(1, 1, 1)));
+            //blankAnim.m_rotAnim.push_back(RotAnim(0.0f, glm::quat(0,0,0,1)));
+
+            _rig->m_boneAnims[newBone->m_name] = blankAnim;
+            newBone->m_boneAnim = &_rig->m_boneAnims[newBone->m_name];
         }
 
         // Set parent and set child

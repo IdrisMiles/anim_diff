@@ -24,11 +24,23 @@ RevisionViewer::RevisionViewer(QWidget *parent) :
 
 RevisionViewer::~RevisionViewer()
 {
-    delete m_animTimer;
-    delete m_drawTimer;
+    if(m_animTimer != nullptr)
+    {
+        delete m_animTimer;
+        m_animTimer = nullptr;
+    }
+
+    if(m_drawTimer != nullptr)
+    {
+        delete m_drawTimer;
+        m_drawTimer = nullptr;
+    }
 
     DeleteVAOs();
     DeleteShaders();
+
+    m_revision  = nullptr;
+    m_model = nullptr;
 
     cleanup();
 }
@@ -224,8 +236,12 @@ void RevisionViewer::DeleteShaders()
 {
     for(unsigned int i=0; i<NUMRENDERTYPES; i++)
     {
-        m_shaderProg[i]->destroyed();
-        delete m_shaderProg[i];
+        if(m_shaderProg[i] != nullptr)
+        {
+            m_shaderProg[i]->destroyed();
+            delete m_shaderProg[i];
+            m_shaderProg[i] = nullptr;
+        }
     }
 }
 

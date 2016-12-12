@@ -26,8 +26,23 @@ DiffViewer::DiffViewer(QWidget *parent) : RevisionViewer(parent)
 
 DiffViewer::~DiffViewer()
 {
-    delete m_animTimer;
-    delete m_drawTimer;
+    if(m_animTimer != nullptr)
+    {
+        delete m_animTimer;
+        m_animTimer = nullptr;
+    }
+
+    if(m_drawTimer != nullptr)
+    {
+        delete m_drawTimer;
+        m_drawTimer = nullptr;
+    }
+
+    m_revisionDiff = nullptr;
+    m_modelDiff = nullptr;
+
+    m_revision  = nullptr;
+    m_model = nullptr;
 
     DeleteVAOs();
     DeleteShaders();
@@ -270,10 +285,8 @@ void DiffViewer::ComputeBoneTransform(const float _t, std::vector<glm::mat4> &_t
     _transforms.resize(numBones);
     std::unordered_map<std::string, float> boneDeltas = m_revisionDiff->getBoneDeltas();
 
-    //ViewerUtilities::ReadNodeHierarchyMasterBranch(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, animationTime, m_revisionDiff->getBoneDeltas(), m_model->m_rig, m_model->m_rig->m_rootBone, m_modelDiff->m_rig, m_modelDiff->m_rig->m_rootBone, identity);
 
     ViewerUtilities::ReadNodeHierarchyDiff(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, _t, boneDeltas, m_model->m_rig, m_model->m_rig->m_rootBone, m_revisionDiff->getDiffRig(), identity);
-    //ViewerUtilities::ReadNodeHierarchy(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, _t, m_model->m_rig, m_model->m_rig->m_rootBone, identity);
 
 }
 

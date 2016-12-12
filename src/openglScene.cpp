@@ -219,7 +219,7 @@ void OpenGLScene::mouseMoveEvent(QMouseEvent *event)
         setYRotation(m_yRot + 8 * dx);
     }
     else if (event->buttons() & Qt::RightButton) {
-        setZTranslation(m_zDis + dy);
+        setZTranslation(m_zDis + 8 * dy);
     }
     else if (event->buttons() & Qt::MiddleButton) {
         setYTranslation(m_yDis + dy);
