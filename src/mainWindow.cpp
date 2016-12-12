@@ -6,6 +6,7 @@
 #include "repoController.h"
 #include "revisionViewer.h"
 #include "diffViewer.h"
+#include "rigDiffControlWidget.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -117,6 +118,11 @@ void MainWindow::CompareRevisions()
         // get rid of button
         ui->s_compareBtn->hide();
         m_diffViewer->show();
+
+
+        m_rigControls = std::shared_ptr<RigDiffControlWidget>(new RigDiffControlWidget());
+        m_rigControls->LoadRig(diff);
+        ui->centralWidget->layout()->addWidget(m_rigControls.get());
     }   
 }
 

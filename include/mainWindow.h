@@ -10,6 +10,7 @@
 class RepoController;
 class RevisionViewer;
 class DiffViewer;
+class RigDiffControlWidget;
 
 namespace Ui {
 class MainWindow;
@@ -38,6 +39,8 @@ private:
     std::shared_ptr<DiffViewer> m_diffViewer;
 
     std::unique_ptr<RepoController> m_repoController;
+
+    std::shared_ptr<RigDiffControlWidget> m_rigControls;
 };
 
 #endif // MAINWINDOW_H
