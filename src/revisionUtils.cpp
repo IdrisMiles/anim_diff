@@ -64,7 +64,7 @@ RevisionNode RevisionUtils::getRevisionNodeForDiff(std::shared_ptr<RevisionDiff>
 {
     RevisionNode node;
 
-    node->m_model = getModelFromDiff(_diff);
+    node.m_model = std::make_shared<Model>(getModelFromDiff(_diff));
 
     return node;
 }
