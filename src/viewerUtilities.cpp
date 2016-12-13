@@ -708,12 +708,12 @@ void ViewerUtilities::ColourBoneDifferences(const std::map<std::string, unsigned
         (glm::length2(translationVec) < FLT_EPSILON)    &&
         (glm::length2(glm::eulerAngles(rotationQ)) < FLT_EPSILON)   )
     {
-        // Joint has NO difference - green
+        // Joint has NO difference - grey
         jointColour = glm::vec3(0.6f,0.6f,0.6f);
     }
     else
     {
-        // joint has a difference - red
+        // joint has a difference - blue
         jointColour = glm::vec3(0.0f, 0.0f, 1.0f);
     }
 

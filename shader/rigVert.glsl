@@ -9,6 +9,7 @@ const int MAX_BONES = 100;
 uniform mat4 projMatrix;
 uniform mat4 mvMatrix;
 uniform mat4 Bones[MAX_BONES];
+uniform vec3 BoneColours[MAX_BONES];
 
 out vec3 vertColour;
 
@@ -20,6 +21,11 @@ void main()
     BoneTransform += Bones[BoneIDs[1]] * Weights[1];
     BoneTransform += Bones[BoneIDs[2]] * Weights[2];
     BoneTransform += Bones[BoneIDs[3]] * Weights[3];
+
+//    boneColour = BoneColours[BoneIDs[0]] * Weights[0] +
+//                 BoneColours[BoneIDs[1]] * Weights[1] +
+//                 BoneColours[BoneIDs[2]] * Weights[2] +
+//                 BoneColours[BoneIDs[3]] * Weights[3];
 
     gl_Position = projMatrix * mvMatrix * BoneTransform * vec4(vertex, 1.0);
 

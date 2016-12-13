@@ -32,6 +32,8 @@ void RigDiffControlWidget::LoadRig(std::shared_ptr<RevisionDiff> _revisionDiff)
     std::get<2>(m_masterJointController)->setSliderPosition((int)(0*100.0f));
 
     connect(masterSlider.get(), SIGNAL(sliderMoved(int)), this, SLOT(UpdateMasterBoneDeltas()));
+    connect(masterSlider.get(), SIGNAL(sliderPressed()), this, SLOT(UpdateMasterBoneDeltas()));
+    connect(masterSlider.get(), SIGNAL(sliderReleased()), this, SLOT(UpdateMasterBoneDeltas()));
 
 
     // Dividing line between master and rig joints
@@ -58,7 +60,8 @@ void RigDiffControlWidget::LoadRig(std::shared_ptr<RevisionDiff> _revisionDiff)
         std::get<2>(m_jointControls.back())->setSliderPosition((int)(bone.second*100.0f));
 
         connect(jointSlider.get(), SIGNAL(sliderMoved(int)), this, SLOT(UpdateBoneDeltas()));
-
+        connect(jointSlider.get(), SIGNAL(sliderPressed()), this, SLOT(UpdateBoneDeltas()));
+        connect(jointSlider.get(), SIGNAL(sliderReleased()), this, SLOT(UpdateBoneDeltas()));
     }
 
 

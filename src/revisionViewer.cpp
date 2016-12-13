@@ -419,9 +419,11 @@ void RevisionViewer::DrawMesh()
 void RevisionViewer::DrawRig()
 {
     m_meshVAO[RIG].bind();
+    glDisable(GL_DEPTH_TEST);
     glPolygonMode(GL_FRONT_AND_BACK, m_wireframe?GL_LINE:GL_FILL);
     glDrawArrays(GL_LINES, 0, m_model->m_rigVerts.size());
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_DEPTH_TEST);
     m_meshVAO[RIG].release();
 }
 
