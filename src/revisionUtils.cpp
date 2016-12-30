@@ -25,8 +25,8 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
     {   
 
         // public members, so so bad and dirty raw pointers
-        ModelRig masterRig = *_master->m_model->m_rig;
-        ModelRig branchRig = *_branch->m_model->m_rig;
+        ModelRig masterRig = *(_master->m_model->m_rig);
+        ModelRig branchRig = *(_branch->m_model->m_rig);
 
         //TODO check to see if rigs and bones match
 
@@ -70,6 +70,70 @@ RevisionNode RevisionUtils::getRevisionNodeForDiff(std::shared_ptr<RevisionDiff>
 
 Model RevisionUtils::getModelFromDiff(std::shared_ptr<RevisionDiff> _diff)
 {
-    //TODO
-    return Model();
+    // this is bad
+    Model newModel;
+    Model masterModel = *(_diff->getMasterNode()->m_model.get());
+
+    // copy across, deep copy yo!
+    newModel.m_ticksPerSecond       = masterModel.m_ticksPerSecond;
+    newModel.m_animationDuration    = masterModel.m_animationDuration;
+    newModel.m_numAnimations        = masterModel.m_numAnimations;
+    newModel.m_animationID          = masterModel.m_animationID;
+    newModel.m_meshVerts            = masterModel.m_meshVerts;
+    newModel.m_meshNorms            = masterModel.m_meshNorms;
+    newModel.m_meshTris             = masterModel.m_meshTris;
+    newModel.m_meshBoneWeights      = masterModel.m_meshBoneWeights;
+    newModel.m_colour               = masterModel.m_colour;
+    newModel.m_rigVerts             = masterModel.m_rigVerts;
+    newModel.m_rigNorms             = masterModel.m_rigNorms;
+    newModel.m_rigElements          = masterModel.m_rigElements;
+    newModel.m_rigBoneWeights       = masterModel.m_rigBoneWeights;
+    newModel.m_rigJointColours      = masterModel.m_rigJointColours;
+    newModel.m_animExists           = masterModel.m_animExists;
+    newModel.m_boneInfo             = masterModel.m_boneInfo;
+    newModel.m_boneMapping          = masterModel.m_boneMapping;
+    newModel.m_globalInverseTransform = masterModel.m_globalInverseTransform;
+
+    /////////// Copy Rig and diff data
+    newModel.m_rig->m_ticks = masterModel.m_rig->m_ticks;
+    newModel.m_rig->m_duration = masterModel.m_rig->m_duration;
+
+    // copy rig recursivley
+    newModel.m_rig->m_rootBone = std::shared_ptr<Bone>(new Bone());
+    copyRigStructure(newModel.m_rig, _diff->getDiffRig(), nullptr, newModel.m_rig->m_rootBone, masterModel.m_rig->m_rootBone);
+
+    return newModel;
+}
+
+void RevisionUtils::copyRigStructure(std::shared_ptr<ModelRig> pRig, 
+                                        DiffRig _diffRig, 
+                                        std::shared_ptr<Bone> pParentBone, 
+                                        std::shared_ptr<Bone> pNewBone, 
+                                        std::shared_ptr<Bone> pOldBone)
+{
+    // copy data of bone
+    pNewBone->m_parent = pParentBone;
+    pNewBone->m_name = pOldBone->m_name;
+    pNewBone->m_boneID = pOldBone->m_boneID;
+    pNewBone->m_transform = pOldBone->m_transform;
+    pNewBone->m_boneOffset = pOldBone->m_boneOffset;
+    pNewBone->m_currentTransform = pOldBone->m_currentTransform;
+
+    // make m_boneAnim
+
+    BoneAnim boneAnim;
+
+    pNewBone->m_boneAnim = & boneAnim;
+    //pNewBone->m_boneAnimDiff = new boneAnimDiff(); don't think i need to do this one
+
+
+    //add to map
+    pRig->m_boneAnims.insert({pNewBone->m_name, boneAnim});
+
+    //do the same for the children
+    for(unsigned int i =0; i < pOldBone->m_children.size(); ++i )
+    {
+        pNewBone->m_children.push_back(std::shared_ptr<Bone>(new Bone()));
+        copyRigStructure( pRig, _diffRig, pNewBone, pNewBone->m_children[i], pOldBone->m_children[i]);
+    }
 }

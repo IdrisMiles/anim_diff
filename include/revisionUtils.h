@@ -21,6 +21,12 @@ public:
 
 private:
 
+    static void copyRigStructure(std::shared_ptr<ModelRig> pRig, 
+                                        DiffRig _diffRig, 
+                                        std::shared_ptr<Bone> pParentBone, 
+                                        std::shared_ptr<Bone> pNewBone, 
+                                        std::shared_ptr<Bone> pOldBone);
+
     static Model getModelFromDiff(std::shared_ptr<RevisionDiff> _diff);
 };
 
