@@ -120,14 +120,42 @@ void RevisionUtils::copyRigStructure(std::shared_ptr<ModelRig> pRig,
     pNewBone->m_currentTransform = pOldBone->m_currentTransform;
 
     // make m_boneAnim
-
     BoneAnim boneAnim;
+    boneAnim.m_name = pNewBone->m_name;
 
-    pNewBone->m_boneAnim = & boneAnim;
-    //pNewBone->m_boneAnimDiff = new boneAnimDiff(); don't think i need to do this one
+    // find matching bone
+    auto boneDiff = _diffRig.m_boneAnimDiffs.find(boneAnim.m_name);
 
+    if (boneDiff == _diffRig.m_boneAnimDiffs.end()) 
+    {
+        std::cout << "no diff bone found for: " << boneAnim.m_name << "\n"; 
+        return;
+    }
+    // pos
+    for(auto diffAnim : boneDiff.m_posAnimDeltas)
+    {
+        PosAnim tmp;
 
+        tmp.time = diffAnim.time;
+        tmp.pos = diffAnim.pos + ();
+
+        boneAnim.m_posAnim.push_back(tmp);
+    }
+
+    // scale
+    //for()
+    //{
+    //    boneAnim.m_scaleAnim.push_back();
+    //}
+
+    // rot
+    //for()
+    //{
+    //    boneAnim.m_rotAnim.push_back();
+    //}
+    
     //add to map
+    pNewBone->m_boneAnim = & boneAnim;
     pRig->m_boneAnims.insert({pNewBone->m_name, boneAnim});
 
     //do the same for the children
