@@ -171,6 +171,7 @@ void DiffViewer::customInitGL()
 
     CreateShaders();
     CreateVAOs();
+    m_colourAttrLoc[SKINNED] = m_shaderProg[SKINNED]->uniformLocation("BoneColours");
 
     m_initGL = true;
 }
@@ -254,6 +255,7 @@ void DiffViewer::UpdateAnimation()
 
     m_shaderProg[RIG]->bind();
     UploadBonesToShader(boneTrans, RIG);
+    UploadBoneColoursToShader(m_model->m_rigJointColours, SKINNED);
     m_shaderProg[RIG]->release();
 }
 
