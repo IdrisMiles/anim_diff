@@ -322,3 +322,8 @@ ScaleAnim DiffFunctions::getScaleDiff(ScaleAnim scaleA, ScaleAnim scaleB1, Scale
 
     return scaleDiff; 
 }
+
+void DiffFunctions::getAnimMerge(DiffRig master, DiffRig branch, MergeRig &outRig)
+{
+
+}

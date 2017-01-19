@@ -4,6 +4,7 @@
 #include "revisionDiff.h"
 #include "diffRig.h"
 #include "modelRig.h"
+#include "mergeRig.h"
 #include "boneAnim.h"
 #include "boneAnimDiff.h"
 
@@ -29,6 +30,10 @@ public:
 
     static RotAnim getRotDiff(RotAnim rotA, RotAnim rotB);
     static RotAnim getRotDiff(RotAnim rotA, RotAnim rotB1, RotAnim rotB2);
+
+    // merge methods
+    static void getAnimMerge(DiffRig master, DiffRig branch, MergeRig &outRig);
+
 };
 
 #endif // REVISIONUTILS_H
