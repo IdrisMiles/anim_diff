@@ -60,11 +60,43 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
     return diff;
 }
 
-void RevisionUtils::getRevisionMerge(RevisionDiff _diffA, RevisionDiff _diffB)
+RevisionMerge RevisionUtils::getRevisionMerge(RevisionDiff _diffA, 
+                                        RevisionDiff _diffB, 
+                                        std::shared_ptr<RevisionNode> _parentNode)
 {
-    // we will now do an XOR with these diffs.
+    // we create a merge rig
+    RevisionMerge merge(_diffA.getMasterNode(), _diffA.getBranchNode(), _parentNode);
     
-    // need a new structure
-    // maybe store within current structures for ease but add flags?????
-    // way forward IMHO
+    MergeRig rig;
+
+    //find longest duration
+    double masterDuration = _diffA.getDiffRig().m_duration;
+    double branchDuration = _diffB.getDiffRig().m_duration;
+    double parentDuration = _parentNode->m_model->m_rig->m_duration;
+    
+    double largest;
+    if( masterDuration > branchDuration && masterDuration > parentDuration)
+    {
+        largest = masterDuration;
+    }
+    else if( branchDuration > parentDuration && branchDuration > masterDuration) 
+    {
+        largest = branchDuration;
+    }
+    else
+    {
+        largest = parentDuration;
+    }
+
+    rig.m_duration = largest;
+    
+    // may aswell take parent ticks
+    rig.m_ticks = _parentNode->m_model->m_rig->m_ticks;
+ 
+    // we will now do an XOR with these diffs.
+    getAnimMerge(_diffA.getDiffRig(), _diffB.getDiffRig(), rig);
+    
+    merge.setMergeRig(rig);
+
+    return merge;
 }

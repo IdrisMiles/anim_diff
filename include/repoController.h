@@ -6,6 +6,7 @@
 
 class RevisionNode;
 class RevisionDiff;
+class RevisionMerge;
 
 class RepoController
 {
@@ -18,7 +19,7 @@ public:
     std::shared_ptr<RevisionNode> loadParentNode(std::string _path);
 
     std::shared_ptr<RevisionDiff> getDiff();
-    void getMerge();
+    std::shared_ptr<RevisionMerge> getMerge();
 
 private:
     std::shared_ptr<RevisionNode> m_mainNode;
