@@ -13,16 +13,19 @@ LIBS += -L/usr/local/lib -L/usr/lib -lGL -lGLU -lGLEW  \
 
 # adding sources manually, because of qt include things
 SOURCES +=      diffTest.cpp                    \
-                ../src/diffFunctions.cpp         \
+                ../src/diffFunctions.cpp        \
                 ../src/revisionUtils.cpp        \
                 ../src/revisionNode.cpp         \
                 ../src/revisionDiff.cpp         \
+                ../src/revisionMerge.cpp        \
                 ../src/model.cpp                \
                 ../src/diffRig.cpp              \
                 ../src/modelRig.cpp             \
+                ../src/mergeRig.cpp             \
                 ../src/rig.cpp                  \
                 ../src/boneAnim.cpp             \
                 ../src/boneAnimDiff.cpp         \
+                ../src/boneAnimMerge.cpp        \
                 ../src/viewerUtilities.cpp      \
                 ../src/bone.cpp                    
 
