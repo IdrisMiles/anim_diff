@@ -18,6 +18,7 @@ public:
     std::shared_ptr<RevisionNode> loadMasterNode(std::string _path);
 
     std::shared_ptr<RevisionDiff> getDiff();
+    void getMerge();
 
 private:
     std::shared_ptr<RevisionNode> m_mainNode;

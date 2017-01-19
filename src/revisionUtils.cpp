@@ -59,3 +59,12 @@ RevisionDiff RevisionUtils::getRevisionDiff(std::shared_ptr<RevisionNode> _maste
 
     return diff;
 }
+
+void RevisionUtils::getRevisionMerge(RevisionDiff _diffA, RevisionDiff _diffB)
+{
+    // we will now do an XOR with these diffs.
+    
+    // need a new structure
+    // maybe store within current structures for ease but add flags?????
+    // way forward IMHO
+}
