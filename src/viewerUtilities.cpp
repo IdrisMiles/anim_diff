@@ -853,11 +853,46 @@ void ViewerUtilities::ColourBoneMerges(const std::map<std::string, unsigned int>
         BoneIndex = _boneMapping.at(_pMasterBone->m_name);
     }
 
-    const BoneAnim* pMasterBoneAnim = &_pMasterRig->m_boneAnims[_pMasterBone->m_name];
-    const BoneAnimMerge pBoneAnimMerge = _pMergeRig.m_boneAnimMerges[_pMasterBone->m_name];
-    const BoneAnimDiff* pBoneAnimDiff = &pBoneAnimMerge.m_mainDiff;
-
     float delta = _boneDeltas.at(_pMasterBone->m_name);
+
+    // Set defualt to bind pose
+    glm::mat4 boneTransform(_pMasterBone->m_transform);
+    glm::mat4 scalingMat(1.0f);
+    glm::mat4 rotationMat(1.0f);
+    glm::mat4 translationMat;
+
+    const BoneAnim* pMasterBoneAnim = &_pMasterRig->m_boneAnims[_pMasterBone->m_name];
+    const BoneAnimMerge boneAnimMerge = _pMergeRig.m_boneAnimMerges[_pMasterBone->m_name];
+    const BoneAnimDiff* pBoneAnimDiff;
+
+    if(boneAnimMerge.m_type != MERGE::CONFLICT)
+    {
+        if(boneAnimMerge.m_type == MERGE::MASTER)
+        {
+            pBoneAnimDiff = &boneAnimMerge.m_mainDiff;
+        }
+        else if(boneAnimMerge.m_type == MERGE::BRANCH)
+        {
+            pBoneAnimDiff = &boneAnimMerge.m_branchDiff;
+        }
+        else
+        {
+            pBoneAnimDiff = &boneAnimMerge.m_mainDiff;
+        }
+    }
+    else if(boneAnimMerge.m_type == MERGE::CONFLICT)
+    {
+        if(delta <= 0.5f)
+        {
+            pBoneAnimDiff = &boneAnimMerge.m_mainDiff;
+        }
+        else
+        {
+            pBoneAnimDiff = &boneAnimMerge.m_branchDiff;
+        }
+        delta = fabs(2.0f*(delta-0.5f));
+    }
+
 
 
     // Interpolate scaling and generate scaling transformation matrix
@@ -884,17 +919,37 @@ void ViewerUtilities::ColourBoneMerges(const std::map<std::string, unsigned int>
     // Check if this keyframe has been flagged as different
     glm::vec3 jointColour;
 
-    if( (glm::length2(scalingVec) < FLT_EPSILON)        &&
+    if( ((glm::length2(scalingVec) < FLT_EPSILON)        &&
         (glm::length2(translationVec) < FLT_EPSILON)    &&
-        (glm::length2(glm::eulerAngles(rotationQ)) < FLT_EPSILON)   )
+        (glm::length2(glm::eulerAngles(rotationQ)) < FLT_EPSILON)) ||
+         boneAnimMerge.m_type == MERGE::EMPTY   )
     {
-        // Joint has NO difference - grey
+        // parent - grey
         jointColour = glm::vec3(0.6f,0.6f,0.6f);
     }
     else
     {
-        // joint has a difference - blue
-        jointColour = glm::vec3(0.0f, 0.0f, 1.0f);
+        if(boneAnimMerge.m_type == MERGE::MASTER)
+        {
+            // Branch A - greenish
+            jointColour = glm::vec3(0.4f,0.8f,0.4f);
+        }
+        else if(boneAnimMerge.m_type == MERGE::BRANCH)
+        {
+            // Branch B - blueish
+            jointColour = glm::vec3(0.4f,0.4f,0.8f);
+        }
+        else if(boneAnimMerge.m_type == MERGE::CONFLICT)
+        {
+            // Merge Conflict - red
+            jointColour = glm::vec3(1.0f,0.0f,0.0f);
+        }
+        else
+        {
+            // backup default to parent
+            jointColour = glm::vec3(0.6f,0.6f,0.6f);
+        }
+
     }
 
 
@@ -937,7 +992,7 @@ void ViewerUtilities::ReadNodeHierarchyMerge(const std::map<std::string, unsigne
 
     if(boneAnimMerge.m_type != MERGE::CONFLICT)
     {
-        if(boneAnimMerge.m_type == MERGE::MAIN)
+        if(boneAnimMerge.m_type == MERGE::MASTER)
         {
             pBoneAnimDiff = &boneAnimMerge.m_mainDiff;
         }
@@ -949,20 +1004,28 @@ void ViewerUtilities::ReadNodeHierarchyMerge(const std::map<std::string, unsigne
         {
             pBoneAnimDiff = &boneAnimMerge.m_mainDiff;
         }
-
-        // Interpolate scaling and generate scaling transformation matrix
-        GenerateScalingMatrix(scalingMat, _animationTime, delta, pMasterBoneAnim, pBoneAnimDiff);
-
-        // Interpolate rotation and generate rotation transformation matrix
-        GenerateRotationMatrix(rotationMat, _animationTime, delta, pMasterBoneAnim, pBoneAnimDiff);
-
-        // Interpolate translation and generate translation transformation matrix
-        GenerateTranslationMatrix(translationMat, _animationTime, delta, pMasterBoneAnim, pBoneAnimDiff);
     }
     else if(boneAnimMerge.m_type == MERGE::CONFLICT)
     {
-
+        if(delta <= 0.5f)
+        {
+            pBoneAnimDiff = &boneAnimMerge.m_mainDiff;
+        }
+        else
+        {
+            pBoneAnimDiff = &boneAnimMerge.m_branchDiff;
+        }
+        delta = fabs(2.0f*(delta-0.5f));
     }
+
+    // Interpolate scaling and generate scaling transformation matrix
+    GenerateScalingMatrix(scalingMat, _animationTime, delta, pMasterBoneAnim, pBoneAnimDiff);
+
+    // Interpolate rotation and generate rotation transformation matrix
+    GenerateRotationMatrix(rotationMat, _animationTime, delta, pMasterBoneAnim, pBoneAnimDiff);
+
+    // Interpolate translation and generate translation transformation matrix
+    GenerateTranslationMatrix(translationMat, _animationTime, delta, pMasterBoneAnim, pBoneAnimDiff);
 
 
     // Combine the above transformations
@@ -1016,8 +1079,20 @@ void ViewerUtilities::GenerateTranslationMatrix(glm::mat4 &translationMat, float
 
 void ViewerUtilities::GenerateScalingMatrix(glm::mat4 &scalingMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimMerge boneAnimMerge)
 {
+
+    const BoneAnimDiff* pBoneAnimDiff;
+
     if(boneAnimMerge.m_type == MERGE::CONFLICT)
     {
+        if(_delta <= 0.5f)
+        {
+            pBoneAnimDiff = &boneAnimMerge.m_mainDiff;
+        }
+        else
+        {
+            pBoneAnimDiff = &boneAnimMerge.m_branchDiff;
+        }
+
         glm::vec3 masterScalingVec;
         glm::vec3 deltaScalingVec;
         CalcInterpolatedScaling(masterScalingVec, _animationTime, pMasterBoneAnim);
