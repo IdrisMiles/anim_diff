@@ -2,6 +2,7 @@
 #include "revisionNode.h"
 #include "revisionDiff.h"
 #include "revisionUtils.h"
+#include "revisionMerge.h"
 
 #include <iostream>
 
@@ -50,7 +51,7 @@ std::shared_ptr<RevisionDiff> RepoController::getDiff()
     }
 }
 
-void RepoController::getMerge()
+std::shared_ptr<RevisionMerge> RepoController::getMerge()
 {
     try 
     {
@@ -60,10 +61,13 @@ void RepoController::getMerge()
 
         // do something with these diffs. 
         // diff the diffs! crazy! mental!
+        RevisionMerge merge = RevisionUtils::getRevisionMerge(mainDiff, compDiff, m_parentNode);
+        return std::make_shared<RevisionMerge>(merge);
 
     }
     catch(const std::string& ex) 
     {
         std::cout << ex << "\n";
+        return std::shared_ptr<RevisionMerge>(new RevisionMerge(m_mainNode, m_compareNode, m_parentNode));
     }
 }

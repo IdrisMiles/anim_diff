@@ -4,6 +4,7 @@
 #include <memory>
 #include "diffFunctions.h"
 #include "revisionDiff.h"
+#include "revisionMerge.h"
 
 class RevisionNode;
 class ModelRig;
@@ -17,7 +18,9 @@ public:
     // will not be void once structure is created
     static RevisionDiff getRevisionDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch);
 
-    static void getRevisionMerge(RevisionDiff _diffA, RevisionDiff _diffB);
+    static RevisionMerge getRevisionMerge(RevisionDiff _diffA, 
+                                            RevisionDiff _diffB, 
+                                            std::shared_ptr<RevisionNode> _parentNode);
 };
 
 #endif // REVISIONUTILS_H
