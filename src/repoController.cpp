@@ -14,6 +14,13 @@ RepoController::~RepoController()
 
 }
 
+std::shared_ptr<RevisionNode> RepoController::loadMasterNode(std::string _path)
+{
+    m_masterNode.reset(new RevisionNode());
+    m_masterNode->LoadModel(_path);
+    return m_masterNode;
+}
+
 std::shared_ptr<RevisionNode> RepoController::loadMainNode(std::string _path)
 {
     m_mainNode.reset(new RevisionNode());
