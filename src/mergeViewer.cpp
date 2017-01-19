@@ -267,7 +267,7 @@ void MergeViewer::UploadBoneColoursToShader(std::vector<glm::vec3> &_rigJointCol
 
 void MergeViewer::ComputeBoneColours(const float _t)
 {
-    ViewerUtilities::ColourBoneDifferences(m_model->m_boneMapping, _t, m_revisionMerge->getBoneDeltas(), m_model->m_rig, m_model->m_rig->m_rootBone, m_revisionMerge->getMergeRig(), m_model->m_rigJointColours);
+    ViewerUtilities::ColourBoneMerges(m_model->m_boneMapping, _t, m_revisionMerge->getBoneDeltas(), m_model->m_rig, m_model->m_rig->m_rootBone, m_revisionMerge->getMergeRig(), m_model->m_rigJointColours);
 }
 
 void MergeViewer::ComputeBoneTransform(const float _t, std::vector<glm::mat4> &_transforms)
@@ -286,6 +286,6 @@ void MergeViewer::ComputeBoneTransform(const float _t, std::vector<glm::mat4> &_
     std::unordered_map<std::string, float> boneDeltas = m_revisionMerge->getBoneDeltas();
 
 
-    ViewerUtilities::ReadNodeHierarchyDiff(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, _t, boneDeltas, m_model->m_rig, m_model->m_rig->m_rootBone, m_revisionMerge->getMergeRig(), identity);
+    ViewerUtilities::ReadNodeHierarchyMerge(m_model->m_boneMapping, _transforms, m_model->m_globalInverseTransform, _t, boneDeltas, m_model->m_rig, m_model->m_rig->m_rootBone, m_revisionMerge->getMergeRig(), identity);
 
 }

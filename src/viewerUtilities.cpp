@@ -332,32 +332,19 @@ void ViewerUtilities::ReadNodeHierarchyDiff(const std::map<std::string, unsigned
     float delta = _boneDeltas.at(_pMasterBone->m_name);
 
 
-    // Interpolate scaling and generate scaling transformation matrix
-    glm::vec3 masterScalingVec;
-    glm::vec3 deltaScalingVec;
-    CalcInterpolatedScaling(masterScalingVec, _animationTime, pMasterBoneAnim);
-    CalcInterpolatedScaling(deltaScalingVec, _animationTime, pBoneAnimDiff);
-    glm::vec3 scalingVec = masterScalingVec + (delta * deltaScalingVec);
     glm::mat4 scalingMat(1.0f);
-    scalingMat = glm::scale(scalingMat, scalingVec);
+    glm::mat4 rotationMat(1.0f);
+    glm::mat4 translationMat;
+
+    // Interpolate scaling and generate scaling transformation matrix
+    GenerateScalingMatrix(scalingMat, _animationTime, delta, pMasterBoneAnim, pBoneAnimDiff);
 
     // Interpolate rotation and generate rotation transformation matrix
-    glm::quat masterRotationQ;
-    glm::quat deltaRotationQ;
-    CalcInterpolatedRotation(masterRotationQ, _animationTime, pMasterBoneAnim);
-    CalcInterpolatedRotation(deltaRotationQ, _animationTime, pBoneAnimDiff);
-    glm::quat rotationQ = masterRotationQ * glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)), deltaRotationQ, delta);
-    glm::mat4 rotationMat(1.0f);
-    rotationMat = glm::mat4_cast(rotationQ);
+    GenerateRotationMatrix(rotationMat, _animationTime, delta, pMasterBoneAnim, pBoneAnimDiff);
 
     // Interpolate translation and generate translation transformation matrix
-    glm::vec3 masterTranslationVec;
-    glm::vec3 deltaTranslationVec;
-    CalcInterpolatedPosition(masterTranslationVec, _animationTime, pMasterBoneAnim);
-    CalcInterpolatedPosition(deltaTranslationVec, _animationTime, pBoneAnimDiff);
-    glm::vec3 translationVec = masterTranslationVec + (delta * deltaTranslationVec);
-    glm::mat4 translationMat;
-    translationMat = glm::translate(translationMat, translationVec);
+    GenerateTranslationMatrix(translationMat, _animationTime, delta, pMasterBoneAnim, pBoneAnimDiff);
+
 
     // Combine the above transformations
     nodeTransform =  translationMat * rotationMat * scalingMat;
@@ -867,7 +854,8 @@ void ViewerUtilities::ColourBoneMerges(const std::map<std::string, unsigned int>
     }
 
     const BoneAnim* pMasterBoneAnim = &_pMasterRig->m_boneAnims[_pMasterBone->m_name];
-    const BoneAnimDiff* pBoneAnimDiff = &_pMergeRig.m_boneAnimDiffs[_pMasterBone->m_name];
+    const BoneAnimMerge pBoneAnimMerge = _pMergeRig.m_boneAnimMerges[_pMasterBone->m_name];
+    const BoneAnimDiff* pBoneAnimDiff = &pBoneAnimMerge.m_mainDiff;
 
     float delta = _boneDeltas.at(_pMasterBone->m_name);
 
@@ -935,47 +923,53 @@ void ViewerUtilities::ReadNodeHierarchyMerge(const std::map<std::string, unsigne
         BoneIndex = _boneMapping.at(_pMasterBone->m_name);
     }
 
-    // Set defualt to bind pose
-    glm::mat4 nodeTransform(_pMasterBone->m_transform);
-
-    const BoneAnim* pMasterBoneAnim = &_pMasterRig->m_boneAnims[_pMasterBone->m_name];
-    const BoneAnimDiff* pBoneAnimDiff = &_pMergeRig.m_boneAnimDiffs[_pMasterBone->m_name];
-
     float delta = _boneDeltas.at(_pMasterBone->m_name);
 
-
-    // Interpolate scaling and generate scaling transformation matrix
-    glm::vec3 masterScalingVec;
-    glm::vec3 deltaScalingVec;
-    CalcInterpolatedScaling(masterScalingVec, _animationTime, pMasterBoneAnim);
-    CalcInterpolatedScaling(deltaScalingVec, _animationTime, pBoneAnimDiff);
-    glm::vec3 scalingVec = masterScalingVec + (delta * deltaScalingVec);
+    // Set defualt to bind pose
+    glm::mat4 boneTransform(_pMasterBone->m_transform);
     glm::mat4 scalingMat(1.0f);
-    scalingMat = glm::scale(scalingMat, scalingVec);
-
-    // Interpolate rotation and generate rotation transformation matrix
-    glm::quat masterRotationQ;
-    glm::quat deltaRotationQ;
-    CalcInterpolatedRotation(masterRotationQ, _animationTime, pMasterBoneAnim);
-    CalcInterpolatedRotation(deltaRotationQ, _animationTime, pBoneAnimDiff);
-    glm::quat rotationQ = masterRotationQ * glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)), deltaRotationQ, delta);
     glm::mat4 rotationMat(1.0f);
-    rotationMat = glm::mat4_cast(rotationQ);
-
-    // Interpolate translation and generate translation transformation matrix
-    glm::vec3 masterTranslationVec;
-    glm::vec3 deltaTranslationVec;
-    CalcInterpolatedPosition(masterTranslationVec, _animationTime, pMasterBoneAnim);
-    CalcInterpolatedPosition(deltaTranslationVec, _animationTime, pBoneAnimDiff);
-    glm::vec3 translationVec = masterTranslationVec + (delta * deltaTranslationVec);
     glm::mat4 translationMat;
-    translationMat = glm::translate(translationMat, translationVec);
+
+    const BoneAnim* pMasterBoneAnim = &_pMasterRig->m_boneAnims[_pMasterBone->m_name];
+    const BoneAnimMerge boneAnimMerge = _pMergeRig.m_boneAnimMerges[_pMasterBone->m_name];
+    const BoneAnimDiff* pBoneAnimDiff;
+
+    if(boneAnimMerge.m_type != MERGE::CONFLICT)
+    {
+        if(boneAnimMerge.m_type == MERGE::MAIN)
+        {
+            pBoneAnimDiff = &boneAnimMerge.m_mainDiff;
+        }
+        else if(boneAnimMerge.m_type == MERGE::BRANCH)
+        {
+            pBoneAnimDiff = &boneAnimMerge.m_branchDiff;
+        }
+        else
+        {
+            pBoneAnimDiff = &boneAnimMerge.m_mainDiff;
+        }
+
+        // Interpolate scaling and generate scaling transformation matrix
+        GenerateScalingMatrix(scalingMat, _animationTime, delta, pMasterBoneAnim, pBoneAnimDiff);
+
+        // Interpolate rotation and generate rotation transformation matrix
+        GenerateRotationMatrix(rotationMat, _animationTime, delta, pMasterBoneAnim, pBoneAnimDiff);
+
+        // Interpolate translation and generate translation transformation matrix
+        GenerateTranslationMatrix(translationMat, _animationTime, delta, pMasterBoneAnim, pBoneAnimDiff);
+    }
+    else if(boneAnimMerge.m_type == MERGE::CONFLICT)
+    {
+
+    }
+
 
     // Combine the above transformations
-    nodeTransform =  translationMat * rotationMat * scalingMat;
+    boneTransform =  translationMat * rotationMat * scalingMat;
 
 
-    glm::mat4 globalTransformation = glm::transpose(nodeTransform)*_parentTransform;
+    glm::mat4 globalTransformation = glm::transpose(boneTransform)*_parentTransform;
 
 
     if (BoneIndex != -1)
@@ -987,4 +981,58 @@ void ViewerUtilities::ReadNodeHierarchyMerge(const std::map<std::string, unsigne
     {
         ReadNodeHierarchyMerge(_boneMapping, _boneInfo, _globalInverseTransform, _animationTime, _boneDeltas, _pMasterRig, std::shared_ptr<Bone>(_pMasterBone->m_children[i]), _pMergeRig, globalTransformation);
     }
+}
+
+
+void ViewerUtilities::GenerateScalingMatrix(glm::mat4 &scalingMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimDiff *pBoneAnimDiff)
+{
+    glm::vec3 masterScalingVec;
+    glm::vec3 deltaScalingVec;
+    CalcInterpolatedScaling(masterScalingVec, _animationTime, pMasterBoneAnim);
+    CalcInterpolatedScaling(deltaScalingVec, _animationTime, pBoneAnimDiff);
+    glm::vec3 scalingVec = masterScalingVec + (_delta * deltaScalingVec);
+    scalingMat = glm::scale(scalingMat, scalingVec);
+}
+
+void ViewerUtilities::GenerateRotationMatrix(glm::mat4 &rotationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimDiff *pBoneAnimDiff)
+{
+    glm::quat masterRotationQ;
+    glm::quat deltaRotationQ;
+    CalcInterpolatedRotation(masterRotationQ, _animationTime, pMasterBoneAnim);
+    CalcInterpolatedRotation(deltaRotationQ, _animationTime, pBoneAnimDiff);
+    glm::quat rotationQ = masterRotationQ * glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)), deltaRotationQ, _delta);
+    rotationMat = glm::mat4_cast(rotationQ);
+}
+
+void ViewerUtilities::GenerateTranslationMatrix(glm::mat4 &translationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimDiff *pBoneAnimDiff)
+{
+    glm::vec3 masterTranslationVec;
+    glm::vec3 deltaTranslationVec;
+    CalcInterpolatedPosition(masterTranslationVec, _animationTime, pMasterBoneAnim);
+    CalcInterpolatedPosition(deltaTranslationVec, _animationTime, pBoneAnimDiff);
+    glm::vec3 translationVec = masterTranslationVec + (_delta * deltaTranslationVec);
+    translationMat = glm::translate(translationMat, translationVec);
+}
+
+void ViewerUtilities::GenerateScalingMatrix(glm::mat4 &scalingMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimMerge boneAnimMerge)
+{
+    if(boneAnimMerge.m_type == MERGE::CONFLICT)
+    {
+        glm::vec3 masterScalingVec;
+        glm::vec3 deltaScalingVec;
+        CalcInterpolatedScaling(masterScalingVec, _animationTime, pMasterBoneAnim);
+        CalcInterpolatedScaling(deltaScalingVec, _animationTime, pBoneAnimDiff);
+        glm::vec3 scalingVec = masterScalingVec + (_delta * deltaScalingVec);
+        scalingMat = glm::scale(scalingMat, scalingVec);
+    }
+}
+
+void ViewerUtilities::GenerateRotationMatrix(glm::mat4 &rotationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimMerge boneAnimMerge)
+{
+
+}
+
+void ViewerUtilities::GenerateTranslationMatrix(glm::mat4 &translationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimMerge boneAnimMerge)
+{
+
 }

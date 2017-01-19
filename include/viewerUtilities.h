@@ -19,10 +19,9 @@
 
 #include "include/modelRig.h"
 #include "include/diffRig.h"
+#include "include/mergeRig.h"
 #include "include/bone.h"
 
-class MergeRig;
-class BoneAnimMerge;
 
 namespace ViewerUtilities
 {
@@ -141,6 +140,15 @@ namespace ViewerUtilities
     void ColourBoneMerges(const std::map<std::string, unsigned int> &_boneMapping, const float _animationTime, const std::unordered_map<std::string, float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, MergeRig _pMergeRig, std::vector<glm::vec3> &_rigJointColour);
 
     void ReadNodeHierarchyMerge(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, const std::unordered_map<std::string, float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, MergeRig _pMergeRig, const glm::mat4& _parentTransform);
+
+
+    void GenerateScalingMatrix(glm::mat4 &scalingMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimDiff* pBoneAnimDiff);
+    void GenerateRotationMatrix(glm::mat4 &rotationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimDiff* pBoneAnimDiff);
+    void GenerateTranslationMatrix(glm::mat4 &translationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimDiff* pBoneAnimDiff);
+
+    void GenerateScalingMatrix(glm::mat4 &scalingMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimMerge boneAnimMerge);
+    void GenerateRotationMatrix(glm::mat4 &rotationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimMerge boneAnimMerge);
+    void GenerateTranslationMatrix(glm::mat4 &translationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimMerge boneAnimMerge);
 
 }
 

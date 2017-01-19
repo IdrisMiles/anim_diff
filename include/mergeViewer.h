@@ -10,10 +10,9 @@
 #include "include/diffViewer.h"
 #include "include/revisionNode.h"
 #include "include/revisionDiff.h"
+#include "include/revisionMerge.h"
 #include "include/viewerUtilities.h"
 
-class RevisionMerge;
-class MergeRig;
 
 class MergeViewer : public RevisionViewer
 {
