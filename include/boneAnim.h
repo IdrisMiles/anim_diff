@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-enum MERGE { MAIN, BRANCH, CONFLICT };
+enum MERGE { MASTER, BRANCH, CONFLICT, EMPTY };
 
 struct PosAnim
 {

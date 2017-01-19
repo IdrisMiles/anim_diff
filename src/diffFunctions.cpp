@@ -345,5 +345,38 @@ void DiffFunctions::getAnimMerge(DiffRig master, DiffRig branch, MergeRig &outRi
 
 BoneAnimMerge DiffFunctions::getBoneMerge(BoneAnimDiff master, BoneAnimDiff branch)
 {
-    return BoneAnimMerge();    
+    BoneAnimMerge boneMerge;
+    
+    // now we check whether they both have changes on the same 
+    bool bMasterChange = getIfChanges(master);
+    bool bBranchChange = getIfChanges(branch);
+
+    if(bMasterChange && bBranchChange)
+    {
+        boneMerge.m_type = CONFLICT;
+        boneMerge.m_mainDiff = master;
+        boneMerge.m_branchDiff = branch;
+    }
+    else if(bMasterChange)
+    {
+        boneMerge.m_type = MASTER;
+        boneMerge.m_mainDiff = master;
+    }
+    else if(bBranchChange)
+    {
+        boneMerge.m_type = BRANCH;
+        boneMerge.m_branchDiff = branch;
+    }
+    else
+    {
+        boneMerge.m_type = EMPTY;
+    }
+    
+    return boneMerge;   
 }
+
+bool DiffFunctions::getIfChanges(BoneAnimDiff _diff)
+{
+    return true;
+}
+
