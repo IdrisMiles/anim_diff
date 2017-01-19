@@ -14,11 +14,11 @@ RepoController::~RepoController()
 
 }
 
-std::shared_ptr<RevisionNode> RepoController::loadMasterNode(std::string _path)
+std::shared_ptr<RevisionNode> RepoController::loadParentNode(std::string _path)
 {
-    m_masterNode.reset(new RevisionNode());
-    m_masterNode->LoadModel(_path);
-    return m_masterNode;
+    m_parentNode.reset(new RevisionNode());
+    m_parentNode->LoadModel(_path);
+    return m_parentNode;
 }
 
 std::shared_ptr<RevisionNode> RepoController::loadMainNode(std::string _path)
@@ -55,8 +55,8 @@ void RepoController::getMerge()
     try 
     {
         // get both diffs of the children and master
-        RevisionDiff mainDiff = RevisionUtils::getRevisionDiff(m_masterNode, m_mainNode);
-        RevisionDiff compDiff = RevisionUtils::getRevisionDiff(m_masterNode, m_compareNode);
+        RevisionDiff mainDiff = RevisionUtils::getRevisionDiff(m_parentNode, m_mainNode);
+        RevisionDiff compDiff = RevisionUtils::getRevisionDiff(m_parentNode, m_compareNode);
 
         // do something with these diffs. 
         // diff the diffs! crazy! mental!
