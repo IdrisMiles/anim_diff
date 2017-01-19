@@ -377,6 +377,37 @@ BoneAnimMerge DiffFunctions::getBoneMerge(BoneAnimDiff master, BoneAnimDiff bran
 
 bool DiffFunctions::getIfChanges(BoneAnimDiff _diff)
 {
-    return true;
+    // loop all items if not zeros we got changes
+    for(auto posDelta : _diff.m_posAnimDeltas)
+    {
+        glm::vec3 pos = posDelta.pos;
+
+        if( pos != glm::vec3(0,0,0) )
+        {
+            return true;
+        }
+    }
+
+    for(auto scaleDelta : _diff.m_scaleAnimDeltas)
+    {
+        glm::vec3 scale = scaleDelta.scale;
+
+        if( scale != glm::vec3(0,0,0) )
+        {
+            return true;
+        }
+    }
+
+    for(auto rotDelta : _diff.m_rotAnimDeltas)
+    {
+        glm::quat rot = rotDelta.rot;
+
+        if( rot != glm::quat(0,0,0,0))
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
