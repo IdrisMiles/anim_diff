@@ -320,6 +320,48 @@ TEST(DiffFunctionTest, rotationDiffInterpolate) {
     EXPECT_EQ(0.0, result[1].rot.w);
 }
 
+// MERGE TESTS ////////////////////////////////////////////////////////////////////////////
+TEST( DiffFunctionTest, changesCheck1 )
+{
+    BoneAnimDiff animDiff;
+
+    for(int i = 0; i < 100; ++i)
+    {
+        animDiff.m_posAnimDeltas.push_back(PosAnim(i, glm::vec3(0,0,0)));
+        animDiff.m_rotAnimDeltas.push_back(RotAnim(i, glm::quat(0,0,0,0)));
+        animDiff.m_scaleAnimDeltas.push_back(ScaleAnim(i, glm::vec3(0,0,0)));
+    }
+
+    EXPECT_FALSE(DiffFunctions::getIfChanges(animDiff));
+}
+
+TEST( DiffFunctionTest, changesCheck2 )
+{
+    BoneAnimDiff animDiff;
+
+    for(int i = 0; i < 20; ++i)
+    {
+        animDiff.m_posAnimDeltas.push_back(PosAnim(0, glm::vec3(0,0,0)));
+        animDiff.m_rotAnimDeltas.push_back(RotAnim(0, glm::quat(0,0,0,0)));
+        animDiff.m_scaleAnimDeltas.push_back(ScaleAnim(0, glm::vec3(0,0,0)));
+    }
+
+    for(int i = 0; i < 10; ++i)
+    {
+        animDiff.m_posAnimDeltas.push_back(PosAnim(0, glm::vec3(0,0,0)));
+        animDiff.m_scaleAnimDeltas.push_back(ScaleAnim(0, glm::vec3(0,i*10,0)));
+    }
+
+    for(int i = 0; i < 20; ++i)
+    {
+        animDiff.m_posAnimDeltas.push_back(PosAnim(0, glm::vec3(0,0,0)));
+        animDiff.m_rotAnimDeltas.push_back(RotAnim(0, glm::quat(0,0,0,0)));
+        animDiff.m_scaleAnimDeltas.push_back(ScaleAnim(0, glm::vec3(0,0,0)));
+    }
+
+    EXPECT_TRUE(DiffFunctions::getIfChanges(animDiff));
+}
+
 // MAIN ///////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char **argv) 

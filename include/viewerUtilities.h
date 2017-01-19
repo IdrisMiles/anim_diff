@@ -17,9 +17,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 
-#include "include/modelRig.h"
-#include "include/diffRig.h"
-#include "include/bone.h"
+#include "modelRig.h"
+#include "diffRig.h"
+#include "bone.h"
 
 namespace ViewerUtilities
 {
