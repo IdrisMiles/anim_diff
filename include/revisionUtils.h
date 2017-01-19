@@ -16,6 +16,8 @@ public:
 
     // will not be void once structure is created
     static RevisionDiff getRevisionDiff(std::shared_ptr<RevisionNode> _master, std::shared_ptr<RevisionNode> _branch);
+
+    static void getRevisionMerge(RevisionDiff _diffA, RevisionDiff _diffB);
 };
 
 #endif // REVISIONUTILS_H
