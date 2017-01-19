@@ -21,6 +21,9 @@
 #include "include/diffRig.h"
 #include "include/bone.h"
 
+class MergeRig;
+class BoneAnimMerge;
+
 namespace ViewerUtilities
 {
     //-----------------------------------------------------------------------------------------------------------------------------
@@ -131,6 +134,13 @@ namespace ViewerUtilities
     uint FindPositionKeyFrame(const float _animationTime, const BoneAnimDiff* _pBoneAnimDiff);
 
     uint FindScalingKeyFrame(const float _animationTime, const BoneAnimDiff* _pBoneAnimDiff);
+
+
+    //-----------------------------------------------------------------------------------------------------------------------------
+    // Merged viewer stuff
+    void ColourBoneMerges(const std::map<std::string, unsigned int> &_boneMapping, const float _animationTime, const std::unordered_map<std::string, float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, MergeRig _pMergeRig, std::vector<glm::vec3> &_rigJointColour);
+
+    void ReadNodeHierarchyMerge(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, const std::unordered_map<std::string, float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, MergeRig _pMergeRig, const glm::mat4& _parentTransform);
 
 }
 
