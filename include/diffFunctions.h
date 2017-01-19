@@ -33,6 +33,7 @@ public:
 
     // merge methods
     static void getAnimMerge(DiffRig master, DiffRig branch, MergeRig &outRig);
+    static BoneAnimMerge getBoneMerge(BoneAnimDiff master, BoneAnimDiff branch);
 
 };
 

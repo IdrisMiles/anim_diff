@@ -324,6 +324,26 @@ ScaleAnim DiffFunctions::getScaleDiff(ScaleAnim scaleA, ScaleAnim scaleB1, Scale
 }
 
 void DiffFunctions::getAnimMerge(DiffRig master, DiffRig branch, MergeRig &outRig)
-{
+{       
+    // iterate through master bones
+    for(auto bone : master.m_boneAnimDiffs)
+    {
+        // find matching one
+        auto branchBone = branch.m_boneAnimDiffs.find(bone.first);
 
+        if(branchBone != branch.m_boneAnimDiffs.end())
+        {
+            BoneAnimMerge boneDiff = getBoneMerge(bone.second, branchBone->second);
+            outRig.m_boneAnimMerges.insert({bone.first, boneDiff});
+        }
+        else
+        {
+            std::cout << "cannot find matching bone for: " << bone.first << "\n";
+        }
+    }
+}
+
+BoneAnimMerge DiffFunctions::getBoneMerge(BoneAnimDiff master, BoneAnimDiff branch)
+{
+    return BoneAnimMerge();    
 }
