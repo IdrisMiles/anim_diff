@@ -405,7 +405,7 @@ void ViewerUtilities::ColourBoneDifferences(const std::map<std::string, unsigned
     glm::vec3 translationVec = /*masterTranslationVec + */(delta * deltaTranslationVec);
 
     // Check if this keyframe has been flagged as different
-    glm::vec3 jointColour;
+    glm::vec3 jointColour = glm::vec3(0.6f,0.6f,0.6f);
 
     if( (glm::length2(scalingVec) < FLT_EPSILON)        &&
         (glm::length2(translationVec) < FLT_EPSILON)    &&
@@ -657,7 +657,7 @@ void ViewerUtilities::ColourBoneMerges(const std::map<std::string, unsigned int>
         BoneIndex = _boneMapping.at(_pMasterBone->m_name);
     }
 
-    glm::vec3 jointColour;
+    glm::vec3 jointColour = glm::vec3(0.6f,0.6f,0.6f);
     float delta = _boneDeltas.at(_pMasterBone->m_name);
     bool master = false;
     bool branch = false;

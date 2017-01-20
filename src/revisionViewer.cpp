@@ -354,7 +354,7 @@ void RevisionViewer::customInitGL()
     // initialise view and projection matrices
     m_viewMat = glm::mat4(1);
     m_viewMat = glm::lookAt(glm::vec3(0,0,0),glm::vec3(0,0,-1),glm::vec3(0,1,0));
-    m_projMat = glm::perspective(45.0f, GLfloat(width()) / height(), 0.01f, 5000.0f);
+    m_projMat = glm::perspective(45.0f, GLfloat(width()) / height(), 1.0f, 10000.0f);
 
     CreateShaders();
     CreateVAOs();
@@ -466,8 +466,7 @@ void RevisionViewer::keyPressEvent(QKeyEvent *event)
 
 void RevisionViewer::UploadBoneColoursToShader(RenderType _rt)
 {
-    glm::vec3 c(0.6f,0.6f,0.6f);
-    unsigned int numBones = m_model->m_boneInfo.size();
+    unsigned int numBones = m_model->m_rigJointColours.size();
     for(unsigned int b=0; b<numBones && b<100; b++)
     {
         glUniform3fv(m_colourAttrLoc[_rt] + b, 1, &m_model->m_colour[0] );
