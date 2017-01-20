@@ -132,6 +132,7 @@ void MainWindow::LoadParentRevision()
 
     auto node = m_repoController->loadParentNode(file.toStdString());
     m_parentViewer->LoadRevision(node);
+    m_parentViewer->SetMeshColour(glm::vec3(0.6f,0.6f,0.6f));
 
     // TODO add parent time to timer
     // update timeline;

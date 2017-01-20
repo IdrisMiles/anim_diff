@@ -28,9 +28,7 @@ namespace ViewerUtilities
 {
     //-----------------------------------------------------------------------------------------------------------------------------
     // Assimp viewer stuff
-    /// @brief Method to convert Assimps aiMatrix4x4 class to a glm::mat4 class. This is useful for sending assimps matrices to opengl.
-    /// @param m : The matrix to convert.
-    glm::mat4 ConvertToGlmMat(const aiMatrix4x4 &m);
+
 
 
     /// @brief Method to find the animation node with the name matching NodeName.
@@ -41,6 +39,19 @@ namespace ViewerUtilities
 
 
     const aiBone* GetBone(const aiScene *_aiScene, std::string _name);
+
+    //-----------------------------------------------------------------------------------------------------------------------------
+    // ASSIMP to Our Data structure conversion methods
+
+    /// @brief Method to convert Assimps aiMatrix4x4 class to a glm::mat4 class. This is useful for sending assimps matrices to opengl.
+    /// @param m : The matrix to convert.
+    glm::mat4 ConvertToGlmMat(const aiMatrix4x4 &m);
+
+    void CopyRigStructure(const std::map<std::string, unsigned int> &_boneMapping, const aiScene *_aiScene, aiNode *_aiNode, std::shared_ptr<ModelRig> _rig, std::shared_ptr<Bone> _parentBone, const glm::mat4 &_parentTransform);
+
+    BoneAnim TransferAnim(const aiNodeAnim *_pNodeAnim);
+
+
 
     //-----------------------------------------------------------------------------------------------------------------------------
     // Revision viewer stuff
@@ -60,9 +71,7 @@ namespace ViewerUtilities
 
     uint FindScalingKeyFrame(const float _animationTime, const BoneAnim* _pBoneAnim);
 
-    BoneAnim TransferAnim(const aiNodeAnim *_pNodeAnim);
 
-    void CopyRigStructure(const std::map<std::string, unsigned int> &_boneMapping, const aiScene *_aiScene, aiNode *_aiNode, std::shared_ptr<ModelRig> _rig, std::shared_ptr<Bone> _parentBone, const glm::mat4 &_parentTransform);
 
 
     //-----------------------------------------------------------------------------------------------------------------------------
@@ -83,6 +92,11 @@ namespace ViewerUtilities
 
     uint FindScalingKeyFrame(const float _animationTime, const BoneAnimDiff* _pBoneAnimDiff);
 
+    void GenerateScalingMatrix(glm::mat4 &scalingMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimDiff* pBoneAnimDiff);
+
+    void GenerateRotationMatrix(glm::mat4 &rotationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimDiff* pBoneAnimDiff);
+
+    void GenerateTranslationMatrix(glm::mat4 &translationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimDiff* pBoneAnimDiff);
 
     //-----------------------------------------------------------------------------------------------------------------------------
     // Merged viewer stuff
@@ -90,13 +104,10 @@ namespace ViewerUtilities
 
     void ReadNodeHierarchyMerge(const std::map<std::string, unsigned int> &_boneMapping, std::vector<glm::mat4> &_boneInfo, const glm::mat4 _globalInverseTransform, const float _animationTime, const std::unordered_map<std::string, float> &_boneDeltas, std::shared_ptr<ModelRig> _pMasterRig, std::shared_ptr<Bone> _pMasterBone, MergeRig _pMergeRig, const glm::mat4& _parentTransform);
 
-
-    void GenerateScalingMatrix(glm::mat4 &scalingMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimDiff* pBoneAnimDiff);
-    void GenerateRotationMatrix(glm::mat4 &rotationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimDiff* pBoneAnimDiff);
-    void GenerateTranslationMatrix(glm::mat4 &translationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimDiff* pBoneAnimDiff);
-
     void GenerateScalingMatrix(glm::mat4 &scalingMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimMerge boneAnimMerge, bool &master, bool &branch);
+
     void GenerateRotationMatrix(glm::mat4 &rotationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimMerge boneAnimMerge, bool &master, bool &branch);
+
     void GenerateTranslationMatrix(glm::mat4 &translationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimMerge boneAnimMerge, bool &master, bool &branch);
 }
 
