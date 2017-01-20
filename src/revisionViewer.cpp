@@ -54,6 +54,15 @@ void RevisionViewer::SetTime(const float _t)
     }
 }
 
+
+void RevisionViewer::SetMeshColour(const glm::vec3 &_colour)
+{
+    if(m_model != nullptr)
+    {
+        m_model->m_colour = _colour;
+    }
+}
+
 void RevisionViewer::LoadRevision(std::shared_ptr<RevisionNode> _revision)
 {
     std::cout<<"Loading a Revision\n";
@@ -123,7 +132,7 @@ void RevisionViewer::CreateVAOs()
     m_shaderProg[SKINNED]->bind();
 
     // Get shader locations
-    m_model->m_colour = glm::vec3(0.6f,0.6f,0.6f);
+//    m_model->m_colour = glm::vec3(0.6f,0.6f,0.6f);
     m_colourLoc[SKINNED] = m_shaderProg[SKINNED]->uniformLocation("uColour");
     glUniform3fv(m_colourLoc[SKINNED], 1, &m_model->m_colour[0]);
     m_vertAttrLoc[SKINNED] = m_shaderProg[SKINNED]->attributeLocation("vertex");
@@ -186,7 +195,7 @@ void RevisionViewer::CreateVAOs()
     m_shaderProg[RIG]->bind();
 
     // Get shader locations
-    m_model->m_colour = glm::vec3(0.6f,0.6f,0.6f);
+//    m_model->m_colour = glm::vec3(0.6f,0.6f,0.6f);
     m_vertAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("vertex");
     m_boneIDAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("BoneIDs");
     m_boneWeightAttrLoc[RIG] = m_shaderProg[RIG]->attributeLocation("Weights");
@@ -263,7 +272,7 @@ void RevisionViewer::UpdateVAOs()
     m_shaderProg[SKINNED]->bind();
 
     // Get shader locations
-    m_model->m_colour = glm::vec3(0.6f,0.6f,0.6f);
+//    m_model->m_colour = glm::vec3(0.6f,0.6f,0.6f);
     glUniform3fv(m_colourLoc[SKINNED], 1, &m_model->m_colour[0]);
 
     // Set up VAO
@@ -461,7 +470,7 @@ void RevisionViewer::UploadBoneColoursToShader(RenderType _rt)
     unsigned int numBones = m_model->m_boneInfo.size();
     for(unsigned int b=0; b<numBones && b<100; b++)
     {
-        glUniform3fv(m_colourAttrLoc[_rt] + b, 1, &c[0] );
+        glUniform3fv(m_colourAttrLoc[_rt] + b, 1, &m_model->m_colour[0] );
     }
 
 }

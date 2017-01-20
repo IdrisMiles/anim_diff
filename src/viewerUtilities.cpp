@@ -655,104 +655,180 @@ void ViewerUtilities::ColourBoneMerges(const std::map<std::string, unsigned int>
         BoneIndex = _boneMapping.at(_pMasterBone->m_name);
     }
 
+    glm::vec3 jointColour;
     float delta = _boneDeltas.at(_pMasterBone->m_name);
+    bool master = false;
+    bool branch = false;
 
-    // Set defualt to bind pose
-    glm::mat4 boneTransform(_pMasterBone->m_transform);
+    const BoneAnim* pMasterBoneAnim = &_pMasterRig->m_boneAnims[_pMasterBone->m_name];
+    const BoneAnimMerge boneAnimMerge = _pMergeRig.m_boneAnimMerges[_pMasterBone->m_name];
+
     glm::mat4 scalingMat(1.0f);
     glm::mat4 rotationMat(1.0f);
     glm::mat4 translationMat;
 
-    const BoneAnim* pMasterBoneAnim = &_pMasterRig->m_boneAnims[_pMasterBone->m_name];
-    const BoneAnimMerge boneAnimMerge = _pMergeRig.m_boneAnimMerges[_pMasterBone->m_name];
-    const BoneAnimDiff* pBoneAnimDiff;
-
-    if(boneAnimMerge.m_type != MERGE::CONFLICT)
-    {
-        if(boneAnimMerge.m_type == MERGE::MASTER)
-        {
-            pBoneAnimDiff = &boneAnimMerge.m_mainDiff;
-        }
-        else if(boneAnimMerge.m_type == MERGE::BRANCH)
-        {
-            pBoneAnimDiff = &boneAnimMerge.m_branchDiff;
-        }
-        else
-        {
-            pBoneAnimDiff = &boneAnimMerge.m_mainDiff;
-        }
-    }
-    else if(boneAnimMerge.m_type == MERGE::CONFLICT)
-    {
-        if(delta <= 0.5f)
-        {
-            pBoneAnimDiff = &boneAnimMerge.m_mainDiff;
-        }
-        else
-        {
-            pBoneAnimDiff = &boneAnimMerge.m_branchDiff;
-        }
-        delta = fabs(2.0f*(delta-0.5f));
-    }
-
-
-
     // Interpolate scaling and generate scaling transformation matrix
-    glm::vec3 masterScalingVec;
-    glm::vec3 deltaScalingVec;
-    CalcInterpolatedScaling(masterScalingVec, _animationTime, pMasterBoneAnim);
-    CalcInterpolatedScaling(deltaScalingVec, _animationTime, pBoneAnimDiff);
-    glm::vec3 scalingVec = /*masterScalingVec + */(delta * deltaScalingVec);
+    GenerateScalingMatrix(scalingMat, _animationTime, delta, pMasterBoneAnim, boneAnimMerge, master, branch);
 
     // Interpolate rotation and generate rotation transformation matrix
-    glm::quat masterRotationQ;
-    glm::quat deltaRotationQ;
-    CalcInterpolatedRotation(masterRotationQ, _animationTime, pMasterBoneAnim);
-    CalcInterpolatedRotation(deltaRotationQ, _animationTime, pBoneAnimDiff);
-    glm::quat rotationQ = /*masterRotationQ **/ glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)), deltaRotationQ, delta);
+    GenerateRotationMatrix(rotationMat, _animationTime, delta, pMasterBoneAnim, boneAnimMerge, master, branch);
 
     // Interpolate translation and generate translation transformation matrix
-    glm::vec3 masterTranslationVec;
-    glm::vec3 deltaTranslationVec;
-    CalcInterpolatedPosition(masterTranslationVec, _animationTime, pMasterBoneAnim);
-    CalcInterpolatedPosition(deltaTranslationVec, _animationTime, pBoneAnimDiff);
-    glm::vec3 translationVec = /*masterTranslationVec + */(delta * deltaTranslationVec);
+    GenerateTranslationMatrix(translationMat, _animationTime, delta, pMasterBoneAnim, boneAnimMerge, master, branch);
 
-    // Check if this keyframe has been flagged as different
-    glm::vec3 jointColour;
-
-    if( ((glm::length2(scalingVec) < FLT_EPSILON)        &&
-        (glm::length2(translationVec) < FLT_EPSILON)    &&
-        (glm::length2(glm::eulerAngles(rotationQ)) < FLT_EPSILON)) ||
-         boneAnimMerge.m_type == MERGE::EMPTY   )
+    if(master && !branch)
     {
-        // parent - grey
+        // Branch A - greenish
+        jointColour = glm::vec3(0.4f,0.8f,0.4f);
+    }
+    else if(!master && branch)
+    {
+        // Branch B - blueish
+        jointColour = glm::vec3(0.4f,0.4f,0.8f);
+    }
+    else if(!master && !branch)
+    {
         jointColour = glm::vec3(0.6f,0.6f,0.6f);
     }
-    else
+    else if(master && branch)
     {
-        if(boneAnimMerge.m_type == MERGE::MASTER)
-        {
-            // Branch A - greenish
-            jointColour = glm::vec3(0.4f,0.8f,0.4f);
-        }
-        else if(boneAnimMerge.m_type == MERGE::BRANCH)
-        {
-            // Branch B - blueish
-            jointColour = glm::vec3(0.4f,0.4f,0.8f);
-        }
-        else if(boneAnimMerge.m_type == MERGE::CONFLICT)
-        {
-            // Merge Conflict - red
-            jointColour = glm::vec3(1.0f,0.0f,0.0f);
-        }
-        else
-        {
-            // backup default to parent
-            jointColour = glm::vec3(0.6f,0.6f,0.6f);
-        }
 
+        jointColour = glm::vec3(1.0f,0.0f,0.0f);
     }
+
+
+//    // Interpolate scaling and generate scaling transformation matrix
+//    glm::vec3 deltaScalingVec;
+//    CalcInterpolatedScaling(deltaScalingVec, _animationTime, pBoneAnimDiffMaster);
+//    glm::vec3 scalingVec = (delta * deltaScalingVec);
+
+//    // Interpolate rotation and generate rotation transformation matrix
+//    glm::quat deltaRotationQ;
+//    CalcInterpolatedRotation(deltaRotationQ, _animationTime, pBoneAnimDiffMaster);
+//    glm::quat rotationQ = glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)), deltaRotationQ, delta);
+
+//    // Interpolate translation and generate translation transformation matrix
+//    glm::vec3 deltaTranslationVec;
+//    CalcInterpolatedPosition(deltaTranslationVec, _animationTime, pBoneAnimDiffMaster);
+//    glm::vec3 translationVec = (delta * deltaTranslationVec);
+
+
+//    if( ((glm::length2(scalingVec) < FLT_EPSILON)        &&
+//        (glm::length2(translationVec) < FLT_EPSILON)    &&
+//        (glm::length2(glm::eulerAngles(rotationQ)) < FLT_EPSILON)) )
+//    {
+//    }
+//    else
+//    {
+//        master = true;
+//    }
+
+
+
+//    // Interpolate scaling and generate scaling transformation matrix
+//    CalcInterpolatedScaling(deltaScalingVec, _animationTime, pBoneAnimDiffBranch);
+//    scalingVec = (delta * deltaScalingVec);
+
+//    // Interpolate rotation and generate rotation transformation matrix
+//    CalcInterpolatedRotation(deltaRotationQ, _animationTime, pBoneAnimDiffBranch);
+//    rotationQ = glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)), deltaRotationQ, delta);
+
+//    // Interpolate translation and generate translation transformation matrix
+//    CalcInterpolatedPosition(deltaTranslationVec, _animationTime, pBoneAnimDiffBranch);
+//    translationVec = (delta * deltaTranslationVec);
+
+
+//    if( ((glm::length2(scalingVec) < FLT_EPSILON)        &&
+//        (glm::length2(translationVec) < FLT_EPSILON)    &&
+//        (glm::length2(glm::eulerAngles(rotationQ)) < FLT_EPSILON)) )
+//    {
+//    }
+//    else
+//    {
+//        branch = true;
+//    }
+
+
+//    if(master && !branch)
+//    {
+//        // Branch A - greenish
+//        jointColour = glm::vec3(0.4f,0.8f,0.4f);
+//    }
+//    else if(!master && branch)
+//    {
+//        // Branch B - blueish
+//        jointColour = glm::vec3(0.4f,0.4f,0.8f);
+//    }
+//    else if(master && branch)
+//    {
+//        // Merge Conflict - red
+//        jointColour = glm::vec3(1.0f,0.0f,0.0f);
+//        delta = fabs(2.0f*(delta-0.5f));
+
+//        // Interpolate scaling and generate scaling transformation matrix
+//        CalcInterpolatedScaling(deltaScalingVec, _animationTime, pBoneAnimDiffMaster);
+//        scalingVec = (delta * deltaScalingVec);
+
+//        // Interpolate rotation and generate rotation transformation matrix
+//        CalcInterpolatedRotation(deltaRotationQ, _animationTime, pBoneAnimDiffMaster);
+//        rotationQ = glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)), deltaRotationQ, delta);
+
+//        // Interpolate translation and generate translation transformation matrix
+//        CalcInterpolatedPosition(deltaTranslationVec, _animationTime, pBoneAnimDiffMaster);
+//        translationVec = (delta * deltaTranslationVec);
+
+
+//        if( ((glm::length2(scalingVec) < FLT_EPSILON)        &&
+//            (glm::length2(translationVec) < FLT_EPSILON)    &&
+//            (glm::length2(glm::eulerAngles(rotationQ)) < FLT_EPSILON)) )
+//        {
+//        }
+//        else
+//        {
+//            master = true;
+//        }
+
+
+
+//        // Interpolate scaling and generate scaling transformation matrix
+//        CalcInterpolatedScaling(deltaScalingVec, _animationTime, pBoneAnimDiffBranch);
+//        scalingVec = (delta * deltaScalingVec);
+
+//        // Interpolate rotation and generate rotation transformation matrix
+//        CalcInterpolatedRotation(deltaRotationQ, _animationTime, pBoneAnimDiffBranch);
+//        rotationQ = glm::slerp(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)), deltaRotationQ, delta);
+
+//        // Interpolate translation and generate translation transformation matrix
+//        CalcInterpolatedPosition(deltaTranslationVec, _animationTime, pBoneAnimDiffBranch);
+//        translationVec = (delta * deltaTranslationVec);
+
+
+//        if( ((glm::length2(scalingVec) < FLT_EPSILON)        &&
+//            (glm::length2(translationVec) < FLT_EPSILON)    &&
+//            (glm::length2(glm::eulerAngles(rotationQ)) < FLT_EPSILON)) )
+//        {
+//        }
+//        else
+//        {
+//            branch = true;
+//        }
+
+//        if(master && !branch)
+//        {
+//            // Branch A - greenish
+//            jointColour = glm::vec3(0.4f,0.8f,0.4f);
+//        }
+//        else if(!master && branch)
+//        {
+//            // Branch B - blueish
+//            jointColour = glm::vec3(0.4f,0.4f,0.8f);
+//        }
+//    }
+//    else
+//    {
+//        // backup default to parent
+//        jointColour = glm::vec3(0.6f,0.6f,0.6f);
+//    }
 
 
     if (BoneIndex != -1)
@@ -780,7 +856,13 @@ void ViewerUtilities::ReadNodeHierarchyMerge(const std::map<std::string, unsigne
         BoneIndex = _boneMapping.at(_pMasterBone->m_name);
     }
 
+
     float delta = _boneDeltas.at(_pMasterBone->m_name);
+    bool master = false;
+    bool branch = false;
+
+    const BoneAnim* pMasterBoneAnim = &_pMasterRig->m_boneAnims[_pMasterBone->m_name];
+    const BoneAnimMerge boneAnimMerge = _pMergeRig.m_boneAnimMerges[_pMasterBone->m_name];
 
     // Set defualt to bind pose
     glm::mat4 boneTransform(_pMasterBone->m_transform);
@@ -788,46 +870,17 @@ void ViewerUtilities::ReadNodeHierarchyMerge(const std::map<std::string, unsigne
     glm::mat4 rotationMat(1.0f);
     glm::mat4 translationMat;
 
-    const BoneAnim* pMasterBoneAnim = &_pMasterRig->m_boneAnims[_pMasterBone->m_name];
-    const BoneAnimMerge boneAnimMerge = _pMergeRig.m_boneAnimMerges[_pMasterBone->m_name];
-    const BoneAnimDiff* pBoneAnimDiff;
-
-    if(boneAnimMerge.m_type != MERGE::CONFLICT)
-    {
-        if(boneAnimMerge.m_type == MERGE::MASTER)
-        {
-            pBoneAnimDiff = &boneAnimMerge.m_mainDiff;
-        }
-        else if(boneAnimMerge.m_type == MERGE::BRANCH)
-        {
-            pBoneAnimDiff = &boneAnimMerge.m_branchDiff;
-        }
-        else
-        {
-            pBoneAnimDiff = &boneAnimMerge.m_mainDiff;
-        }
-    }
-    else if(boneAnimMerge.m_type == MERGE::CONFLICT)
-    {
-        if(delta <= 0.5f)
-        {
-            pBoneAnimDiff = &boneAnimMerge.m_mainDiff;
-        }
-        else
-        {
-            pBoneAnimDiff = &boneAnimMerge.m_branchDiff;
-        }
-        delta = fabs(2.0f*(delta-0.5f));
-    }
 
     // Interpolate scaling and generate scaling transformation matrix
-    GenerateScalingMatrix(scalingMat, _animationTime, delta, pMasterBoneAnim, pBoneAnimDiff);
+    GenerateScalingMatrix(scalingMat, _animationTime, delta, pMasterBoneAnim, boneAnimMerge, master, branch);
 
     // Interpolate rotation and generate rotation transformation matrix
-    GenerateRotationMatrix(rotationMat, _animationTime, delta, pMasterBoneAnim, pBoneAnimDiff);
+    GenerateRotationMatrix(rotationMat, _animationTime, delta, pMasterBoneAnim, boneAnimMerge, master, branch);
 
     // Interpolate translation and generate translation transformation matrix
-    GenerateTranslationMatrix(translationMat, _animationTime, delta, pMasterBoneAnim, pBoneAnimDiff);
+    GenerateTranslationMatrix(translationMat, _animationTime, delta, pMasterBoneAnim, boneAnimMerge, master, branch);
+
+
 
 
     // Combine the above transformations
@@ -877,4 +930,129 @@ void ViewerUtilities::GenerateTranslationMatrix(glm::mat4 &translationMat, float
     CalcInterpolatedPosition(deltaTranslationVec, _animationTime, pBoneAnimDiff);
     glm::vec3 translationVec = masterTranslationVec + (_delta * deltaTranslationVec);
     translationMat = glm::translate(translationMat, translationVec);
+}
+
+
+void ViewerUtilities::GenerateScalingMatrix(glm::mat4 &scalingMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimMerge boneAnimMerge, bool &master, bool &branch)
+{
+    const BoneAnimDiff* pBoneAnimDiffMaster = &boneAnimMerge.m_mainDiff;
+    const BoneAnimDiff* pBoneAnimDiffBranch = &boneAnimMerge.m_branchDiff;
+    glm::vec3 masterScalingVec;
+    glm::vec3 deltaScalingVecMaster;
+    glm::vec3 deltaScalingVecBranch;
+    CalcInterpolatedScaling(masterScalingVec, _animationTime, pMasterBoneAnim);
+    CalcInterpolatedScaling(deltaScalingVecMaster, _animationTime, pBoneAnimDiffMaster);
+    CalcInterpolatedScaling(deltaScalingVecBranch, _animationTime, pBoneAnimDiffBranch);
+
+    if(     (glm::length2(deltaScalingVecMaster) < FLT_EPSILON) &&
+            !(glm::length2(deltaScalingVecBranch) < FLT_EPSILON))
+    {
+        branch = true;
+        glm::vec3 scalingVec = masterScalingVec + ((1.0f) * deltaScalingVecBranch);
+        scalingMat = glm::scale(scalingMat, scalingVec);
+    }
+    else if(!(glm::length2(deltaScalingVecMaster) < FLT_EPSILON) &&
+            (glm::length2(deltaScalingVecBranch) < FLT_EPSILON))
+    {
+        master = true;
+        glm::vec3 scalingVec = masterScalingVec + (1.0f * deltaScalingVecMaster) ;
+        scalingMat = glm::scale(scalingMat, scalingVec);
+    }
+    else if((glm::length2(deltaScalingVecMaster) < FLT_EPSILON) &&
+            (glm::length2(deltaScalingVecBranch) < FLT_EPSILON))
+    {
+        glm::vec3 scalingVec = masterScalingVec + (_delta * deltaScalingVecMaster) + ((1.0f-_delta) * deltaScalingVecBranch);
+        scalingMat = glm::scale(scalingMat, scalingVec);
+    }
+    else if(!(glm::length2(deltaScalingVecMaster) < FLT_EPSILON) &&
+            !(glm::length2(deltaScalingVecBranch) < FLT_EPSILON))
+    {
+        master = true;
+        branch = true;
+        glm::vec3 scalingVec = masterScalingVec + (_delta * deltaScalingVecMaster) + ((1.0f-_delta) * deltaScalingVecBranch);
+        scalingMat = glm::scale(scalingMat, scalingVec);
+    }
+
+}
+
+void ViewerUtilities::GenerateRotationMatrix(glm::mat4 &rotationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimMerge boneAnimMerge, bool &master, bool &branch)
+{
+    const BoneAnimDiff* pBoneAnimDiffMaster = &boneAnimMerge.m_mainDiff;
+    const BoneAnimDiff* pBoneAnimDiffBranch = &boneAnimMerge.m_branchDiff;
+    glm::quat masterRotationQ;
+    glm::quat deltaRotationQMaster;
+    glm::quat deltaRotationQBranch;
+    CalcInterpolatedRotation(masterRotationQ, _animationTime, pMasterBoneAnim);
+    CalcInterpolatedRotation(deltaRotationQMaster, _animationTime, pBoneAnimDiffMaster);
+    CalcInterpolatedRotation(deltaRotationQBranch, _animationTime, pBoneAnimDiffBranch);
+
+    if( (glm::length2(glm::eulerAngles(deltaRotationQMaster)) < FLT_EPSILON) &&
+        !(glm::length2(glm::eulerAngles(deltaRotationQBranch)) < FLT_EPSILON))
+    {
+        branch = true;
+        glm::quat rotationQ = masterRotationQ * deltaRotationQBranch;
+        rotationMat = glm::mat4_cast(rotationQ);
+    }
+    else if(!(glm::length2(glm::eulerAngles(deltaRotationQMaster)) < FLT_EPSILON) &&
+            (glm::length2(glm::eulerAngles(deltaRotationQBranch)) < FLT_EPSILON))
+    {
+        master = true;
+        glm::quat rotationQ = masterRotationQ * deltaRotationQMaster;
+        rotationMat = glm::mat4_cast(rotationQ);
+    }
+    else if((glm::length2(glm::eulerAngles(deltaRotationQMaster)) < FLT_EPSILON) &&
+            (glm::length2(glm::eulerAngles(deltaRotationQBranch)) < FLT_EPSILON))
+    {
+        glm::quat rotationQ = masterRotationQ * glm::slerp(deltaRotationQMaster, deltaRotationQBranch, _delta);
+        rotationMat = glm::mat4_cast(rotationQ);
+    }
+    else if(!(glm::length2(glm::eulerAngles(deltaRotationQMaster)) < FLT_EPSILON) &&
+            !(glm::length2(glm::eulerAngles(deltaRotationQBranch)) < FLT_EPSILON))
+    {
+        master = true;
+        branch = true;
+        glm::quat rotationQ = masterRotationQ * glm::slerp(deltaRotationQMaster, deltaRotationQBranch, _delta);
+        rotationMat = glm::mat4_cast(rotationQ);
+    }
+}
+
+void ViewerUtilities::GenerateTranslationMatrix(glm::mat4 &translationMat, float _animationTime, float _delta, const BoneAnim *pMasterBoneAnim, const BoneAnimMerge boneAnimMerge, bool &master, bool &branch)
+{
+    const BoneAnimDiff* pBoneAnimDiffMaster = &boneAnimMerge.m_mainDiff;
+    const BoneAnimDiff* pBoneAnimDiffBranch = &boneAnimMerge.m_branchDiff;
+    glm::vec3 masterTranslationVec;
+    glm::vec3 deltaTranslationVecMaster;
+    glm::vec3 deltaTranslationVecBranch;
+    CalcInterpolatedPosition(masterTranslationVec, _animationTime, pMasterBoneAnim);
+    CalcInterpolatedPosition(deltaTranslationVecMaster, _animationTime, pBoneAnimDiffMaster);
+    CalcInterpolatedPosition(deltaTranslationVecBranch, _animationTime, pBoneAnimDiffBranch);
+
+    if(     (glm::length2(deltaTranslationVecMaster) < FLT_EPSILON) &&
+            !(glm::length2(deltaTranslationVecBranch) < FLT_EPSILON))
+    {
+        branch = true;
+        glm::vec3 translationVec = masterTranslationVec + (1.0f * deltaTranslationVecBranch);
+        translationMat = glm::translate(translationMat, translationVec);
+    }
+    else if(    !(glm::length2(deltaTranslationVecMaster) < FLT_EPSILON) &&
+                (glm::length2(deltaTranslationVecBranch) < FLT_EPSILON))
+    {
+        master = true;
+        glm::vec3 translationVec = masterTranslationVec + (1.0f * deltaTranslationVecMaster);
+        translationMat = glm::translate(translationMat, translationVec);
+    }
+    else if(    (glm::length2(deltaTranslationVecMaster) < FLT_EPSILON) &&
+                (glm::length2(deltaTranslationVecBranch) < FLT_EPSILON))
+    {
+        glm::vec3 translationVec = masterTranslationVec + (_delta * deltaTranslationVecMaster) + ((1.0f-_delta) * deltaTranslationVecBranch);
+        translationMat = glm::translate(translationMat, translationVec);
+    }
+    else if(    !(glm::length2(deltaTranslationVecMaster) < FLT_EPSILON) &&
+                !(glm::length2(deltaTranslationVecBranch) < FLT_EPSILON))
+    {
+        master = true;
+        branch = true;
+        glm::vec3 translationVec = masterTranslationVec + (_delta * deltaTranslationVecMaster) + ((1.0f-_delta) * deltaTranslationVecBranch);
+        translationMat = glm::translate(translationMat, translationVec);
+    }
 }

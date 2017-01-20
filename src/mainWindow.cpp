@@ -66,6 +66,7 @@ void MainWindow::LoadMasterRevision()
 
     auto node = m_repoController->loadMainNode(file.toStdString());
     m_masterViewer->LoadRevision(node);
+    m_masterViewer->SetMeshColour(glm::vec3(0.4f,0.8f,0.4f));
 
     // update timeline
     ui->timeline->updateMasterDuration(node->m_model->m_animationDuration);
@@ -98,6 +99,7 @@ void MainWindow::LoadBranchRevision()
 
     auto node = m_repoController->loadCompareNode(file.toStdString());
     m_branchViewer->LoadRevision(node);
+    m_branchViewer->SetMeshColour(glm::vec3(0.4f,0.4f,0.8f));
 
     // update timeline;
     ui->timeline->updateBranchDuration(node->m_model->m_animationDuration);
