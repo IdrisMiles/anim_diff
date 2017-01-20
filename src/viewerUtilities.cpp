@@ -69,7 +69,7 @@ void ViewerUtilities::ReadNodeHierarchy(const std::map<std::string, unsigned int
     }
 
     // Set defualt to bind pose
-    glm::mat4 nodeTransform(_pBone->m_transform);
+    glm::mat4 boneTransform(_pBone->m_transform);
 
     const BoneAnim* pBoneAnim = &_pRig->m_boneAnims[_pBone->m_name];
 
@@ -93,10 +93,10 @@ void ViewerUtilities::ReadNodeHierarchy(const std::map<std::string, unsigned int
     translationMat = glm::translate(translationMat, translationVec);
 
     // Combine the above transformations
-    nodeTransform =  translationMat * rotationMat * scalingMat;
+    boneTransform =  translationMat * rotationMat * scalingMat;
 
 
-    glm::mat4 globalTransformation = glm::transpose(nodeTransform)*_parentTransform;
+    glm::mat4 globalTransformation = glm::transpose(boneTransform)*_parentTransform;
 
 
     if (BoneIndex != -1)
@@ -294,24 +294,6 @@ uint ViewerUtilities::FindScalingKeyFrame(const float _animationTime, const Bone
     assert(0);
 }
 
-const std::shared_ptr<Bone> ViewerUtilities::getParentBone(const std::shared_ptr<Bone> _pNode)
-{
-    if(_pNode->m_parent != NULL)
-    {
-        if(!_pNode->m_parent->m_name.empty())
-        {
-            return _pNode->m_parent;
-        }
-        else
-        {
-            return getParentBone(_pNode->m_parent);
-        }
-    }
-    else
-    {
-        return NULL;
-    }
-}
 
 
 BoneAnim ViewerUtilities::TransferAnim(const aiNodeAnim *_pNodeAnim)
