@@ -66,7 +66,7 @@ void MainWindow::LoadMasterRevision()
 
     auto node = m_repoController->loadMainNode(file.toStdString());
     m_masterViewer->LoadRevision(node);
-    m_masterViewer->SetMeshColour(glm::vec3(0.4f,0.8f,0.4f));
+    m_masterViewer->SetMeshColour(glm::vec3(0.6f,0.6f,0.6f));
 
     // update timeline
     ui->timeline->updateMasterDuration(node->m_model->m_animationDuration);
@@ -99,7 +99,7 @@ void MainWindow::LoadBranchRevision()
 
     auto node = m_repoController->loadCompareNode(file.toStdString());
     m_branchViewer->LoadRevision(node);
-    m_branchViewer->SetMeshColour(glm::vec3(0.4f,0.4f,0.8f));
+    m_branchViewer->SetMeshColour(glm::vec3(0.6f,0.6f,0.6f));
 
     // update timeline;
     ui->timeline->updateBranchDuration(node->m_model->m_animationDuration);
@@ -163,6 +163,8 @@ void MainWindow::CompareRevisions()
             m_mergeViewer->show();
 
             LoadDiffControls(merge);
+            m_masterViewer->SetMeshColour(glm::vec3(0.4f,0.8f,0.4f));
+            m_branchViewer->SetMeshColour(glm::vec3(0.4f,0.4f,0.8f));
         }
         else
         {
@@ -174,6 +176,7 @@ void MainWindow::CompareRevisions()
             // get rid of button
             ui->s_compareBtn->hide();
             m_diffViewer->show();
+            ui->s_parentRevBtn->hide();
 
             LoadDiffControls(diff);
         }
