@@ -25,6 +25,7 @@ BoneAnimDiff DiffFunctions::getBoneDiff(BoneAnim master, BoneAnim branch)
 {
     BoneAnimDiff boneDiff;
 
+    // get deltas for each item
     boneDiff.m_posAnimDeltas = getPositionDiffs(master.m_posAnim, branch.m_posAnim);
 
     boneDiff.m_rotAnimDeltas = getRotationDiffs(master.m_rotAnim, branch.m_rotAnim);
