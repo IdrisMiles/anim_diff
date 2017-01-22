@@ -322,3 +322,92 @@ ScaleAnim DiffFunctions::getScaleDiff(ScaleAnim scaleA, ScaleAnim scaleB1, Scale
 
     return scaleDiff; 
 }
+
+void DiffFunctions::getAnimMerge(DiffRig master, DiffRig branch, MergeRig &outRig)
+{       
+    // iterate through master bones
+    for(auto bone : master.m_boneAnimDiffs)
+    {
+        // find matching one
+        auto branchBone = branch.m_boneAnimDiffs.find(bone.first);
+
+        if(branchBone != branch.m_boneAnimDiffs.end())
+        {
+            BoneAnimMerge boneDiff = getBoneMerge(bone.second, branchBone->second);
+            outRig.m_boneAnimMerges.insert({bone.first, boneDiff});
+        }
+        else
+        {
+            std::cout << "cannot find matching bone for: " << bone.first << "\n";
+        }
+    }
+}
+
+BoneAnimMerge DiffFunctions::getBoneMerge(BoneAnimDiff master, BoneAnimDiff branch)
+{
+    BoneAnimMerge boneMerge;
+    
+    // now we check whether they both have changes on the same 
+    bool bMasterChange = getIfChanges(master);
+    bool bBranchChange = getIfChanges(branch);
+
+    if(bMasterChange && bBranchChange)
+    {
+        boneMerge.m_type = CONFLICT;
+        boneMerge.m_mainDiff = master;
+        boneMerge.m_branchDiff = branch;
+    }
+    else if(bMasterChange)
+    {
+        boneMerge.m_type = MASTER;
+        boneMerge.m_mainDiff = master;
+    }
+    else if(bBranchChange)
+    {
+        boneMerge.m_type = BRANCH;
+        boneMerge.m_branchDiff = branch;
+    }
+    else
+    {
+        boneMerge.m_type = EMPTY;
+    }
+    
+    return boneMerge;   
+}
+
+bool DiffFunctions::getIfChanges(BoneAnimDiff _diff)
+{
+    // loop all items if not zeros we got changes
+    for(auto posDelta : _diff.m_posAnimDeltas)
+    {
+        glm::vec3 pos = posDelta.pos;
+
+        if( pos != glm::vec3(0,0,0) )
+        {
+            return true;
+        }
+    }
+
+    for(auto scaleDelta : _diff.m_scaleAnimDeltas)
+    {
+        glm::vec3 scale = scaleDelta.scale;
+
+        if( scale != glm::vec3(0,0,0) )
+        {
+            return true;
+        }
+    }
+
+    for(auto rotDelta : _diff.m_rotAnimDeltas)
+    {
+        glm::quat rot = rotDelta.rot;
+
+        if( rot != glm::quat(0,0,0,0))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+

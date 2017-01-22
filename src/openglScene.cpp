@@ -5,11 +5,11 @@
 
 OpenGLScene::OpenGLScene(QWidget *parent) : QOpenGLWidget(parent),
     m_xRot(0),
-    m_yRot(0),
+    m_yRot(180 * 16),
     m_zRot(0),
     m_xDis(0),
     m_yDis(0),
-    m_zDis(200)
+    m_zDis(15000)
 {
     QSurfaceFormat format;
     format.setVersion(4, 3);
@@ -125,40 +125,7 @@ void OpenGLScene::initializeGL()
 
 void OpenGLScene::customInitGL()
 {
-    /*
-    // setup shaders
-    m_skinningShader = new QOpenGLShaderProgram;
-    m_skinningShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "../shader/skinningVert.glsl");
-    m_skinningShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "../shader/skinningFrag.glsl");
-    m_skinningShader->bindAttributeLocation("vertex", 0);
-    m_skinningShader->bindAttributeLocation("normal", 1);
-    m_skinningShader->link();
 
-    m_skinningShader->bind();
-    m_projMatrixLoc = m_skinningShader->uniformLocation("projMatrix");
-    m_mvMatrixLoc = m_skinningShader->uniformLocation("mvMatrix");
-    m_normalMatrixLoc = m_skinningShader->uniformLocation("normalMatrix");
-    m_lightPosLoc = m_skinningShader->uniformLocation("lightPos");
-
-
-    // initialise view and projection matrices
-    m_viewMat = glm::mat4(1);
-    m_viewMat = glm::lookAt(glm::vec3(0,0,0),glm::vec3(0,0,-1),glm::vec3(0,1,0));
-    m_projMat = glm::perspective(45.0f, GLfloat(width()) / height(), 0.01f, 2000.0f);
-
-    // Light position is fixed.
-    m_lightPos = glm::vec3(0, 0, 70);
-    glUniform3fv(m_lightPosLoc, 1, &m_lightPos[0]);
-
-
-    //---------------------------------------------------------------------------------------
-    // Demo triangle - replace this per project
-
-    //---------------------------------------------------------------------------------------
-
-
-    m_skinningShader->release();
-    */
 }
 
 void OpenGLScene::paintGL()
@@ -175,31 +142,12 @@ void OpenGLScene::paintGL()
     m_modelMat = glm::rotate(m_modelMat, glm::radians(m_yRot/16.0f), glm::vec3(0,1,0));
     //m_modelMat = glm::translate(m_modelMat, glm::vec3(0.1f*m_xDis, -0.1f*m_yDis, 0));
 
-    /*
 
-    // Set shader params
-    m_skinningShader->bind();
-
-    glUniformMatrix4fv(m_projMatrixLoc, 1, false, &m_projMat[0][0]);
-    glUniformMatrix4fv(m_mvMatrixLoc, 1, false, &(m_modelMat*m_viewMat)[0][0]);
-    glm::mat3 normalMatrix =  glm::inverse(glm::mat3(m_modelMat));
-    glUniformMatrix3fv(m_normalMatrixLoc, 1, true, &normalMatrix[0][0]);
-
-
-    //---------------------------------------------------------------------------------------
-    // Draw code - replace this with project specific draw stuff
-
-
-    //---------------------------------------------------------------------------------------
-
-
-    m_skinningShader->release();
-    */
 }
 
 void OpenGLScene::resizeGL(int w, int h)
 {
-    m_projMat = glm::perspective(45.0f, GLfloat(w) / h, 0.01f, 5000.0f);
+    m_projMat = glm::perspective(45.0f, GLfloat(w) / h, 1.0f, 10000.0f);
 }
 
 

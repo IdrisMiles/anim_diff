@@ -31,6 +31,8 @@ public:
     /// @param _t : The time we are settting.
     void SetTime(const float _t);
 
+    void SetMeshColour(const glm::vec3 &_colour);
+
 
 protected slots:
     /// @brief Method to update the bone animation. This takes advantage of Qt's Signals and Slots so that we can update the animation on a timer event to decouple it from the rest of the drawing.

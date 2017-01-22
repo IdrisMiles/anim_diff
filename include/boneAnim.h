@@ -7,6 +7,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+enum MERGE { MASTER, BRANCH, CONFLICT, EMPTY };
+
 struct PosAnim
 {
     float time;

@@ -167,7 +167,7 @@ void DiffViewer::customInitGL()
     // initialise view and projection matrices
     m_viewMat = glm::mat4(1);
     m_viewMat = glm::lookAt(glm::vec3(0,0,0),glm::vec3(0,0,-1),glm::vec3(0,1,0));
-    m_projMat = glm::perspective(45.0f, GLfloat(width()) / height(), 0.01f, 2000.0f);
+    m_projMat = glm::perspective(45.0f, GLfloat(width()) / height(), 1.0f, 10000.0f);
 
     CreateShaders();
     CreateVAOs();
@@ -269,6 +269,10 @@ void DiffViewer::UploadBoneColoursToShader(std::vector<glm::vec3> &_rigJointColo
 
 void DiffViewer::ComputeBoneColours(const float _t)
 {
+    for(auto &&c : m_model->m_rigJointColours)
+    {
+        c = glm::vec3(0.6f,0.6f,0.6f);
+    }
     ViewerUtilities::ColourBoneDifferences(m_model->m_boneMapping, _t, m_revisionDiff->getBoneDeltas(), m_model->m_rig, m_model->m_rig->m_rootBone, m_revisionDiff->getDiffRig(), m_model->m_rigJointColours);
 }
 

@@ -6,11 +6,16 @@ RevisionDiff::RevisionDiff(std::shared_ptr<RevisionNode> _master, std::shared_pt
     m_masterNode(_master),
     m_branchNode(_branch)
 {
-    for(auto bone : m_masterNode->m_model->m_rig->m_boneAnims)
+    if(m_masterNode)
     {
-        m_boneDeltas[bone.first] = 0.0;
+        if(m_masterNode->m_model)
+        {
+            for(auto bone : m_masterNode->m_model->m_rig->m_boneAnims)
+            {
+                m_boneDeltas[bone.first] = 0.0;
+            }
+        }
     }
-
 }
 
 RevisionDiff::~RevisionDiff()
