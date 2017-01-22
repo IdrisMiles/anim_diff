@@ -41,14 +41,16 @@ std::shared_ptr<RevisionDiff> RepoController::getDiff()
     try 
     {
         RevisionDiff diff = RevisionUtils::getRevisionDiff(m_mainNode, m_compareNode);
-        return std::make_shared<RevisionDiff>(diff);
+        m_diff = std::make_shared<RevisionDiff>(diff);
     }
     catch(const std::string& ex) 
     {
         std::cout << ex << "\n";
         // return an empty diff
-        return std::shared_ptr<RevisionDiff>(new RevisionDiff(m_mainNode, m_compareNode));
+        m_diff = std::shared_ptr<RevisionDiff>(new RevisionDiff(m_mainNode, m_compareNode));
     }
+
+    return m_diff;
 }
 
 std::shared_ptr<RevisionMerge> RepoController::getMerge()
@@ -62,12 +64,22 @@ std::shared_ptr<RevisionMerge> RepoController::getMerge()
         // do something with these diffs. 
         // diff the diffs! crazy! mental!
         RevisionMerge merge = RevisionUtils::getRevisionMerge(mainDiff, compDiff, m_parentNode);
-        return std::make_shared<RevisionMerge>(merge);
+        m_merge = std::make_shared<RevisionMerge>(merge);
 
     }
     catch(const std::string& ex) 
     {
         std::cout << ex << "\n";
-        return std::shared_ptr<RevisionMerge>(new RevisionMerge(m_mainNode, m_compareNode, m_parentNode));
+        m_merge = std::shared_ptr<RevisionMerge>(new RevisionMerge(m_mainNode, m_compareNode, m_parentNode));
     }
+
+    return m_merge;
+}
+
+void RepoController::exportDiff()
+{
+    // Create a revision node from the revisionDiff
+    RevisionNode node = RevisionUtils::getRevisionNodeForDiff(m_diff);
+
+    // export the node to file
 }

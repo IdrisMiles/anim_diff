@@ -3,10 +3,10 @@
 
 #include <memory>
 #include "diffFunctions.h"
+#include "revisionNode.h"
 #include "revisionDiff.h"
 #include "revisionMerge.h"
 
-class RevisionNode;
 class ModelRig;
 
 class RevisionUtils : public DiffFunctions
@@ -21,6 +21,18 @@ public:
     static RevisionMerge getRevisionMerge(RevisionDiff _diffA, 
                                             RevisionDiff _diffB, 
                                             std::shared_ptr<RevisionNode> _parentNode);
+                                            
+    static RevisionNode getRevisionNodeForDiff(std::shared_ptr<RevisionDiff> _diff);
+
+private:
+
+    static void copyRigStructure(std::shared_ptr<ModelRig> pRig, 
+                                        DiffRig _diffRig, 
+                                        std::shared_ptr<Bone> pParentBone, 
+                                        std::shared_ptr<Bone> pNewBone, 
+                                        std::shared_ptr<Bone> pOldBone);
+
+    static Model getModelFromDiff(std::shared_ptr<RevisionDiff> _diff);
 };
 
 #endif // REVISIONUTILS_H

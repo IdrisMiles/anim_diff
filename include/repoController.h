@@ -21,11 +21,15 @@ public:
     std::shared_ptr<RevisionDiff> getDiff();
     std::shared_ptr<RevisionMerge> getMerge();
 
+    void exportDiff();
+
 private:
     std::shared_ptr<RevisionNode> m_mainNode;
     std::shared_ptr<RevisionNode> m_compareNode;
-    std::shared_ptr<RevisionNode> m_parentNode;        
+    std::shared_ptr<RevisionNode> m_parentNode;
 
+    std::shared_ptr<RevisionDiff> m_diff;
+    std::shared_ptr<RevisionMerge> m_merge;
 };
 
 #endif
