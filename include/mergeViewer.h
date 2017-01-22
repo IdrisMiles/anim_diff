@@ -17,9 +17,15 @@
 class MergeViewer : public RevisionViewer
 {
 public:
+    /// @brief Constructor.
+    /// @param parent : The parent widget to this widget.
     MergeViewer(QWidget *parent = nullptr);
+
+    /// @brief Virtual destructor.
     virtual ~MergeViewer();
 
+    /// @brief Method to load in a RevisionMerge for rendering.
+    /// @param _merge : The revision merge data we want to draw.
     void LoadMerge(std::shared_ptr<RevisionMerge> _merge);
 
 
