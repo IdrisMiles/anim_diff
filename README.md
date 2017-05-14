@@ -2,9 +2,9 @@
 Collaborative Research Project
 
 
-##**Running tests**
+## **Running tests**
 
-###**Installation**
+### **Installation**
 I used this as reference
 [getting started with google-test on ubuntu](https://www.eriksmistad.no/getting-started-with-google-test-on-ubuntu/)
 
@@ -20,7 +20,7 @@ I used this as reference
     # copy or symlink libgtest.a and libgtest_main.a to your /usr/lib folder for ease
     sudo cp *.a /usr/lib
 
-###**Running**
+### *Running**
 Running the tests should be as easy as the following:
 
     cd /test
